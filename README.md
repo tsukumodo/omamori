@@ -2,22 +2,9 @@
 
 VRChatアバターの設定ミスをビルド前に一括検出するUnity Editor拡張です。
 
-## インストール
+## ダウンロード
 
-### VCC から追加（推奨）
-
-1. 以下のボタンをクリックして VCC にリポジトリを追加：
-
-   [VCC に追加](vcc://vpm/addRepo?url=https://tsukumodo.github.io/omamori/index.json)
-
-2. VCC の「Manage Project」から「アバター改変おまもり」をインストール
-
-VPMリポジトリURL: `https://tsukumodo.github.io/omamori/index.json`
-
-### 手動インストール
-
-1. `Packages/` フォルダに本パッケージをクローンまたはコピー
-2. Unity がコンパイルし、`Tools > アバター改変おまもり` メニューが表示されることを確認
+[BOOTH](https://tsukumodo-lab.booth.pm/items/8132860) からダウンロードしてください。
 
 ## 動作要件
 
