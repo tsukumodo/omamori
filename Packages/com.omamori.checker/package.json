@@ -1,0 +1,20 @@
+{
+  "name": "com.tsukumodo.avatar-omamori",
+  "version": "0.1.0",
+  "displayName": "アバター改変おまもり",
+  "description": "VRChatアバターの設定ミスをビルド前に一括検出するツール",
+  "unity": "2022.3",
+  "author": {
+    "name": "tsukumodo"
+  },
+  "keywords": [
+    "vrchat",
+    "avatar",
+    "validation",
+    "modular-avatar"
+  ],
+  "license": "MIT",
+  "vpmDependencies": {
+    "com.vrchat.avatars": ">=3.5.0"
+  }
+}

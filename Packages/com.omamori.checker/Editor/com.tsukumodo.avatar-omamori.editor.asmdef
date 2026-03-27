@@ -1,6 +1,9 @@
 {
-    "name": "VRChatPackageTemplate.Editor",
-    "references": [],
+    "name": "com.tsukumodo.avatar-omamori.editor",
+    "rootNamespace": "AvatarOmamori.Editor",
+    "references": [
+        "VRC.SDK3A"
+    ],
     "includePlatforms": [
         "Editor"
     ],
