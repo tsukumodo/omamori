@@ -16,16 +16,9 @@ VRChatアバターの設定ミスをビルド前に一括検出するUnity Edito
 - VRChat SDK - Avatars 3.5.0 以降
 - Modular Avatar（オプション — 未インストール時はMAチェックをスキップ）
 
-## インストール
+## ダウンロード
 
-### VPM (推奨)
-
-VCC (VRChat Creator Companion) に本リポジトリを追加し、パッケージをインストールしてください。
-
-### 手動
-
-1. `Packages/` フォルダに本リポジトリをクローンまたはコピー
-2. Unity がコンパイルし、`Tools > アバター改変おまもり` メニューが表示されることを確認
+[BOOTH](https://tsukumodo-lab.booth.pm/items/8132860) からダウンロードしてください。
 
 ## 使い方
 
