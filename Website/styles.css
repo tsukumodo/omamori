@@ -1,31 +1,33 @@
 :root {
   color-scheme: light dark;
-  --omamori-primary: #e8725a;
-  --omamori-primary-light: #fef0ed;
-  --omamori-primary-dark: #c2503a;
-  --omamori-warm: #fff8f5;
-  --omamori-gold: #d4a24e;
-  --omamori-gold-light: #fdf6e8;
-  --omamori-teal: #3a9e8f;
-  --omamori-teal-light: #e8f6f3;
-  --omamori-bg: #faf9f7;
-  --omamori-text: #2c2a28;
-  --omamori-text-sub: #6b6560;
-  --omamori-border: #e8e4df;
-  --omamori-card-bg: #ffffff;
+
+  --omamori-green: #467A56;
+  --omamori-green-light: #4E8862;
+  --omamori-cream: #F0E8D0;
+  --omamori-gold: #C8A87C;
+
+  --page-bg: #F7F5F0;
+  --text-primary: #2C2A25;
+  --text-secondary: #6B665E;
+  --card-bg: #FFFFFF;
+  --border: #E0DCD4;
+  --hero-bg: #467A56;
+  --hero-text: #F0E8D0;
+  --hero-sub: #C8D8C0;
+  --badge-bg: rgba(240, 232, 208, 0.2);
+  --badge-border: rgba(240, 232, 208, 0.4);
+  --badge-text: #F0E8D0;
+  --footer-text: #8A857C;
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --omamori-primary-light: #3d2420;
-    --omamori-warm: #1e1c1a;
-    --omamori-gold-light: #2a2418;
-    --omamori-teal-light: #1a2c29;
-    --omamori-bg: #141311;
-    --omamori-text: #e8e4df;
-    --omamori-text-sub: #9e9590;
-    --omamori-border: #3a3632;
-    --omamori-card-bg: #1e1c1a;
+    --page-bg: #1A1915;
+    --text-primary: #E8E4DC;
+    --text-secondary: #9E9890;
+    --card-bg: #242220;
+    --border: #3A3632;
+    --footer-text: #6B665E;
   }
 }
 
@@ -41,24 +43,9 @@ body {
   display: flex;
   align-items: flex-start;
   justify-content: center;
-  font-family: 'M PLUS Rounded 1c', 'Zen Maru Gothic', 'Segoe UI', sans-serif;
-  color: var(--omamori-text);
-  background: var(--omamori-bg);
-  position: relative;
-  overflow-x: hidden;
-}
-
-.page-bg {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  pointer-events: none;
-  z-index: 0;
-  background:
-    radial-gradient(ellipse 600px 400px at 20% 10%, var(--omamori-primary-light) 0%, transparent 70%),
-    radial-gradient(ellipse 500px 350px at 80% 80%, var(--omamori-gold-light) 0%, transparent 70%);
+  font-family: 'Zen Maru Gothic', 'Noto Sans JP', sans-serif;
+  color: var(--text-primary);
+  background: var(--page-bg);
 }
 
 .hidden {
@@ -79,9 +66,6 @@ body {
   max-width: 800px;
   width: 100%;
   margin: 0 auto;
-  padding: 0 1.5rem;
-  position: relative;
-  z-index: 1;
 }
 
 .align-items-center {
@@ -98,194 +82,78 @@ body {
 
 /* ─── Hero ─── */
 .hero {
-  padding: 3rem 0 2rem;
+  width: 100%;
+  background: var(--hero-bg);
+  padding: 2.5rem 2rem 2rem;
   text-align: center;
-}
-
-.hero-icon {
-  font-size: 3.5rem;
-  margin-bottom: 0.75rem;
-  filter: drop-shadow(0 4px 12px rgba(232, 114, 90, 0.3));
-  animation: float 3s ease-in-out infinite;
-}
-
-@keyframes float {
-  0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-6px); }
+  border-radius: 0 0 16px 16px;
 }
 
 .hero-title {
   font-family: 'Zen Maru Gothic', sans-serif;
-  font-size: 2.2rem;
+  font-size: 1.8rem;
   font-weight: 700;
-  margin: 0 0 0.5rem;
-  letter-spacing: 0.04em;
-  background: linear-gradient(135deg, var(--omamori-primary), var(--omamori-gold));
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
+  color: var(--hero-text);
+  margin: 0 0 0.4rem;
+  letter-spacing: 0.06em;
 }
 
 .hero-subtitle {
-  font-size: 1.05rem;
-  color: var(--omamori-text-sub);
-  margin: 0 0 1.25rem;
-  line-height: 1.7;
+  font-size: 0.9rem;
+  color: var(--hero-sub);
+  margin: 0 0 1.2rem;
+  line-height: 1.6;
+  font-weight: 400;
 }
 
 .hero-badges {
   display: flex;
-  gap: 0.5rem;
+  gap: 0.4rem;
   flex-wrap: wrap;
   justify-content: center;
 }
 
 .badge {
-  border-radius: 20px;
-  padding: 0.3rem 0.85rem;
-  font-size: 0.8rem;
+  border-radius: 4px;
+  padding: 0.2rem 0.6rem;
+  font-size: 0.75rem;
   font-weight: 500;
+  background: var(--badge-bg);
+  border: 1px solid var(--badge-border);
+  color: var(--badge-text);
   letter-spacing: 0.02em;
-}
-
-.badge-free {
-  background: var(--omamori-teal-light);
-  color: var(--omamori-teal);
-  border: 1px solid var(--omamori-teal);
-}
-
-.badge-mit {
-  background: var(--omamori-gold-light);
-  color: var(--omamori-gold);
-  border: 1px solid var(--omamori-gold);
-}
-
-.badge-ma {
-  background: var(--omamori-primary-light);
-  color: var(--omamori-primary);
-  border: 1px solid var(--omamori-primary);
-}
-
-/* ─── Features ─── */
-.features-section {
-  width: 100%;
-  margin: 1rem 0 2rem;
-}
-
-.features-grid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 1rem;
-}
-
-@media (max-width: 700px) {
-  .features-grid {
-    grid-template-columns: 1fr;
-  }
-}
-
-.feature-card {
-  background: var(--omamori-card-bg);
-  border: 1px solid var(--omamori-border);
-  border-radius: 12px;
-  padding: 1.25rem;
-  transition: transform 0.2s, box-shadow 0.2s;
-}
-
-.feature-card:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 8px 24px rgba(0,0,0,0.06);
-}
-
-@media (prefers-color-scheme: dark) {
-  .feature-card:hover {
-    box-shadow: 0 8px 24px rgba(0,0,0,0.25);
-  }
-}
-
-.feature-icon {
-  font-size: 1.5rem;
-  margin-bottom: 0.5rem;
-}
-
-.feature-card h3 {
-  font-family: 'Zen Maru Gothic', sans-serif;
-  font-size: 0.95rem;
-  font-weight: 700;
-  margin: 0 0 0.4rem;
-  color: var(--omamori-text);
-}
-
-.feature-card p {
-  font-size: 0.82rem;
-  color: var(--omamori-text-sub);
-  margin: 0;
-  line-height: 1.6;
 }
 
 /* ─── Install ─── */
 .install-section {
   width: 100%;
-  margin: 0 0 2rem;
-  text-align: center;
+  padding: 1.5rem 1.5rem 0;
 }
 
-.install-section h2 {
-  font-family: 'Zen Maru Gothic', sans-serif;
-  font-size: 1.4rem;
-  font-weight: 700;
-  margin: 0 0 0.5rem;
-}
-
-.install-desc {
-  font-size: 0.9rem;
-  color: var(--omamori-text-sub);
-  margin: 0;
-}
-
-h1 {
-  margin-bottom: 0.5rem;
-}
-
-.caption1 {
-  font-size: 1rem;
-  color: var(--omamori-text-sub);
-}
-
-.caption2 {
-  font-size: 0.8rem;
-  margin-top: 0.25rem;
-  color: var(--omamori-text-sub);
-}
-
-/* ─── Packages ─── */
-.packages {
-  margin: 0.5rem 0 1rem 0;
-  max-width: 100%;
-  padding: 0.25rem;
-  display: flex;
-  flex: 1;
-  border-radius: 12px;
-}
-
-#packageGrid {
-  overflow-y: auto;
+.addToVccBlock {
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  justify-content: center;
   width: 100%;
-  max-height: 40rem;
 }
 
-.packages .packageName {
-  font-family: 'Zen Maru Gothic', sans-serif;
-  font-size: 1.1rem;
-  font-weight: 600;
-  margin: 0.25rem 0;
+.vccUrlField {
+  min-width: 300px;
+  max-width: 90%;
+  flex-grow: 1;
+}
+
+@media (max-width: 600px) {
+  .vccUrlField {
+    min-width: 100%;
+  }
 }
 
 /* ─── Search ─── */
 .searchBlock {
   margin-top: 1rem;
   width: 100%;
-  max-width: 100%;
+  padding: 0 1.5rem;
 }
 
 .searchBlock .root {
@@ -296,23 +164,43 @@ h1 {
   width: 100%;
 }
 
-/* ─── URL Bar ─── */
-.addToVccBlock {
-  flex-wrap: wrap;
-  gap: 0.5rem;
-  justify-content: center;
+/* ─── Packages ─── */
+.packages {
+  margin: 0.5rem 1.5rem 1rem;
+  padding: 0.25rem;
+  display: flex;
+  flex: 1;
+  border-radius: 8px;
+  max-width: calc(100% - 3rem);
 }
 
-.vccUrlField {
-  min-width: 300px;
-  max-width: 90%;
-  flex-grow: 1;
+#packageGrid {
+  overflow-y: auto;
+  width: 100%;
+  max-height: 40rem;
 }
 
-@media (max-width: 700px) {
-  .vccUrlField {
-    min-width: 100%;
-  }
+.packages .packageName {
+  font-family: 'Zen Maru Gothic', sans-serif;
+  font-size: 1.05rem;
+  font-weight: 700;
+  margin: 0.25rem 0;
+}
+
+/* ─── Caption ─── */
+h1 {
+  margin-bottom: 0.5rem;
+}
+
+.caption1 {
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+}
+
+.caption2 {
+  font-size: 0.78rem;
+  margin-top: 0.25rem;
+  color: var(--text-secondary);
 }
 
 /* ─── Dialogs ─── */
@@ -339,19 +227,17 @@ h1 {
 
 /* ─── Footer ─── */
 .site-footer {
-  margin: 2rem 0;
+  padding: 1.5rem 0 2rem;
   text-align: center;
   width: 100%;
 }
 
 .site-footer p {
-  font-size: 0.85rem;
-  color: var(--omamori-text-sub);
-}
-
-.site-footer strong {
-  color: var(--omamori-text);
-  font-weight: 500;
+  font-family: 'Zen Maru Gothic', sans-serif;
+  font-size: 0.8rem;
+  color: var(--footer-text);
+  margin: 0;
+  letter-spacing: 0.08em;
 }
 
 /* ─── Spacing utilities ─── */
