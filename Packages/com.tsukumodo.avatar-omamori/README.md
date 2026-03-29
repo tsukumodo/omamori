@@ -9,6 +9,8 @@ VRChatアバターの設定ミスをビルド前に一括検出するUnity Edito
 | VRC Avatar Descriptor 重複チェック | アバタールート以下にDescriptorが複数あるか検出 | Error |
 | MA MenuItem 未接続チェック | MenuItemの祖先にMenuInstallerがない場合を検出 | Error |
 | MA ObjectToggle 自己参照チェック | ObjectToggleが自身のGameObjectを参照している場合を検出 | Error |
+| Missing Script チェック | アバター配下のMissing状態のコンポーネントを検出 | Error |
+| シェーダー未検出チェック | シェーダーが見つからないマテリアル（ピンク表示）を検出 | Warning |
 
 ## 動作要件
 
