@@ -5,14 +5,25 @@ using UnityEngine;
 
 namespace AvatarOmamori.Editor
 {
+    /// <summary>
+    /// アバター改変おまもりのメイン EditorWindow。
+    /// アバタールートを指定してチェックを実行し、結果を Severity 別に表示する。
+    /// </summary>
     public sealed class AvatarOmamoriWindow : EditorWindow
     {
         private GameObject _avatarRoot;
         private List<CheckResult> _results;
+        private List<CheckResult> _errors;
+        private List<CheckResult> _warnings;
+        private List<CheckResult> _infos;
         private Vector2 _scrollPos;
         private bool _foldError = true;
         private bool _foldWarning = true;
         private bool _foldInfo = true;
+
+        // GUIStyle のキャッシュ
+        private GUIStyle _summaryStyle;
+        private GUIStyle _foldoutStyle;
 
         [MenuItem("Tools/アバター改変おまもり")]
         public static void ShowWindow()
@@ -36,6 +47,7 @@ namespace AvatarOmamori.Editor
                 if (GUILayout.Button("チェック実行", GUILayout.Height(30)))
                 {
                     _results = CheckRunner.RunAll(_avatarRoot);
+                    CacheResultsByCategory();
                 }
             }
 
@@ -44,19 +56,12 @@ namespace AvatarOmamori.Editor
 
             EditorGUILayout.Space(4);
 
-            var errors = _results.Where(r => r.Severity == Severity.Error).ToList();
-            var warnings = _results.Where(r => r.Severity == Severity.Warning).ToList();
-            var infos = _results.Where(r => r.Severity == Severity.Info).ToList();
-
             // サマリー
-            var summary = $"結果: {errors.Count} Error / {warnings.Count} Warning / {infos.Count} Info";
-            var summaryStyle = new GUIStyle(EditorStyles.label)
-            {
-                fontStyle = FontStyle.Bold
-            };
-            if (errors.Count > 0)
+            var summary = $"結果: {_errors.Count} Error / {_warnings.Count} Warning / {_infos.Count} Info";
+            var summaryStyle = GetSummaryStyle();
+            if (_errors.Count > 0)
                 summaryStyle.normal.textColor = new Color(0.9f, 0.2f, 0.2f);
-            else if (warnings.Count > 0)
+            else if (_warnings.Count > 0)
                 summaryStyle.normal.textColor = new Color(0.9f, 0.7f, 0.1f);
             else
                 summaryStyle.normal.textColor = new Color(0.2f, 0.8f, 0.2f);
@@ -66,12 +71,12 @@ namespace AvatarOmamori.Editor
 
             _scrollPos = EditorGUILayout.BeginScrollView(_scrollPos);
 
-            if (errors.Count > 0)
-                DrawSeverityGroup("Error", errors, ref _foldError, new Color(0.9f, 0.2f, 0.2f));
-            if (warnings.Count > 0)
-                DrawSeverityGroup("Warning", warnings, ref _foldWarning, new Color(0.9f, 0.7f, 0.1f));
-            if (infos.Count > 0)
-                DrawSeverityGroup("Info", infos, ref _foldInfo, new Color(0.5f, 0.7f, 1f));
+            if (_errors.Count > 0)
+                DrawSeverityGroup("Error", _errors, ref _foldError, new Color(0.9f, 0.2f, 0.2f));
+            if (_warnings.Count > 0)
+                DrawSeverityGroup("Warning", _warnings, ref _foldWarning, new Color(0.9f, 0.7f, 0.1f));
+            if (_infos.Count > 0)
+                DrawSeverityGroup("Info", _infos, ref _foldInfo, new Color(0.5f, 0.7f, 1f));
 
             if (_results.Count == 0)
             {
@@ -81,12 +86,43 @@ namespace AvatarOmamori.Editor
             EditorGUILayout.EndScrollView();
         }
 
-        private static void DrawSeverityGroup(string label, List<CheckResult> items, ref bool foldout, Color color)
+        /// <summary>
+        /// チェック結果を Severity 別に分類してキャッシュする。
+        /// </summary>
+        private void CacheResultsByCategory()
         {
-            var style = new GUIStyle(EditorStyles.foldout)
+            _errors = _results.Where(r => r.Severity == Severity.Error).ToList();
+            _warnings = _results.Where(r => r.Severity == Severity.Warning).ToList();
+            _infos = _results.Where(r => r.Severity == Severity.Info).ToList();
+        }
+
+        private GUIStyle GetSummaryStyle()
+        {
+            if (_summaryStyle == null)
             {
-                fontStyle = FontStyle.Bold
-            };
+                _summaryStyle = new GUIStyle(EditorStyles.label)
+                {
+                    fontStyle = FontStyle.Bold
+                };
+            }
+            return _summaryStyle;
+        }
+
+        private GUIStyle GetFoldoutStyle()
+        {
+            if (_foldoutStyle == null)
+            {
+                _foldoutStyle = new GUIStyle(EditorStyles.foldout)
+                {
+                    fontStyle = FontStyle.Bold
+                };
+            }
+            return _foldoutStyle;
+        }
+
+        private void DrawSeverityGroup(string label, List<CheckResult> items, ref bool foldout, Color color)
+        {
+            var style = GetFoldoutStyle();
             style.normal.textColor = color;
             style.onNormal.textColor = color;
 

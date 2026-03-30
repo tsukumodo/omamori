@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using AvatarOmamori.Editor.Util;
 using UnityEngine;
 using VRC.SDK3.Avatars.Components;
 
@@ -6,13 +7,17 @@ namespace AvatarOmamori.Editor.Checks
 {
     /// <summary>
     /// アバタールート以下に VRC_AvatarDescriptor が複数存在する場合にエラーを報告する。
+    /// 複数の Descriptor が存在するとアバターのビルド・アップロードに失敗する。
     /// </summary>
     public sealed class DescriptorDuplicateCheck : IAvatarCheck
     {
+        /// <inheritdoc/>
         public string DisplayName => "VRC Avatar Descriptor 重複チェック";
 
+        /// <inheritdoc/>
         public bool IsAvailable() => true;
 
+        /// <inheritdoc/>
         public IEnumerable<CheckResult> Execute(GameObject avatarRoot)
         {
             var descriptors = avatarRoot.GetComponentsInChildren<VRCAvatarDescriptor>(true);
@@ -31,22 +36,10 @@ namespace AvatarOmamori.Editor.Checks
             {
                 yield return new CheckResult(
                     Severity.Error,
-                    $"重複した VRC Avatar Descriptor: {GetHierarchyPath(descriptors[i].gameObject)}",
+                    $"重複した VRC Avatar Descriptor: {HierarchyPathUtil.GetHierarchyPath(descriptors[i].gameObject)}",
                     descriptors[i]
                 );
             }
-        }
-
-        private static string GetHierarchyPath(GameObject obj)
-        {
-            var path = obj.name;
-            var current = obj.transform.parent;
-            while (current != null)
-            {
-                path = current.name + "/" + path;
-                current = current.parent;
-            }
-            return path;
         }
     }
 }
