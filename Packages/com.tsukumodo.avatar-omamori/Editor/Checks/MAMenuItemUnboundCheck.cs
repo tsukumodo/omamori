@@ -10,12 +10,15 @@ namespace AvatarOmamori.Editor.Checks
     /// </summary>
     public sealed class MAMenuItemUnboundCheck : IAvatarCheck
     {
+        /// <inheritdoc/>
         public string DisplayName => "MA MenuItem 未接続チェック";
 
+        /// <inheritdoc/>
         public bool IsAvailable() => MAReflectionHelper.IsAvailable
                                      && MAReflectionHelper.MenuItemType != null
                                      && MAReflectionHelper.MenuInstallerType != null;
 
+        /// <inheritdoc/>
         public IEnumerable<CheckResult> Execute(GameObject avatarRoot)
         {
             var menuItemType = MAReflectionHelper.MenuItemType;
