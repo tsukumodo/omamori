@@ -16,6 +16,8 @@ namespace AvatarOmamori.Editor.Util
         private static Type s_menuItemType;
         private static Type s_menuInstallerType;
         private static Type s_objectToggleType;
+        private static Type s_mergeArmatureType;
+        private static Type s_boneProxyType;
         private static FieldInfo s_objectsField;
         private static Type s_toggledObjectType;
         private static FieldInfo s_toggledObjectObjectField;
@@ -45,6 +47,16 @@ namespace AvatarOmamori.Editor.Util
         public static Type ObjectToggleType
         {
             get { EnsureInitialized(); return s_objectToggleType; }
+        }
+
+        public static Type MergeArmatureType
+        {
+            get { EnsureInitialized(); return s_mergeArmatureType; }
+        }
+
+        public static Type BoneProxyType
+        {
+            get { EnsureInitialized(); return s_boneProxyType; }
         }
 
         /// <summary>
@@ -115,6 +127,8 @@ namespace AvatarOmamori.Editor.Util
                 s_menuItemType = s_maAssembly.GetType("nadena.dev.modular_avatar.core.ModularAvatarMenuItem");
                 s_menuInstallerType = s_maAssembly.GetType("nadena.dev.modular_avatar.core.ModularAvatarMenuInstaller");
                 s_objectToggleType = s_maAssembly.GetType("nadena.dev.modular_avatar.core.ModularAvatarObjectToggle");
+                s_mergeArmatureType = s_maAssembly.GetType("nadena.dev.modular_avatar.core.ModularAvatarMergeArmature");
+                s_boneProxyType = s_maAssembly.GetType("nadena.dev.modular_avatar.core.ModularAvatarBoneProxy");
 
                 if (s_objectToggleType != null)
                 {

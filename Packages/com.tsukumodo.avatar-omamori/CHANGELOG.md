@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.3.0] - 2026-04-03
+
+### Added
+- [MA] 装飾物の未セットアップ検出チェック（Armatureを持つ子オブジェクトにMA Merge Armature / Bone Proxyが未設定の場合を警告）
+- [SDK] Expression Parameter 空欄チェック（名前が空のParameterエントリを警告）
+
 ## [0.2.0] - 2026-03-28
 
 ### Added

@@ -11,6 +11,8 @@ VRChatアバターの設定ミスをビルド前に一括検出するUnity Edito
 | MA ObjectToggle 自己参照チェック | ObjectToggleが自身のGameObjectを参照している場合を検出 | Error |
 | Missing Script チェック | アバター配下のMissing状態のコンポーネントを検出 | Error |
 | シェーダー未検出チェック | シェーダーが見つからないマテリアル（ピンク表示）を検出 | Warning |
+| MA 装飾物の未セットアップチェック | Armatureを持つ子オブジェクトにMerge Armature / Bone Proxyが未設定の場合を検出 | Warning |
+| Expression Parameter 空欄チェック | Expression Parametersに名前が空のエントリがある場合を検出 | Warning |
 
 ## 動作要件
 
