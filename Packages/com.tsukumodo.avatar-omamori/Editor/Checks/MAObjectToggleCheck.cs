@@ -6,13 +6,13 @@ using UnityEngine;
 namespace AvatarOmamori.Editor.Checks
 {
     /// <summary>
-    /// MA ObjectToggle の m_objects 内のターゲットが空、または自身の GameObject を参照している場合にエラーを報告する。
-    /// 空ターゲットは意図しない動作の原因になり、自己参照は MA ビルド時にエラー（MA-1200）を引き起こす。
+    /// MA ObjectToggle の設定バリデーション。
+    /// 空ターゲットや自己参照など、ObjectToggle に関する問題を検出する。
     /// </summary>
-    public sealed class MAObjectToggleSelfRefCheck : IAvatarCheck
+    public sealed class MAObjectToggleCheck : IAvatarCheck
     {
         /// <inheritdoc/>
-        public string DisplayName => "MA ObjectToggle 自己参照チェック";
+        public string DisplayName => "[MA] ObjectToggle チェック";
 
         /// <inheritdoc/>
         public bool IsAvailable() => MAReflectionHelper.IsAvailable
