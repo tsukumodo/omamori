@@ -1,5 +1,10 @@
 # Changelog
 
+## [0.3.1] - 2026-04-03
+
+### Changed
+- [MA] MAObjectToggleSelfRefCheck を MAObjectToggleCheck に改名（ObjectToggle全般のバリデーションとして整理）
+
 ## [0.3.0] - 2026-04-03
 
 ### Added
