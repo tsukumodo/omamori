@@ -3,8 +3,10 @@
 ## [0.3.0] - 2026-04-03
 
 ### Added
-- [MA] 装飾物の未セットアップ検出チェック（Armatureを持つ子オブジェクトにMA Merge Armature / Bone Proxyが未設定の場合を警告）
+- [MA] 装飾物の未セットアップ検出チェック（Armatureを持つ子オブジェクトにMA Merge Armature / Bone Proxyが未設定の場合を警告。ターゲット未設定も検出）
 - [SDK] Expression Parameter 空欄チェック（名前が空のParameterエントリを警告）
+- [SDK] Expression Menu設定済み・Parameters未設定の検出
+- [MA] ObjectToggle 空ターゲット検出（トグルリストのターゲットが空の場合を警告）
 
 ## [0.2.0] - 2026-03-28
 
