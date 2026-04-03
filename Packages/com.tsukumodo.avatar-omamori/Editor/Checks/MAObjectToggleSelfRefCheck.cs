@@ -6,8 +6,8 @@ using UnityEngine;
 namespace AvatarOmamori.Editor.Checks
 {
     /// <summary>
-    /// MA ObjectToggle の m_objects 内のターゲットが自身の GameObject を参照している場合にエラーを報告する。
-    /// 自己参照は MA ビルド時にエラー（MA-1200）を引き起こす。
+    /// MA ObjectToggle の m_objects 内のターゲットが空、または自身の GameObject を参照している場合にエラーを報告する。
+    /// 空ターゲットは意図しない動作の原因になり、自己参照は MA ビルド時にエラー（MA-1200）を引き起こす。
     /// </summary>
     public sealed class MAObjectToggleSelfRefCheck : IAvatarCheck
     {
@@ -36,11 +36,19 @@ namespace AvatarOmamori.Editor.Checks
                     if (entry == null) continue;
 
                     var targetGo = MAReflectionHelper.ResolveToggledTarget(entry, toggle);
-                    if (targetGo != null && targetGo == toggle.gameObject)
+                    if (targetGo == null)
+                    {
+                        yield return new CheckResult(
+                            Severity.Warning,
+                            $"[MA] ObjectToggle \"{toggle.gameObject.name}\" のトグルリスト [{i}] のターゲットが空です。不要なエントリは削除してください。",
+                            toggle
+                        );
+                    }
+                    else if (targetGo == toggle.gameObject)
                     {
                         yield return new CheckResult(
                             Severity.Error,
-                            $"MA ObjectToggle \"{toggle.gameObject.name}\" のトグルリスト [{i}] が自身の GameObject を参照しています。MAビルドエラー（MA-1200）の原因になります。",
+                            $"[MA] ObjectToggle \"{toggle.gameObject.name}\" のトグルリスト [{i}] が自身の GameObject を参照しています。MAビルドエラー（MA-1200）の原因になります。",
                             toggle
                         );
                     }

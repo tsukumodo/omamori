@@ -1,6 +1,6 @@
 {
   "name": "com.tsukumodo.avatar-omamori",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "displayName": "アバター改変おまもり",
   "description": "VRChatアバターの設定ミスをビルド前に一括検出するツール",
   "unity": "2022.3",
