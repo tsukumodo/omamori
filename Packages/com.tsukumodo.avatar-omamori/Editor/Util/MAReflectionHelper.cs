@@ -24,6 +24,9 @@ namespace AvatarOmamori.Editor.Util
         private static Type s_avatarObjectReferenceType;
         private static MethodInfo s_avatarObjectReferenceGetMethod;
         private static FieldInfo s_targetObjectField;
+        private static FieldInfo s_mergeArmatureMergeTargetField;
+        private static FieldInfo s_boneProxyBoneReferenceField;
+        private static FieldInfo s_boneProxySubPathField;
 
         public static bool IsAvailable
         {
@@ -67,6 +70,49 @@ namespace AvatarOmamori.Editor.Util
             EnsureInitialized();
             if (s_objectsField == null) return null;
             return s_objectsField.GetValue(objectToggle) as IList;
+        }
+
+        /// <summary>
+        /// MergeArmature コンポーネントの mergeTarget が設定済みかどうかを判定する。
+        /// AvatarObjectReference.Get(Component) でターゲットを解決し、null でないかを返す。
+        /// </summary>
+        public static bool IsMergeArmatureTargetSet(Component mergeArmature)
+        {
+            EnsureInitialized();
+            if (mergeArmature == null || s_mergeArmatureMergeTargetField == null) return false;
+
+            var avatarObjRef = s_mergeArmatureMergeTargetField.GetValue(mergeArmature);
+            if (avatarObjRef == null) return false;
+
+            return ResolveAvatarObjectReference(avatarObjRef, mergeArmature) != null;
+        }
+
+        /// <summary>
+        /// BoneProxy コンポーネントのターゲットが設定済みかどうかを判定する。
+        /// boneReference が HumanBodyBones.LastBone でない、または subPath が空でなければ設定済みとみなす。
+        /// </summary>
+        public static bool IsBoneProxyTargetSet(Component boneProxy)
+        {
+            EnsureInitialized();
+            if (boneProxy == null) return false;
+
+            // boneReference フィールドの確認
+            if (s_boneProxyBoneReferenceField != null)
+            {
+                var boneRef = s_boneProxyBoneReferenceField.GetValue(boneProxy);
+                if (boneRef != null && (int)boneRef != (int)HumanBodyBones.LastBone)
+                    return true;
+            }
+
+            // subPath フィールドの確認
+            if (s_boneProxySubPathField != null)
+            {
+                var subPath = s_boneProxySubPathField.GetValue(boneProxy) as string;
+                if (!string.IsNullOrEmpty(subPath))
+                    return true;
+            }
+
+            return false;
         }
 
         /// <summary>
@@ -114,6 +160,42 @@ namespace AvatarOmamori.Editor.Util
             return null;
         }
 
+        /// <summary>
+        /// AvatarObjectReference を解決して GameObject を返す共通メソッド。
+        /// </summary>
+        private static GameObject ResolveAvatarObjectReference(object avatarObjRef, Component context)
+        {
+            if (avatarObjRef == null) return null;
+
+            if (s_avatarObjectReferenceGetMethod != null)
+            {
+                try
+                {
+                    var resolved = s_avatarObjectReferenceGetMethod.Invoke(avatarObjRef, new object[] { context });
+                    if (resolved is GameObject go) return go;
+                    if (resolved is Transform t) return t.gameObject;
+                }
+                catch
+                {
+                    // フォールバックへ
+                }
+            }
+
+            if (s_targetObjectField != null)
+            {
+                try
+                {
+                    return s_targetObjectField.GetValue(avatarObjRef) as GameObject;
+                }
+                catch
+                {
+                    // 解決不能
+                }
+            }
+
+            return null;
+        }
+
         private static void EnsureInitialized()
         {
             if (s_initialized) return;
@@ -129,6 +211,22 @@ namespace AvatarOmamori.Editor.Util
                 s_objectToggleType = s_maAssembly.GetType("nadena.dev.modular_avatar.core.ModularAvatarObjectToggle");
                 s_mergeArmatureType = s_maAssembly.GetType("nadena.dev.modular_avatar.core.ModularAvatarMergeArmature");
                 s_boneProxyType = s_maAssembly.GetType("nadena.dev.modular_avatar.core.ModularAvatarBoneProxy");
+
+                // MergeArmature の mergeTarget フィールド（AvatarObjectReference 型）
+                if (s_mergeArmatureType != null)
+                {
+                    s_mergeArmatureMergeTargetField = s_mergeArmatureType.GetField("mergeTarget",
+                        BindingFlags.Public | BindingFlags.Instance);
+                }
+
+                // BoneProxy の boneReference / subPath フィールド
+                if (s_boneProxyType != null)
+                {
+                    s_boneProxyBoneReferenceField = s_boneProxyType.GetField("boneReference",
+                        BindingFlags.Public | BindingFlags.Instance);
+                    s_boneProxySubPathField = s_boneProxyType.GetField("subPath",
+                        BindingFlags.Public | BindingFlags.Instance);
+                }
 
                 if (s_objectToggleType != null)
                 {

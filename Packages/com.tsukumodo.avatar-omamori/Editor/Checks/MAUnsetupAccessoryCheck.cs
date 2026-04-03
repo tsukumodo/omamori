@@ -6,7 +6,8 @@ namespace AvatarOmamori.Editor.Checks
 {
     /// <summary>
     /// アバター直下の子オブジェクトで Armature を持つのに
-    /// MA Merge Armature も Bone Proxy も設定されていないものを警告する。
+    /// MA Merge Armature も Bone Proxy も設定されていない、
+    /// またはコンポーネントがあってもターゲットが未設定のものを警告する。
     /// 髪・衣装・アクセサリの「置いてけぼり」を汎用的に検出する。
     /// </summary>
     public sealed class MAUnsetupAccessoryCheck : IAvatarCheck
@@ -38,17 +39,47 @@ namespace AvatarOmamori.Editor.Checks
                 if (!HasArmatureChild(child))
                     continue;
 
-                // MA Merge Armature または Bone Proxy が配下にあるか確認
-                var hasMergeArmature = go.GetComponentsInChildren(mergeArmatureType, true).Length > 0;
-                var hasBoneProxy = go.GetComponentsInChildren(boneProxyType, true).Length > 0;
+                // MA Merge Armature / Bone Proxy のコンポーネントを取得
+                var mergeArmatures = go.GetComponentsInChildren(mergeArmatureType, true);
+                var boneProxies = go.GetComponentsInChildren(boneProxyType, true);
 
-                if (!hasMergeArmature && !hasBoneProxy)
+                bool hasAnyComponent = mergeArmatures.Length > 0 || boneProxies.Length > 0;
+
+                if (!hasAnyComponent)
                 {
+                    // コンポーネント自体がない
                     yield return new CheckResult(
                         Severity.Warning,
                         $"[MA] \"{go.name}\" は Armature を持っていますが、MA Merge Armature や Bone Proxy が設定されていません。衣装やアクセサリの場合、アバターに追従しない可能性があります。",
                         go
                     );
+                    continue;
+                }
+
+                // Merge Armature のターゲット未設定を検出
+                foreach (var ma in mergeArmatures)
+                {
+                    if (!MAReflectionHelper.IsMergeArmatureTargetSet(ma))
+                    {
+                        yield return new CheckResult(
+                            Severity.Warning,
+                            $"[MA] \"{ma.gameObject.name}\" の Merge Armature のターゲットが未設定です。統合先のArmatureを指定してください。",
+                            ma
+                        );
+                    }
+                }
+
+                // Bone Proxy のターゲット未設定を検出
+                foreach (var bp in boneProxies)
+                {
+                    if (!MAReflectionHelper.IsBoneProxyTargetSet(bp))
+                    {
+                        yield return new CheckResult(
+                            Severity.Warning,
+                            $"[MA] \"{bp.gameObject.name}\" の Bone Proxy のターゲットが未設定です。追従先のボーンを指定してください。",
+                            bp
+                        );
+                    }
                 }
             }
         }

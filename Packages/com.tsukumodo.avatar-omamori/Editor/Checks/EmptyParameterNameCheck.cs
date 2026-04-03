@@ -6,13 +6,14 @@ using VRC.SDK3.Avatars.ScriptableObjects;
 namespace AvatarOmamori.Editor.Checks
 {
     /// <summary>
-    /// VRC Expression Parameters の Parameter 配列に名前が空文字のエントリがある場合を検出する。
-    /// 空パラメータは同期帯域を無駄に消費し、意図しない動作の原因になる。
+    /// VRC Expression Parameters の問題を検出する。
+    /// - Expression Menu が設定されているのに Expression Parameters が未設定の場合を警告
+    /// - Parameter 配列に名前が空文字のエントリがある場合を警告
     /// </summary>
     public sealed class EmptyParameterNameCheck : IAvatarCheck
     {
         /// <inheritdoc/>
-        public string DisplayName => "[SDK] Expression Parameter 空欄チェック";
+        public string DisplayName => "[SDK] Expression Parameter チェック";
 
         /// <inheritdoc/>
         public bool IsAvailable() => true;
@@ -24,7 +25,20 @@ namespace AvatarOmamori.Editor.Checks
             if (descriptor == null)
                 yield break;
 
+            var expressionsMenu = descriptor.expressionsMenu;
             var expressionParameters = descriptor.expressionParameters;
+
+            // Expression Menu が設定されているのに Parameters が未設定
+            if (expressionsMenu != null && expressionParameters == null)
+            {
+                yield return new CheckResult(
+                    Severity.Warning,
+                    "[SDK] Expression Menu が設定されていますが、Expression Parameters が未設定です。メニューのトグルやボタンが正しく動作しません。",
+                    descriptor
+                );
+                yield break;
+            }
+
             if (expressionParameters == null || expressionParameters.parameters == null)
                 yield break;
 
