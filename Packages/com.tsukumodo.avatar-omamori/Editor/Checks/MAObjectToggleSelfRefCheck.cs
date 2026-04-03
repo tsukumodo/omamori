@@ -11,11 +11,14 @@ namespace AvatarOmamori.Editor.Checks
     /// </summary>
     public sealed class MAObjectToggleSelfRefCheck : IAvatarCheck
     {
+        /// <inheritdoc/>
         public string DisplayName => "MA ObjectToggle 自己参照チェック";
 
+        /// <inheritdoc/>
         public bool IsAvailable() => MAReflectionHelper.IsAvailable
                                      && MAReflectionHelper.ObjectToggleType != null;
 
+        /// <inheritdoc/>
         public IEnumerable<CheckResult> Execute(GameObject avatarRoot)
         {
             var toggleType = MAReflectionHelper.ObjectToggleType;
