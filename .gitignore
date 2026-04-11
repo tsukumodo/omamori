@@ -68,3 +68,4 @@ CLAUDE.md
 
 # BOOTH / distribution resources
 Resources/
+.claude/settings.local.json
