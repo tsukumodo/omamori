@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEditor;
@@ -151,6 +152,33 @@ namespace AvatarOmamori.Editor
                     {
                         EditorGUIUtility.PingObject(result.TargetObject);
                         Selection.activeObject = result.TargetObject;
+                    }
+                }
+
+                if (result.HasFix)
+                {
+                    var fixLabel = result.FixLabel ?? "修正";
+                    // デフォルト「修正」のときは「選択」ボタンと幅を揃え、カスタムラベル指定時のみ内容に合わせて広げる
+                    var fixWidth = result.FixLabel == null
+                        ? 40f
+                        : GUI.skin.button.CalcSize(new GUIContent(fixLabel)).x + 8f;
+                    if (GUILayout.Button(fixLabel, GUILayout.Width(fixWidth)))
+                    {
+                        var msg = result.FixConfirmMessage ?? "この問題を自動修正しますか？\nUndo（Ctrl+Z）で元に戻せます。";
+                        if (EditorUtility.DisplayDialog("おまもり — 自動修正", msg, "修正する", "キャンセル"))
+                        {
+                            try
+                            {
+                                result.FixAction();
+                                _results = CheckRunner.RunAll(_avatarRoot);
+                                CacheResultsByCategory();
+                                Repaint();
+                            }
+                            catch (Exception e)
+                            {
+                                EditorUtility.DisplayDialog("おまもり — エラー", $"修正中にエラーが発生しました。\n{e.Message}", "OK");
+                            }
+                        }
                     }
                 }
 
