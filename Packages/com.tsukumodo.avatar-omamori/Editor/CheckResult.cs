@@ -40,6 +40,14 @@ namespace AvatarOmamori.Editor
         /// <summary>修正前の確認ダイアログ本文。null なら UI 側でデフォルト文言を使う。</summary>
         public string FixConfirmMessage { get; }
 
+        /// <summary>
+        /// true の場合、共通 UI の事前確認ダイアログと修正後の自動再チェックをスキップする。
+        /// FixAction 内で独自のダイアログ・ドロップダウン等の非同期 UI を出す修正項目で、
+        /// 二重ダイアログの回避と、UI 完了前の再チェック暴発の抑止を兼ねる。
+        /// この場合、FixAction 側は完了時に <see cref="AvatarOmamoriWindow.RefreshResults"/> を呼ぶ責任を持つ。
+        /// </summary>
+        public bool SkipConfirm { get; }
+
         /// <summary>自動修正が利用可能かどうか。</summary>
         public bool HasFix => FixAction != null;
 
@@ -52,13 +60,15 @@ namespace AvatarOmamori.Editor
         /// <param name="fixAction">自動修正アクション（任意）。null なら修正ボタン非表示。</param>
         /// <param name="fixLabel">修正ボタンの文言（任意）。null なら "修正"。</param>
         /// <param name="fixConfirmMessage">確認ダイアログ本文（任意）。null ならデフォルト文言。</param>
+        /// <param name="skipConfirm">true にすると事前確認ダイアログを省略する（FixAction 側で独自にダイアログを出す場合用）。</param>
         public CheckResult(
             Severity severity,
             string message,
             UnityEngine.Object targetObject = null,
             Action fixAction = null,
             string fixLabel = null,
-            string fixConfirmMessage = null)
+            string fixConfirmMessage = null,
+            bool skipConfirm = false)
         {
             Severity = severity;
             Message = message;
@@ -66,6 +76,7 @@ namespace AvatarOmamori.Editor
             FixAction = fixAction;
             FixLabel = fixLabel;
             FixConfirmMessage = fixConfirmMessage;
+            SkipConfirm = skipConfirm;
         }
     }
 }
