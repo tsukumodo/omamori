@@ -19,7 +19,6 @@ namespace AvatarOmamori.Editor
             "残すものを選んでください。選んだもの以外は削除されます（Undo で戻せます）。";
 
         private GameObject _avatarRoot;
-        private VRCAvatarDescriptor[] _descriptors;
         private VRCAvatarDescriptor[] _ordered;
         private Action<VRCAvatarDescriptor> _onChosen;
         private Vector2 _scroll;
@@ -32,7 +31,6 @@ namespace AvatarOmamori.Editor
             var window = CreateInstance<DescriptorChoiceWindow>();
             window.titleContent = new GUIContent("おまもり — 残す Descriptor を選んでください");
             window._avatarRoot = avatarRoot;
-            window._descriptors = descriptors;
             window._ordered = descriptors
                 .OrderBy(d => d.gameObject == avatarRoot ? 0 : 1)
                 .ThenBy(d => HierarchyPathUtil.GetHierarchyPath(d.gameObject))

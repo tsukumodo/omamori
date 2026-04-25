@@ -26,10 +26,6 @@ namespace AvatarOmamori.Editor.Checks
             if (descriptors.Length <= 1)
                 yield break;
 
-            // クロージャで捕捉するためローカルに退避
-            var capturedRoot = avatarRoot;
-            var capturedDescriptors = descriptors;
-
             string summaryMessage =
                 $"VRC Avatar Descriptor が {descriptors.Length} 個見つかりました。" +
                 "複数あるとアバターのビルド・アップロードに失敗します。" +
@@ -39,7 +35,8 @@ namespace AvatarOmamori.Editor.Checks
                 Severity.Error,
                 summaryMessage,
                 avatarRoot,
-                fixAction: () => ShowResolveWindow(capturedRoot, capturedDescriptors),
+                // avatarRoot / descriptors はメソッド引数とローカル変数で再代入されないため、ラムダで直接捕捉して問題ない
+                fixAction: () => ShowResolveWindow(avatarRoot, descriptors),
                 fixLabel: null,                    // 共通「修正」で統一
                 fixConfirmMessage: null,           // SkipConfirm=true のとき未使用
                 skipConfirm: true                  // 独自の選択ウィンドウを出すので事前確認・自動再チェックともスキップ
