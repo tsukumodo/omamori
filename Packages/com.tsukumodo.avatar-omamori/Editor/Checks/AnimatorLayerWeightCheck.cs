@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using UnityEditor;
 using UnityEditor.Animations;
 using UnityEngine;
 using VRC.SDK3.Avatars.Components;
@@ -52,13 +53,34 @@ namespace AvatarOmamori.Editor.Checks
             {
                 if (layers[i].defaultWeight == 0f)
                 {
+                    // クロージャでキャプチャするため、ループ変数をローカルコピーに取る
+                    var capturedController = animatorController;
+                    var capturedIndex = i;
+                    var capturedName = layers[i].name;
+
                     yield return new CheckResult(
                         Severity.Warning,
                         $"[SDK] FX レイヤー \"{layers[i].name}\" (index {i}) の Weight が 0 です。このレイヤーのアニメーションは反映されません。Weight を 1 に変更してください。",
-                        descriptor
+                        descriptor,
+                        fixAction: () => SetLayerWeightToOne(capturedController, capturedIndex),
+                        fixConfirmMessage: $"FXレイヤー「{capturedName}」のWeightを 0 → 1 に変更します。\nUndo（Ctrl+Z）で元に戻せます。"
                     );
                 }
             }
+        }
+
+        /// <summary>
+        /// 指定レイヤーの defaultWeight を 1 に設定する。
+        /// AnimatorController.layers の getter はコピーを返すため、ローカル変数で変更してからセットし直す。
+        /// </summary>
+        private static void SetLayerWeightToOne(AnimatorController controller, int layerIndex)
+        {
+            Undo.RecordObject(controller, "Fix Animator Layer Weight");
+            var layers = controller.layers;
+            layers[layerIndex].defaultWeight = 1f;
+            controller.layers = layers;
+            EditorUtility.SetDirty(controller);
+            AssetDatabase.SaveAssets();
         }
 
         /// <summary>

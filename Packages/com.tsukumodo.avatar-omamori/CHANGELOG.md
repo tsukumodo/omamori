@@ -1,5 +1,10 @@
 # Changelog
 
+## [Unreleased]
+### 追加
+- 自動修正の基盤を追加（CheckResult に FixAction を持たせ、UI に「修正」ボタンを表示）
+- #8 Animator Layer Weight=0 の自動修正を実装（Weight=0 を 1 に変更、Undo 対応）
+
 ## [0.4.0] - 2026-04-11
 ### Added
 - [SDK] Animator Layer Weight チェック（FXレイヤーの Weight=0 を検出・警告）
