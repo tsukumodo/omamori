@@ -36,7 +36,7 @@ jobs:
 
       # Checkout Local Repository
       - name: Checkout
-        uses: actions/checkout@153bb8e04406b158c6c84fc1615b65b24149a1fe # v6.0.2
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
 
       # Get the Package version based on the package.json file
       - name: Get Version
@@ -75,7 +75,7 @@ jobs:
       
       # Publish the Release to GitHub
       - name: Make Release
-        uses: softprops/action-gh-release@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v2.6.1
+        uses: softprops/action-gh-release@153bb8e04406b158c6c84fc1615b65b24149a1fe # v2.6.1
         with:
           files: |
             ${{ env.zipFile }}
