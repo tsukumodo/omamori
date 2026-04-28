@@ -1,0 +1,171 @@
+<!--
+  ============================================================
+  つくも堂 — 50DL御礼カード（X投稿用）
+  ============================================================
+  用途: 50DL節目の御礼投稿に添付する画像（1200×675px / 16:9）
+  デザイン方針:
+    - 既存のv0.X.0告知カード（深緑×袋イラスト）とは意図的に別トーン
+    - 和紙トーン + 金色の判子という「お礼状」の形式
+    - おまもりイラストは入れない（印と和紙で画を成立させる）
+
+  決定経緯: decisions/decision-log.md の DEC-50DL-THANKS を参照
+
+  【差し替えポイント】
+    - 本カードは「50DL」専用。数字を変える場合は .stamp-bot と .title 内の「50」を両方更新
+
+  【PNG化の手順】
+    Puppeteerスクリプト:
+      const puppeteer = require('puppeteer');
+      (async () => {
+        const browser = await puppeteer.launch({ headless: 'new', args: ['--no-sandbox'] });
+        const page = await browser.newPage();
+        await page.setViewport({ width: 1200, height: 675, deviceScaleFactor: 2 });
+        await page.goto('file:///path/to/50dl-thanks-card.html', { waitUntil: 'networkidle0' });
+        const card = await page.$('.card');
+        await card.screenshot({ path: '50dl-thanks.png', type: 'png' });
+        await browser.close();
+      })();
+  ============================================================
+-->
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<title>つくも堂 — 50DL御礼カード</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@400;500;700&family=Noto+Sans+JP:wght@400;500;700&display=swap');
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: #2a2a2a;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    font-family: 'Zen Maru Gothic', 'Noto Sans JP', sans-serif;
+  }
+
+  .card {
+    width: 1200px;
+    height: 675px;
+    background:
+      repeating-linear-gradient(45deg, rgba(70, 122, 86, 0.07) 0 6px, transparent 6px 24px),
+      #F0E8D0;
+    position: relative;
+    overflow: hidden;
+    display: grid;
+    grid-template-columns: 1fr auto;
+    align-items: center;
+    padding: 90px 140px 90px 128px;
+    gap: 72px;
+  }
+
+  /* ── 左端の帯（抹茶+金の二重ライン） ── */
+  .ribbon-main {
+    position: absolute;
+    left: 0; top: 84px;
+    width: 12px; height: calc(100% - 168px);
+    background: #467A56;
+  }
+  .ribbon-sub {
+    position: absolute;
+    left: 28px; top: 84px;
+    width: 6px; height: calc(100% - 168px);
+    background: #C8A87C;
+  }
+
+  /* ── タイトル（左側） ── */
+  .title-block {
+    position: relative;
+    z-index: 1;
+  }
+  .title-small {
+    display: block;
+    font-size: 26px;
+    color: #7a6b3d;
+    font-weight: 500;
+    letter-spacing: 0.3em;
+    margin-bottom: 28px;
+  }
+  .title-main {
+    font-size: 78px;
+    font-weight: 700;
+    color: #467A56;
+    line-height: 1.32;
+    letter-spacing: 0.02em;
+  }
+
+  /* ── 判子（右側） ── */
+  .stamp {
+    width: 260px;
+    height: 260px;
+    border-radius: 50%;
+    background: #C8A87C;
+    color: #fff;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    line-height: 1.15;
+    transform: rotate(-6deg) translateY(-24px);
+    box-shadow: 0 12px 36px rgba(200, 168, 124, 0.5);
+    font-weight: 700;
+    position: relative;
+    z-index: 1;
+  }
+  .stamp::before {
+    /* 内側の細いボーダー（判子らしさ） */
+    content: '';
+    position: absolute;
+    inset: 10px;
+    border-radius: 50%;
+    border: 1.5px solid rgba(255, 255, 255, 0.55);
+    pointer-events: none;
+  }
+  .stamp-top {
+    font-size: 68px;
+    letter-spacing: 0.05em;
+  }
+  .stamp-bot {
+    font-size: 30px;
+    margin-top: 8px;
+    letter-spacing: 0.1em;
+    opacity: 0.95;
+  }
+
+  /* ── 下帯（下中央の署名） ── */
+  .foot {
+    position: absolute;
+    bottom: 36px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 28px;
+    color: #7a6b3d;
+    letter-spacing: 0.3em;
+    white-space: nowrap;
+    font-weight: 500;
+  }
+</style>
+</head>
+<body>
+  <div class="card">
+    <div class="ribbon-main"></div>
+    <div class="ribbon-sub"></div>
+
+    <div class="title-block">
+      <span class="title-small">THANK YOU</span>
+      <div class="title-main">
+        50人の手元へ、<br>おまもり。
+      </div>
+    </div>
+
+    <div class="stamp">
+      <div class="stamp-top">感謝</div>
+      <div class="stamp-bot">50DL</div>
+    </div>
+
+    <div class="foot">御礼 — つくも堂</div>
+  </div>
+</body>
+</html>
