@@ -1,5 +1,10 @@
 # Changelog
 
+## [Unreleased]
+### 追加
+- 自動修正の Before/After 表示用フィールドを `CheckResult` に追加（`ValueLabel` / `BeforeValue` / `AfterValue`）。Animator Layer Weight / Missing Script / VRC Avatar Descriptor 重複の3項目で、修正前後の値（予告）を保持
+- 結果カードに自動修正の Before/After（予告）を1行で表示（例: `FX Layer / Weight: 0 → 1`）。「修正」ボタンを押すと値がどう変わるかを事前に予告し、「直す力」を可視化
+
 ## [0.5.0] - 2026-04-28
 ### 追加
 - アバタールート指定時にチェックを自動実行するように変更（従来は「チェック実行」ボタン押下が必須。ボタンは引き続き手動再チェック用に利用可能）

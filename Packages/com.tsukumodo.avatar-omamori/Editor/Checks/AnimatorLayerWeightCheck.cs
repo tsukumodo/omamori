@@ -63,7 +63,10 @@ namespace AvatarOmamori.Editor.Checks
                         $"[SDK] FX レイヤー \"{layers[i].name}\" (index {i}) の Weight が 0 です。このレイヤーのアニメーションは反映されません。Weight を 1 に変更してください。",
                         descriptor,
                         fixAction: () => SetLayerWeightToOne(capturedController, capturedIndex),
-                        fixConfirmMessage: $"FXレイヤー「{capturedName}」のWeightを 0 → 1 に変更します。\nUndo（Ctrl+Z）で元に戻せます。"
+                        fixConfirmMessage: $"FXレイヤー「{capturedName}」のWeightを 0 → 1 に変更します。\nUndo（Ctrl+Z）で元に戻せます。",
+                        valueLabel: "FX Layer / Weight",
+                        beforeValue: "0",
+                        afterValue: "1"
                     );
                 }
             }

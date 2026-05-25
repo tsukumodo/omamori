@@ -39,7 +39,10 @@ namespace AvatarOmamori.Editor.Checks
                 fixAction: () => ShowResolveWindow(avatarRoot, descriptors),
                 fixLabel: null,                    // 共通「修正」で統一
                 fixConfirmMessage: null,           // SkipConfirm=true のとき未使用
-                skipConfirm: true                  // 独自の選択ウィンドウを出すので事前確認・自動再チェックともスキップ
+                skipConfirm: true,                 // 独自の選択ウィンドウを出すので事前確認・自動再チェックともスキップ
+                valueLabel: "Avatar Descriptor",
+                beforeValue: $"Descriptor×{descriptors.Length}個",
+                afterValue: "1個"
             );
 
             // 各重複箇所も検出行として報告（FixAction はサマリー側に集約済み）

@@ -45,7 +45,10 @@ namespace AvatarOmamori.Editor.Checks
                         fixConfirmMessage:
                             $"「{capturedGo.name}」から Missing Script を {capturedCount} 個削除します。\n" +
                             "※この操作は Undo（Ctrl+Z）で元に戻せません。\n" +
-                            "Missing Script はすでにスクリプト参照が壊れているコンポーネントなので、削除しても実質的なデータ損失はありません。"
+                            "Missing Script はすでにスクリプト参照が壊れているコンポーネントなので、削除しても実質的なデータ損失はありません。",
+                        valueLabel: "Missing Script",
+                        beforeValue: $"Missing×{capturedCount}個",
+                        afterValue: "0個"
                     );
                 }
             }

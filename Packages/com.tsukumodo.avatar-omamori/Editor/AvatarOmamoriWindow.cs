@@ -214,6 +214,18 @@ namespace AvatarOmamori.Editor
                 }
 
                 EditorGUILayout.EndHorizontal();
+
+                if (!string.IsNullOrEmpty(result.ValueLabel) &&
+                    (result.BeforeValue != null || result.AfterValue != null))
+                {
+                    EditorGUILayout.BeginHorizontal();
+                    // アイコン幅(20)+α + 上位の indentLevel 分(15px×段数) を加算してメッセージ本文の下に揃える
+                    GUILayout.Space(24f + EditorGUI.indentLevel * 15f);
+                    OmamoriPopupStyles.DrawValueSnapshot(
+                        result.ValueLabel, result.BeforeValue, result.AfterValue);
+                    EditorGUILayout.EndHorizontal();
+                }
+
                 EditorGUILayout.EndVertical();
                 EditorGUILayout.Space(2);
             }
