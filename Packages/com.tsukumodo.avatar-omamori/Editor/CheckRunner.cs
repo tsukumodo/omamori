@@ -34,6 +34,10 @@ namespace AvatarOmamori.Editor
         public static List<CheckResult> RunAll(GameObject avatarRoot)
         {
             var results = new List<CheckResult>();
+            // チェック種別ごとの検出件数（利用統計用）。キーはチェッククラスの型名のみを使い、
+            // ユーザーのアセット名などは一切載せない（個人情報を集めない設計・DEC-055）。
+            var detectionsByCheckType = new Dictionary<string, int>();
+
             foreach (var check in Checks)
             {
                 if (!check.IsAvailable())
@@ -41,13 +45,25 @@ namespace AvatarOmamori.Editor
 
                 try
                 {
-                    results.AddRange(check.Execute(avatarRoot));
+                    // yield 実装の二重実行を避けるため、ここで1度だけ列挙する
+                    var checkResults = check.Execute(avatarRoot).ToList();
+                    results.AddRange(checkResults);
+                    if (checkResults.Count > 0)
+                    {
+                        var key = check.GetType().Name;
+                        detectionsByCheckType.TryGetValue(key, out int cur);
+                        detectionsByCheckType[key] = cur + checkResults.Count;
+                    }
                 }
                 catch (Exception e)
                 {
                     Debug.LogWarning($"[AvatarOmamori] Check '{check.DisplayName}' threw an exception: {e}");
                 }
             }
+
+            // 利用統計に「チェック実行1回＋種別ごとの検出件数」を記録する（opt-out 中は内部で何もしない）
+            UsageStatsRecorder.RecordCheckRun(detectionsByCheckType);
+
             return results;
         }
 

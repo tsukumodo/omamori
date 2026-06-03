@@ -52,6 +52,12 @@ namespace AvatarOmamori.Editor
             EditorGUILayout.LabelField("アバター改変おまもり", EditorStyles.boldLabel);
             EditorGUILayout.Space(2);
 
+            // 初回のみ、利用統計のローカル記録について1行で告知する（ダイアログは出さない＝押し売りゼロ・DEC-055 T-8）
+            if (UsageStatsRecorder.ShouldShowFirstRunNotice && !UsageStatsRecorder.IsOptedOut)
+            {
+                DrawFirstRunNotice();
+            }
+
             var newAvatarRoot = (GameObject)EditorGUILayout.ObjectField(
                 "アバタールート", _avatarRoot, typeof(GameObject), true);
             if (newAvatarRoot != _avatarRoot)
@@ -121,6 +127,30 @@ namespace AvatarOmamori.Editor
             }
 
             EditorGUILayout.EndScrollView();
+        }
+
+        /// <summary>
+        /// 初回起動時の利用統計の告知（1行・helpBox 風）。
+        /// 「詳細」で統計ウィンドウを開き、「OK」で閉じる。どちらを押しても次回以降は表示しない。
+        /// </summary>
+        private void DrawFirstRunNotice()
+        {
+            EditorGUILayout.BeginHorizontal(EditorStyles.helpBox);
+            EditorGUILayout.LabelField(
+                "利用状況（チェック・修正の回数など。個人情報は含みません）をこのプロジェクト内にローカル記録します。",
+                EditorStyles.wordWrappedMiniLabel);
+            if (GUILayout.Button("詳細", GUILayout.Width(46), GUILayout.Height(20)))
+            {
+                UsageStatsRecorder.AcknowledgeNotice();
+                UsageStatsWindow.ShowWindow();
+            }
+            if (GUILayout.Button("OK", GUILayout.Width(40), GUILayout.Height(20)))
+            {
+                UsageStatsRecorder.AcknowledgeNotice();
+                Repaint();
+            }
+            EditorGUILayout.EndHorizontal();
+            EditorGUILayout.Space(2);
         }
 
         /// <summary>

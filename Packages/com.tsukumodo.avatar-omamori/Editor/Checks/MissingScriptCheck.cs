@@ -96,6 +96,9 @@ namespace AvatarOmamori.Editor.Checks
                 targetInstanceID: target.GetInstanceID(),
                 targetObjectName: target.name
             ));
+
+            // 利用統計に修正実行を記録（種別名のみ・opt-out 中は内部で何もしない・DEC-055）
+            UsageStatsRecorder.RecordFix(nameof(MissingScriptCheck));
         }
     }
 }
