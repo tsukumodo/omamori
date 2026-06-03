@@ -12,6 +12,9 @@ namespace AvatarOmamori.Editor.Checks
     /// </summary>
     public sealed class MissingScriptCheck : IAvatarCheck
     {
+        // CheckResult の予告表示と FixHistoryEntry の実測記録で同じ文字列を共有するため定数化
+        private const string ValueLabel = "Missing Script";
+
         /// <inheritdoc/>
         public string DisplayName => "[Unity] Missing Script チェック";
 
@@ -46,7 +49,7 @@ namespace AvatarOmamori.Editor.Checks
                             $"「{capturedGo.name}」から Missing Script を {capturedCount} 個削除します。\n" +
                             "※この操作は Undo（Ctrl+Z）で元に戻せません。\n" +
                             "Missing Script はすでにスクリプト参照が壊れているコンポーネントなので、削除しても実質的なデータ損失はありません。",
-                        valueLabel: "Missing Script",
+                        valueLabel: ValueLabel,
                         beforeValue: $"Missing×{capturedCount}個",
                         afterValue: "0個"
                     );
@@ -69,6 +72,8 @@ namespace AvatarOmamori.Editor.Checks
         /// </remarks>
         private static void RemoveMissingScripts(GameObject target)
         {
+            int before = GameObjectUtility.GetMonoBehavioursWithMissingScriptCount(target);
+
             GameObjectUtility.RemoveMonoBehavioursWithMissingScript(target);
             EditorUtility.SetDirty(target);
 
@@ -79,6 +84,18 @@ namespace AvatarOmamori.Editor.Checks
             {
                 EditorSceneManager.MarkSceneDirty(scene);
             }
+
+            int after = GameObjectUtility.GetMonoBehavioursWithMissingScriptCount(target);
+
+            FixHistoryStore.Record(new FixHistoryEntry(
+                timestamp: System.DateTime.Now,
+                checkName: nameof(MissingScriptCheck),
+                valueLabel: ValueLabel,
+                beforeValue: $"Missing×{before}個",
+                afterValue: $"{after}個",
+                targetInstanceID: target.GetInstanceID(),
+                targetObjectName: target.name
+            ));
         }
     }
 }

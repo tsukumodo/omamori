@@ -12,6 +12,9 @@ namespace AvatarOmamori.Editor.Checks
     /// </summary>
     public sealed class DescriptorDuplicateCheck : IAvatarCheck
     {
+        // CheckResult の予告表示と FixHistoryEntry の実測記録で同じ文字列を共有するため定数化
+        private const string ValueLabel = "Avatar Descriptor";
+
         /// <inheritdoc/>
         public string DisplayName => "VRC Avatar Descriptor 重複チェック";
 
@@ -40,7 +43,7 @@ namespace AvatarOmamori.Editor.Checks
                 fixLabel: null,                    // 共通「修正」で統一
                 fixConfirmMessage: null,           // SkipConfirm=true のとき未使用
                 skipConfirm: true,                 // 独自の選択ウィンドウを出すので事前確認・自動再チェックともスキップ
-                valueLabel: "Avatar Descriptor",
+                valueLabel: ValueLabel,
                 beforeValue: $"Descriptor×{descriptors.Length}個",
                 afterValue: "1個"
             );
@@ -66,7 +69,7 @@ namespace AvatarOmamori.Editor.Checks
         {
             DescriptorChoiceWindow.Show(avatarRoot, descriptors, keep =>
             {
-                RemoveAllExcept(descriptors, keep);
+                RemoveAllExcept(descriptors, keep, avatarRoot);
                 RefreshOmamoriWindow();
             });
         }
@@ -75,11 +78,15 @@ namespace AvatarOmamori.Editor.Checks
         /// <paramref name="keep"/> 以外の Descriptor を一括削除する。
         /// 複数削除を1つの Undo 単位にまとめ、Ctrl+Z で一度に戻せるようにする。
         /// GameObject ごと削除すると他のコンポーネントや子を巻き込むので、コンポーネントだけを削除する。
+        /// 修正直前/直後に実数を読んで <see cref="FixHistoryStore"/> に記録する（DEC-055 設計選択C）。
         /// </summary>
         private static void RemoveAllExcept(
             VRCAvatarDescriptor[] all,
-            VRCAvatarDescriptor keep)
+            VRCAvatarDescriptor keep,
+            GameObject avatarRoot)
         {
+            int before = all.Length;
+
             Undo.IncrementCurrentGroup();
             Undo.SetCurrentGroupName("Resolve Duplicate VRC Avatar Descriptors");
             int group = Undo.GetCurrentGroup();
@@ -93,6 +100,23 @@ namespace AvatarOmamori.Editor.Checks
             }
 
             Undo.CollapseUndoOperations(group);
+
+            // Undo.DestroyObjectImmediate 後の参照は Unity の "fake null" になるので、d != null で生存数を数えられる
+            int after = 0;
+            foreach (var d in all)
+            {
+                if (d != null) after++;
+            }
+
+            FixHistoryStore.Record(new FixHistoryEntry(
+                timestamp: System.DateTime.Now,
+                checkName: nameof(DescriptorDuplicateCheck),
+                valueLabel: ValueLabel,
+                beforeValue: $"Descriptor×{before}個",
+                afterValue: $"{after}個",
+                targetInstanceID: avatarRoot.GetInstanceID(),
+                targetObjectName: avatarRoot.name
+            ));
         }
 
         /// <summary>

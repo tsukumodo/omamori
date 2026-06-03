@@ -4,6 +4,7 @@
 ### 追加
 - 自動修正の Before/After 表示用フィールドを `CheckResult` に追加（`ValueLabel` / `BeforeValue` / `AfterValue`）。Animator Layer Weight / Missing Script / VRC Avatar Descriptor 重複の3項目で、修正前後の値（予告）を保持
 - 結果カードに自動修正の Before/After（予告）を1行で表示（例: `FX Layer / Weight: 0 → 1`）。「修正」ボタンを押すと値がどう変わるかを事前に予告し、「直す力」を可視化
+- セッション内の自動修正履歴を「修正履歴」Foldout で表示。各修正の直前/直後の実値（予告値ではなく実測）と修正対象を時刻順に保持（上限100件、新しい順表示、Ping ボタン・クリアボタン付き、EditorWindow 終了で消える）
 
 ## [0.5.0] - 2026-04-28
 ### 追加

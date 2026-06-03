@@ -13,6 +13,9 @@ namespace AvatarOmamori.Editor.Checks
     /// </summary>
     public sealed class AnimatorLayerWeightCheck : IAvatarCheck
     {
+        // CheckResult の予告表示と FixHistoryEntry の実測記録で同じ文字列を共有するため定数化
+        private const string ValueLabel = "FX Layer / Weight";
+
         /// <inheritdoc/>
         public string DisplayName => "[SDK] Animator Layer Weight チェック";
 
@@ -62,9 +65,9 @@ namespace AvatarOmamori.Editor.Checks
                         Severity.Warning,
                         $"[SDK] FX レイヤー \"{layers[i].name}\" (index {i}) の Weight が 0 です。このレイヤーのアニメーションは反映されません。Weight を 1 に変更してください。",
                         descriptor,
-                        fixAction: () => SetLayerWeightToOne(capturedController, capturedIndex),
+                        fixAction: () => SetLayerWeightToOne(capturedController, capturedIndex, capturedName),
                         fixConfirmMessage: $"FXレイヤー「{capturedName}」のWeightを 0 → 1 に変更します。\nUndo（Ctrl+Z）で元に戻せます。",
-                        valueLabel: "FX Layer / Weight",
+                        valueLabel: ValueLabel,
                         beforeValue: "0",
                         afterValue: "1"
                     );
@@ -75,15 +78,30 @@ namespace AvatarOmamori.Editor.Checks
         /// <summary>
         /// 指定レイヤーの defaultWeight を 1 に設定する。
         /// AnimatorController.layers の getter はコピーを返すため、ローカル変数で変更してからセットし直す。
+        /// 修正直前/直後に実値を読んで <see cref="FixHistoryStore"/> に記録する（DEC-055 設計選択C）。
         /// </summary>
-        private static void SetLayerWeightToOne(AnimatorController controller, int layerIndex)
+        private static void SetLayerWeightToOne(AnimatorController controller, int layerIndex, string layerName)
         {
+            float before = controller.layers[layerIndex].defaultWeight;
+
             Undo.RecordObject(controller, "Fix Animator Layer Weight");
             var layers = controller.layers;
             layers[layerIndex].defaultWeight = 1f;
             controller.layers = layers;
             EditorUtility.SetDirty(controller);
             AssetDatabase.SaveAssets();
+
+            float after = controller.layers[layerIndex].defaultWeight;
+
+            FixHistoryStore.Record(new FixHistoryEntry(
+                timestamp: System.DateTime.Now,
+                checkName: nameof(AnimatorLayerWeightCheck),
+                valueLabel: ValueLabel,
+                beforeValue: before.ToString(),
+                afterValue: after.ToString(),
+                targetInstanceID: controller.GetInstanceID(),
+                targetObjectName: $"{controller.name} / \"{layerName}\" (Layer {layerIndex})"
+            ));
         }
 
         /// <summary>
