@@ -16,7 +16,7 @@ namespace AvatarOmamori.Editor
     /// ディスク I/O・カウント・キーのサニタイズは <see cref="UsageStatsRecorder"/> が担う。
     /// </para>
     /// </summary>
-    internal sealed class UsageStats
+    public sealed class UsageStats
     {
         /// <summary>現在のスキーマバージョン。将来フォーマットを変えるときに移行判断へ使う。</summary>
         public const int CurrentSchemaVersion = 1;
