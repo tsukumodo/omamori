@@ -21,6 +21,7 @@ namespace AvatarOmamori.Editor
         private bool _foldError = true;
         private bool _foldWarning = true;
         private bool _foldInfo = true;
+        private bool _foldHistory = false; // 履歴はデフォルト閉じる（結果カードを優先）
 
         // GUIStyle のキャッシュ
         private GUIStyle _summaryStyle;
@@ -111,6 +112,12 @@ namespace AvatarOmamori.Editor
             if (_results.Count == 0)
             {
                 EditorGUILayout.HelpBox("問題は見つかりませんでした。", MessageType.Info);
+            }
+
+            if (FixHistoryStore.Count > 0)
+            {
+                EditorGUILayout.Space(6);
+                DrawFixHistoryGroup();
             }
 
             EditorGUILayout.EndScrollView();
@@ -214,6 +221,72 @@ namespace AvatarOmamori.Editor
                 }
 
                 EditorGUILayout.EndHorizontal();
+
+                if (!string.IsNullOrEmpty(result.ValueLabel) &&
+                    (result.BeforeValue != null || result.AfterValue != null))
+                {
+                    EditorGUILayout.BeginHorizontal();
+                    // アイコン幅(20)+α + 上位の indentLevel 分(15px×段数) を加算してメッセージ本文の下に揃える
+                    GUILayout.Space(24f + EditorGUI.indentLevel * 15f);
+                    OmamoriPopupStyles.DrawValueSnapshot(
+                        result.ValueLabel, result.BeforeValue, result.AfterValue);
+                    EditorGUILayout.EndHorizontal();
+                }
+
+                EditorGUILayout.EndVertical();
+                EditorGUILayout.Space(2);
+            }
+            EditorGUI.indentLevel--;
+        }
+
+        /// <summary>
+        /// セッション内の修正履歴（<see cref="FixHistoryStore"/>）を Foldout で表示する。
+        /// 新しい順に1件ずつ、修正対象の Ping ボタン付き。履歴クリアボタンは Foldout ヘッダ右端。
+        /// </summary>
+        private void DrawFixHistoryGroup()
+        {
+            var foldoutStyle = GetFoldoutStyle();
+            foldoutStyle.normal.textColor = new Color(0.6f, 0.6f, 0.6f);
+            foldoutStyle.onNormal.textColor = new Color(0.6f, 0.6f, 0.6f);
+
+            EditorGUILayout.BeginHorizontal();
+            _foldHistory = EditorGUILayout.Foldout(
+                _foldHistory, $"修正履歴 ({FixHistoryStore.Count})", true, foldoutStyle);
+            GUILayout.FlexibleSpace();
+            if (GUILayout.Button("クリア", GUILayout.Width(60)))
+            {
+                FixHistoryStore.Clear();
+                Repaint();
+            }
+            EditorGUILayout.EndHorizontal();
+
+            if (!_foldHistory) return;
+
+            EditorGUI.indentLevel++;
+            foreach (var entry in FixHistoryStore.Entries)
+            {
+                EditorGUILayout.BeginVertical("box");
+
+                EditorGUILayout.BeginHorizontal();
+                var header = $"[{entry.Timestamp:HH:mm:ss}] {entry.TargetObjectName}";
+                EditorGUILayout.LabelField(header, EditorStyles.miniLabel);
+                var target = EditorUtility.InstanceIDToObject(entry.TargetInstanceID);
+                using (new EditorGUI.DisabledScope(target == null))
+                {
+                    if (GUILayout.Button("Ping", GUILayout.Width(40)))
+                    {
+                        EditorGUIUtility.PingObject(target);
+                        Selection.activeObject = target;
+                    }
+                }
+                EditorGUILayout.EndHorizontal();
+
+                EditorGUILayout.BeginHorizontal();
+                GUILayout.Space(4f + EditorGUI.indentLevel * 15f);
+                OmamoriPopupStyles.DrawValueSnapshot(
+                    entry.ValueLabel, entry.BeforeValue, entry.AfterValue);
+                EditorGUILayout.EndHorizontal();
+
                 EditorGUILayout.EndVertical();
                 EditorGUILayout.Space(2);
             }

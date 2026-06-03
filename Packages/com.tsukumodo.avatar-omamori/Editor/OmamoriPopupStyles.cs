@@ -46,6 +46,26 @@ namespace AvatarOmamori.Editor
         }
 
         /// <summary>
+        /// 自動修正の Before/After（予告値）を <see cref="EditorStyles.miniLabel"/> で1行描画する。
+        /// 両方あれば "{label}: {before} → {after}"、片方のみは矢印なしで "{label}: {value}"。
+        /// label が空、または before/after が両方 null なら何も描画しない。
+        /// </summary>
+        public static void DrawValueSnapshot(string label, string before, string after)
+        {
+            if (string.IsNullOrEmpty(label)) return;
+            bool hasBefore = before != null;
+            bool hasAfter = after != null;
+            if (!hasBefore && !hasAfter) return;
+
+            string body;
+            if (hasBefore && hasAfter) body = $"{before} → {after}";
+            else if (hasBefore) body = before;
+            else body = after;
+
+            GUILayout.Label($"{label}: {body}", EditorStyles.miniLabel);
+        }
+
+        /// <summary>
         /// <see cref="DrawInfoBox"/> で描画した場合の想定高さ（概算）。
         /// 明示的な改行数に応じて計算する（折り返しは考慮しないが、ウィンドウ幅が十分広ければ問題ない）。
         /// </summary>
