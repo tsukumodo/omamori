@@ -33,12 +33,21 @@ namespace AvatarOmamori.Editor
         /// <returns>全チェックの結果を集約したリスト。</returns>
         public static List<CheckResult> RunAll(GameObject avatarRoot)
         {
+            return RunAll(avatarRoot, Checks);
+        }
+
+        /// <summary>
+        /// 指定されたチェック群を実行する本体。
+        /// テストからフェイクチェックを注入して例外分離などを検証できるよう分離している。
+        /// </summary>
+        internal static List<CheckResult> RunAll(GameObject avatarRoot, IEnumerable<IAvatarCheck> checks)
+        {
             var results = new List<CheckResult>();
             // チェック種別ごとの検出件数（利用統計用）。キーはチェッククラスの型名のみを使い、
             // ユーザーのアセット名などは一切載せない（個人情報を集めない設計・DEC-055）。
             var detectionsByCheckType = new Dictionary<string, int>();
 
-            foreach (var check in Checks)
+            foreach (var check in checks)
             {
                 if (!check.IsAvailable())
                     continue;
