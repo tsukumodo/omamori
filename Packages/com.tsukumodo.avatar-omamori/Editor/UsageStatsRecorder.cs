@@ -40,6 +40,21 @@ namespace AvatarOmamori.Editor
         private static UsageStats s_cache;
         private static string s_toolVersionCache;
 
+        /// <summary>
+        /// テスト専用: 保存先ディレクトリの上書き。null なら通常パス（Library/ 配下）。
+        /// テストが実プロジェクトの統計ファイルを汚さないための口。製品コードから設定しないこと。
+        /// </summary>
+        internal static string StatsDirOverrideForTests;
+
+        /// <summary>
+        /// テスト専用: プロセス内キャッシュを破棄し、次回アクセス時にディスクから再読込させる。
+        /// </summary>
+        internal static void ResetForTests()
+        {
+            s_cache = null;
+            s_toolVersionCache = null;
+        }
+
         // ───────────────────────────── 記録 API ─────────────────────────────
 
         /// <summary>
@@ -220,7 +235,7 @@ namespace AvatarOmamori.Editor
         /// キーを ASCII 識別子（英数字とアンダースコア）に限定する。条件を満たさなければ null。
         /// 個人情報（アバター名・パス・日本語など）がキーとして保存されるのを構造的に防ぐ最終防波堤。
         /// </summary>
-        private static string SanitizeKey(string raw)
+        internal static string SanitizeKey(string raw)
         {
             if (string.IsNullOrEmpty(raw)) return null;
             if (raw.Length > MaxKeyLength) return null;
@@ -254,6 +269,8 @@ namespace AvatarOmamori.Editor
 
         private static string StatsDir()
         {
+            if (!string.IsNullOrEmpty(StatsDirOverrideForTests)) return StatsDirOverrideForTests;
+
             // Application.dataPath は "<project>/Assets"。その親が <project>、さらに Library を足す。
             var projectRoot = Path.GetDirectoryName(Application.dataPath);
             return Path.Combine(projectRoot, "Library", PackageFolderName);
