@@ -1,0 +1,16 @@
+{
+    "name": "com.tsukumodo.avatar-omamori.tests.runtime",
+    "rootNamespace": "AvatarOmamori.Tests",
+    "references": [],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": false,
+    "defineConstraints": [
+        "UNITY_INCLUDE_TESTS"
+    ],
+    "versionDefines": [],
+    "noEngineReferences": false
+}
