@@ -1,0 +1,25 @@
+{
+    "name": "com.tsukumodo.avatar-omamori.tests.editor",
+    "rootNamespace": "AvatarOmamori.Tests.Editor",
+    "references": [
+        "com.tsukumodo.avatar-omamori.editor",
+        "UnityEngine.TestRunner",
+        "UnityEditor.TestRunner",
+        "VRC.SDK3A"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": true,
+    "precompiledReferences": [
+        "nunit.framework.dll"
+    ],
+    "autoReferenced": false,
+    "defineConstraints": [
+        "UNITY_INCLUDE_TESTS"
+    ],
+    "versionDefines": [],
+    "noEngineReferences": false
+}
