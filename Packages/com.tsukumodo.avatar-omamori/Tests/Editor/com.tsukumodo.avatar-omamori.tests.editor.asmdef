@@ -3,6 +3,7 @@
     "rootNamespace": "AvatarOmamori.Tests.Editor",
     "references": [
         "com.tsukumodo.avatar-omamori.editor",
+        "com.tsukumodo.avatar-omamori.tests.runtime",
         "UnityEngine.TestRunner",
         "UnityEditor.TestRunner",
         "VRC.SDK3A"
@@ -12,7 +13,7 @@
     ],
     "excludePlatforms": [],
     "allowUnsafeCode": false,
-    "overrideReferences": true,
+    "overrideReferences": false,
     "precompiledReferences": [
         "nunit.framework.dll"
     ],
