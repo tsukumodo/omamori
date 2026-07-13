@@ -23,6 +23,10 @@ namespace AvatarOmamori.Editor
         private bool _foldInfo = true;
         private bool _foldHistory = false; // 履歴はデフォルト閉じる（結果カードを優先）
 
+        // 「カードを保存」で選ばれた出力先。GL 描画は Repaint イベント中に行う必要があるため、
+        // ボタン押下時はパスだけ確保し、次の Repaint で実際の書き出しを実行する。
+        private string _pendingCardSavePath;
+
         // GUIStyle のキャッシュ
         private GUIStyle _summaryStyle;
         private GUIStyle _foldoutStyle;
@@ -103,7 +107,14 @@ namespace AvatarOmamori.Editor
             else
                 summaryStyle.normal.textColor = new Color(0.2f, 0.8f, 0.2f);
 
+            EditorGUILayout.BeginHorizontal();
             EditorGUILayout.LabelField(summary, summaryStyle);
+            GUILayout.FlexibleSpace();
+            if (GUILayout.Button("カードを保存", GUILayout.Width(100)))
+            {
+                RequestCardSave();
+            }
+            EditorGUILayout.EndHorizontal();
             EditorGUILayout.Space(2);
 
             _scrollPos = EditorGUILayout.BeginScrollView(_scrollPos);
@@ -127,6 +138,60 @@ namespace AvatarOmamori.Editor
             }
 
             EditorGUILayout.EndScrollView();
+
+            // GL 描画とフォントアトラスの状態が安定している Repaint イベント中に、カードの書き出しを実行する。
+            if (Event.current.type == EventType.Repaint && _pendingCardSavePath != null)
+            {
+                var path = _pendingCardSavePath;
+                _pendingCardSavePath = null;
+                ExportCard(path);
+            }
+        }
+
+        /// <summary>
+        /// 「カードを保存」ボタンから呼ぶ。保存先を選ばせ、選ばれたら次の Repaint で書き出す。
+        /// キャンセル時は何もしない。
+        /// </summary>
+        private void RequestCardSave()
+        {
+            var defaultName = $"omamori-card-{DateTime.Now:yyyyMMdd}.png";
+            var path = EditorUtility.SaveFilePanel(
+                "カード画像の保存先", "", defaultName, "png");
+            if (string.IsNullOrEmpty(path))
+                return; // キャンセル
+
+            _pendingCardSavePath = path;
+            Repaint();
+        }
+
+        /// <summary>
+        /// 現在の結果サマリーをカード画像として <paramref name="path"/> に書き出し、保存先を開く。
+        /// GL 描画を伴うため Repaint イベント中にのみ呼ぶこと。
+        /// </summary>
+        private void ExportCard(string path)
+        {
+            try
+            {
+                var data = new CardExporter.CardData
+                {
+                    ErrorCount = _errors.Count,
+                    WarningCount = _warnings.Count,
+                    InfoCount = _infos.Count,
+                    FixCount = FixHistoryStore.Count,
+                    DateText = DateTime.Now.ToString("yyyy-MM-dd"), // 年月日のみ（DEC-055 準拠）
+                    ToolVersion = UsageStatsRecorder.GetSnapshot().ToolVersion,
+                };
+                CardExporter.ExportPng(path, data);
+                EditorUtility.RevealInFinder(path);
+            }
+            catch (Exception e)
+            {
+                EditorUtility.DisplayDialog(
+                    "おまもり — エラー",
+                    $"カード画像の書き出しに失敗しました。\n{e.Message}",
+                    "OK");
+                Debug.LogException(e);
+            }
         }
 
         /// <summary>
