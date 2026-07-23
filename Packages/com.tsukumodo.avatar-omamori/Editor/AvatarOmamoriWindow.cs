@@ -25,6 +25,11 @@ namespace AvatarOmamori.Editor
 
         // 「カードを保存」で選ばれた出力先。GL 描画は Repaint イベント中に行う必要があるため、
         // ボタン押下時はパスだけ確保し、次の Repaint で実際の書き出しを実行する。
+        //
+        // [NonSerialized] が必須。EditorWindow はドメインリロード（スクリプト再コンパイル）をまたいで
+        // 状態を復元するが、その際 null の string は "" に変換されて戻ってくる（実測で確認・2026-07-23）。
+        // これを付けないと、ボタンを押していないのに再コンパイル直後の Repaint で書き出しが走る。
+        [NonSerialized]
         private string _pendingCardSavePath;
 
         // GUIStyle のキャッシュ
@@ -140,7 +145,8 @@ namespace AvatarOmamori.Editor
             EditorGUILayout.EndScrollView();
 
             // GL 描画とフォントアトラスの状態が安定している Repaint イベント中に、カードの書き出しを実行する。
-            if (Event.current.type == EventType.Repaint && _pendingCardSavePath != null)
+            // 空文字も弾く（RequestCardSave 側のキャンセル判定と条件を揃える）。
+            if (Event.current.type == EventType.Repaint && !string.IsNullOrEmpty(_pendingCardSavePath))
             {
                 var path = _pendingCardSavePath;
                 _pendingCardSavePath = null;
