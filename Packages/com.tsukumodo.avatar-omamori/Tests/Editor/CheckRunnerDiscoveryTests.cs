@@ -7,10 +7,10 @@ namespace AvatarOmamori.Tests.Editor
     public class CheckRunnerDiscoveryTests
     {
         [Test]
-        public void Checks_実装済みの9チェックが全て検出される()
+        public void Checks_実装済みの10チェックが全て検出される()
         {
             // Checks はアセンブリ内の IAvatarCheck 実装をリフレクション列挙するだけで
-            // IsAvailable() は見ないため、MA 未インストール環境でも9件全てが列挙される
+            // IsAvailable() は見ないため、MA 未インストール環境でも10件全てが列挙される
             var names = CheckRunner.Checks.Select(c => c.GetType().Name).ToList();
 
             var expected = new[]
@@ -21,6 +21,7 @@ namespace AvatarOmamori.Tests.Editor
                 "EmptyParameterNameCheck",
                 "ExpressionParameterBitLimitCheck",
                 "AnimatorLayerWeightCheck",
+                "EmissionCheck",
                 "MAMenuItemUnboundCheck",
                 "MAObjectToggleCheck",
                 "MAUnsetupAccessoryCheck",
