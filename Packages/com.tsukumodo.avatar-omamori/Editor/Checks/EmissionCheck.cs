@@ -244,15 +244,18 @@ namespace AvatarOmamori.Editor.Checks
             {
                 mat.DisableKeyword("_EMISSION");
 
-                // Unity の StandardShaderGUI と同じ手順で GI フラグを更新する。
-                // Baked/Realtime のいずれかが立っているときだけ EmissiveIsBlack を立て、
-                // 「GI に寄与しない」状態に戻す。
-                var flags = mat.globalIlluminationFlags;
-                if ((flags & (MaterialGlobalIlluminationFlags.BakedEmissive | MaterialGlobalIlluminationFlags.RealtimeEmissive)) != 0)
-                {
-                    flags |= MaterialGlobalIlluminationFlags.EmissiveIsBlack;
-                    mat.globalIlluminationFlags = flags;
-                }
+                // Standard の _EMISSION キーワードは「保存された状態」ではなく、Unity が
+                // GI フラグから再導出する派生状態。既存フラグに EmissiveIsBlack を OR するだけだと
+                // Realtime/Baked ビットが残り、マテリアルの再検証（保存・再インポート）のたびに
+                // キーワードが復活してしまう。
+                //
+                // 実測（2026-07-23 / Unity 2022.3.22f1 / Komano 実機）:
+                //   flags |= EmissiveIsBlack → 5 になるが、数フレーム後に 1 へ戻り _EMISSION も ON に復活。
+                //   flags = EmissiveIsBlack  → 4 のまま保持。強制再インポート後も OFF のまま。
+                //
+                // EmissiveIsBlack のみを代入して Realtime/Baked を落とすことで、
+                // 発光色を残したまま無効化が永続する（DEC-064 の「色は残す」方針を満たす）。
+                mat.globalIlluminationFlags = MaterialGlobalIlluminationFlags.EmissiveIsBlack;
             }
         );
 

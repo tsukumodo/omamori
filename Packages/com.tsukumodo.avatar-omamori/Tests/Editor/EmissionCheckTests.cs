@@ -221,6 +221,40 @@ Shader ""{shaderName}""
         }
 
         [Test]
+        public void Standardの修正でRealtimeとBakedのGIフラグが残らない()
+        {
+            // Unity は Standard の _EMISSION キーワードを GI フラグから再導出するため、
+            // Realtime/Baked ビットが残っていると保存・再インポートのたびに発光が復活する。
+            // Komano 実機で「修正しても光が消えない」不具合として顕在化した（2026-07-23）。
+            // EmissiveIsBlack ビットの有無だけを見るアサーションでは素通りするので、
+            // 「Realtime/Baked が落ちていること」を独立に固定する。
+            var mat = SetupStandardMaterial(emissionEnabled: true, emissionColor: Color.white);
+
+            _check.Execute(_root).ToList()[0].FixAction();
+
+            Assert.AreEqual(
+                MaterialGlobalIlluminationFlags.EmissiveIsBlack,
+                mat.globalIlluminationFlags,
+                "GI フラグに Realtime/Baked が残っている（Unity がキーワードを再有効化してしまう）");
+        }
+
+        [Test]
+        public void Standardの修正でも発光色は保持される()
+        {
+            // 「トグルだけオフにして色は残す」方針（DEC-064）が Standard でも成立していること。
+            var color = new Color(1f, 0.85f, 0.4f, 1f);
+            var mat = SetupStandardMaterial(emissionEnabled: true, emissionColor: color);
+
+            _check.Execute(_root).ToList()[0].FixAction();
+
+            // Color の厳密比較はマテリアル往復での丸め差で落ちるため、成分ごとに許容誤差で見る
+            var actual = mat.GetColor("_EmissionColor");
+            Assert.AreEqual(color.r, actual.r, 1e-4f, "修正で発光色(R)が変わっている");
+            Assert.AreEqual(color.g, actual.g, 1e-4f, "修正で発光色(G)が変わっている");
+            Assert.AreEqual(color.b, actual.b, 1e-4f, "修正で発光色(B)が変わっている");
+        }
+
+        [Test]
         public void Standardで発光キーワードが無効なら検出しない()
         {
             SetupStandardMaterial(emissionEnabled: false, emissionColor: Color.white);
