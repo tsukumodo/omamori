@@ -58,6 +58,7 @@ namespace AvatarOmamori.Editor
         private GUIStyle _summaryStyle;
         private GUIStyle _foldoutStyle;
         private GUIStyle _ratingStyle;
+        private GUIStyle _performanceSummaryStyle;
 
         [MenuItem("Tools/アバター改変おまもり")]
         public static void ShowWindow()
@@ -144,11 +145,12 @@ namespace AvatarOmamori.Editor
                 RequestCardSave();
             }
             EditorGUILayout.EndHorizontal();
+
+            // ランクは1行だけスクロールの外に出す。詳細は結果の下（DEC-073）
+            DrawPerformanceSummaryLine();
             EditorGUILayout.Space(2);
 
             _scrollPos = EditorGUILayout.BeginScrollView(_scrollPos);
-
-            DrawPerformanceSection();
 
             // 表示条件は CountPrimary ではなく生の Count で見る。
             // 内訳行を1行も取りこぼさないため（見出しの件数は DrawSeverityGroup 側で CountPrimary を使う）
@@ -163,6 +165,11 @@ namespace AvatarOmamori.Editor
             {
                 EditorGUILayout.HelpBox("問題は見つかりませんでした。", MessageType.Info);
             }
+
+            // 詳細は「見つかった問題」の後ろに置く。ランクは直すべき問題ではなく参考情報であり、
+            // 先頭に置くと本来の目的（何が壊れているか）が折り返しの下に隠れてしまう（DEC-073）
+            EditorGUILayout.Space(6);
+            DrawPerformanceSection();
 
             if (FixHistoryStore.Count > 0)
             {
@@ -294,6 +301,23 @@ namespace AvatarOmamori.Editor
                 };
             }
             return _summaryStyle;
+        }
+
+        /// <summary>
+        /// スクロール外に出す「パフォーマンス: PC 〜 / Quest 〜」1行のスタイル。
+        /// 結果サマリー行より1段控えめにして、主役はあくまで見つかった問題であることを保つ。
+        /// </summary>
+        private GUIStyle GetPerformanceSummaryStyle(bool isHeavy)
+        {
+            if (_performanceSummaryStyle == null)
+            {
+                _performanceSummaryStyle = new GUIStyle(EditorStyles.miniLabel);
+            }
+
+            _performanceSummaryStyle.normal.textColor = isHeavy
+                ? new Color(0.9f, 0.7f, 0.1f)
+                : new Color(0.35f, 0.75f, 0.45f);
+            return _performanceSummaryStyle;
         }
 
         /// <summary>
@@ -438,7 +462,35 @@ namespace AvatarOmamori.Editor
         private static readonly Color AccentGold = new Color(0.784f, 0.659f, 0.486f);
 
         /// <summary>
-        /// PC / Quest の総合ランクと、ランクを下げている要因を表示する（DEC-070）。
+        /// 総合ランクだけを1行で表示する（DEC-073）。
+        ///
+        /// <para>
+        /// 詳細セクションは結果表示の後ろに置いたため、警告が多いアバターでは画面外に出る。
+        /// ランクは v0.9.0 の主役機能なので、この1行だけはスクロールの外に常時出して
+        /// 「見えない機能」にならないようにする。
+        /// </para>
+        /// </summary>
+        private void DrawPerformanceSummaryLine()
+        {
+            if (_performanceReport == null || !_performanceReport.IsValid) return;
+
+            var parts = new List<string>();
+            if (_performanceReport.Pc != null && _performanceReport.Pc.IsValid)
+                parts.Add($"PC {_performanceReport.Pc.OverallRatingName}");
+            if (_performanceReport.Quest != null && _performanceReport.Quest.IsValid)
+                parts.Add($"Quest {_performanceReport.Quest.OverallRatingName}");
+
+            if (parts.Count == 0) return;
+
+            var isHeavy = (_performanceReport.Pc != null && _performanceReport.Pc.IsHeavy)
+                          || (_performanceReport.Quest != null && _performanceReport.Quest.IsHeavy);
+
+            EditorGUILayout.LabelField(
+                $"パフォーマンス: {string.Join(" / ", parts)}", GetPerformanceSummaryStyle(isHeavy));
+        }
+
+        /// <summary>
+        /// PC / Quest の総合ランクと、ランクを下げている要因を表示する（DEC-070 / 配置は DEC-073）。
         /// ランクは「見つかった問題」ではないため、結果サマリーの件数には含めない。
         /// </summary>
         private void DrawPerformanceSection()
