@@ -7,8 +7,22 @@ using UnityEngine.Animations;
 namespace AvatarOmamori.Editor.Performance
 {
     /// <summary>
-    /// Quest / iOS で使えない要素1件分（層A）。
-    /// 「なぜ Quest だと見た目が変わる・動かないのか」を1行で説明し、対象を Hierarchy で選べるようにする。
+    /// 検出した非対応要素が、どのプラットフォームで問題になるか。
+    /// PC でも剥がされるものを「Quest では使えないもの」の中に並べると、
+    /// PC しか使わないユーザーが「自分には関係ない」と読み飛ばしてしまうため区別する。
+    /// </summary>
+    public enum IncompatibilityScope
+    {
+        /// <summary>Quest / iOS でのみ問題になる。</summary>
+        Quest,
+
+        /// <summary>PC / Quest を問わず、アップロード時に取り除かれる。</summary>
+        AllPlatforms
+    }
+
+    /// <summary>
+    /// アップロード時に問題になる要素1件分（層A）。
+    /// 「なぜ見た目が変わる・動かないのか」を1行で説明し、対象を Hierarchy で選べるようにする。
     /// </summary>
     public sealed class QuestIncompatibility
     {
@@ -18,18 +32,34 @@ namespace AvatarOmamori.Editor.Performance
         /// <summary>件数。</summary>
         public int Count { get; }
 
-        /// <summary>内訳や影響の説明（例: "Hidden/lilToonOutline / Hidden/lilToonTransparent ほか — Quest では…"）。</summary>
+        /// <summary>内訳や影響の説明（例: "Hidden/lilToonOutline ×35 / … — Quest では…"）。</summary>
         public string Detail { get; }
 
         /// <summary>「対象を選択」で Hierarchy 選択する対象。空なら選択ボタンを出さない。</summary>
         public IReadOnlyList<UnityEngine.Object> Targets { get; }
 
-        public QuestIncompatibility(string label, int count, string detail, IReadOnlyList<UnityEngine.Object> targets)
+        /// <summary>どのプラットフォームで問題になるか。UI の見出し分けに使う。</summary>
+        public IncompatibilityScope Scope { get; }
+
+        /// <summary>「調べる」で開く公式ドキュメント。適切な案内先が無い場合は null（ボタンを出さない）。</summary>
+        public string DocumentUrl { get; }
+
+        public QuestIncompatibility(
+            string label,
+            int count,
+            string detail,
+            IReadOnlyList<UnityEngine.Object> targets,
+            IncompatibilityScope scope = IncompatibilityScope.Quest,
+            string documentUrl = null)
         {
             Label = label;
             Count = count;
             Detail = detail;
             Targets = targets ?? Array.Empty<UnityEngine.Object>();
+            Scope = scope;
+            DocumentUrl = documentUrl ?? (scope == IncompatibilityScope.Quest
+                ? PerformanceCategoryLabels.QuestDocUrl
+                : null);
         }
     }
 
@@ -78,10 +108,17 @@ namespace AvatarOmamori.Editor.Performance
             var results = new List<QuestIncompatibility>();
             if (avatarRoot == null) return results;
 
+            // 同じコンポーネントを2つの項目で数えないようにする。
+            // ⚠ SDK 判定を先に走らせ、自前リスト側から除外する（逆にしてはいけない）。
+            //    自前リストは typeof(Collider) のように粗く、文言も「PC では動作します」で固定だが、
+            //    MeshCollider のように PC でも剥がされるものが混ざっている。
+            //    SDK 判定のほうが現在のビルドターゲットに対して正確なので、そちらを優先して残す。
+            var reported = new HashSet<Component>();
+
             AddIllegalShaders(avatarRoot, results);
-            AddForbiddenComponents(avatarRoot, results);
-            AddUnityConstraints(avatarRoot, results);
-            AddSdkIllegalComponents(avatarRoot, results);
+            AddSdkIllegalComponents(avatarRoot, results, reported);
+            AddForbiddenComponents(avatarRoot, results, reported);
+            AddUnityConstraints(avatarRoot, results, reported);
 
             return results;
         }
@@ -143,44 +180,63 @@ namespace AvatarOmamori.Editor.Performance
                 targets));
         }
 
-        private static void AddForbiddenComponents(GameObject avatarRoot, List<QuestIncompatibility> results)
+        private static void AddForbiddenComponents(
+            GameObject avatarRoot, List<QuestIncompatibility> results, HashSet<Component> reported)
         {
             foreach (var (type, label) in MobileForbiddenComponents)
             {
-                var found = avatarRoot.GetComponentsInChildren(type, true);
-                if (found.Length == 0) continue;
+                // SDK が「PC でも非対応」と判定済みのものは、そちらの項目に任せる。
+                // ここの文言は「PC では動作します」で固定なので、混ぜると誤った説明になる
+                var found = avatarRoot.GetComponentsInChildren(type, true)
+                    .Where(c => !reported.Contains(c))
+                    .ToList();
+                if (found.Count == 0) continue;
+
+                foreach (var component in found) reported.Add(component);
 
                 results.Add(new QuestIncompatibility(
                     $"Quest では無効になる {label}",
-                    found.Length,
+                    found.Count,
                     "Quest / iOS ではビルド時に取り除かれます（PC では動作します）",
                     found.Select(c => (UnityEngine.Object)c.gameObject).ToList()));
             }
         }
 
-        private static void AddUnityConstraints(GameObject avatarRoot, List<QuestIncompatibility> results)
+        private static void AddUnityConstraints(
+            GameObject avatarRoot, List<QuestIncompatibility> results, HashSet<Component> reported)
         {
             // Unity 標準の Constraint（IConstraint）は Quest で無効。VRChat Constraints への置き換えが必要。
-            var constraints = avatarRoot.GetComponentsInChildren<IConstraint>(true);
-            if (constraints.Length == 0) return;
+            var components = avatarRoot.GetComponentsInChildren<IConstraint>(true)
+                .OfType<Component>()
+                .Where(c => !reported.Contains(c))
+                .ToList();
+            if (components.Count == 0) return;
+
+            foreach (var component in components) reported.Add(component);
 
             results.Add(new QuestIncompatibility(
                 "Unity の Constraint",
-                constraints.Length,
+                components.Count,
                 "Quest / iOS では動きません。VRChat Constraints への置き換えをおすすめします",
-                constraints.OfType<Component>().Select(c => (UnityEngine.Object)c.gameObject).ToList()));
+                components.Select(c => (UnityEngine.Object)c.gameObject).ToList()));
         }
 
-        private static void AddSdkIllegalComponents(GameObject avatarRoot, List<QuestIncompatibility> results)
+        /// <summary>
+        /// 現在のビルドターゲットで SDK 自身が「非対応」と判定するコンポーネント。
+        /// PC ターゲットで検出されるのは DynamicBone / MeshCollider など、<b>PC でも剥がされるもの</b>。
+        /// Quest 固有の話ではないので <see cref="IncompatibilityScope.AllPlatforms"/> として報告し、
+        /// UI 側でも「Quest では使えないもの」とは別の見出しに置く。
+        /// </summary>
+        private static void AddSdkIllegalComponents(
+            GameObject avatarRoot, List<QuestIncompatibility> results, HashSet<Component> reported)
         {
-            // 現在のビルドターゲットで SDK 自身が「非対応」と判定するコンポーネント。
-            // PC ターゲットで検出されるのは DynamicBone / MeshCollider など、PC でも剥がされるものだけになる。
             List<Component> illegal;
             try
             {
                 illegal = VRC.SDK3.Validation.AvatarValidation
                     .FindIllegalComponents(avatarRoot)
                     .Where(c => c != null)
+                    .Distinct()
                     .ToList();
             }
             catch (Exception e)
@@ -191,17 +247,22 @@ namespace AvatarOmamori.Editor.Performance
 
             if (illegal.Count == 0) return;
 
+            // ここで報告したものは、あとから走る自前リスト側では数えない
+            foreach (var component in illegal) reported.Add(component);
+
             var detail = string.Join(" / ", illegal
                 .GroupBy(c => c.GetType().Name)
                 .OrderByDescending(g => g.Count())
+                .ThenBy(g => g.Key, StringComparer.Ordinal)
                 .Take(3)
-                .Select(g => $"{g.Key} {g.Count()}"));
+                .Select(g => $"{g.Key} ×{g.Count()}"));
 
             results.Add(new QuestIncompatibility(
                 "VRChat が対応していないコンポーネント",
                 illegal.Count,
-                $"{detail} — アップロード時に取り除かれます",
-                illegal.Select(c => (UnityEngine.Object)c.gameObject).Distinct().ToList()));
+                $"{detail} — PC / Quest を問わず、アップロード時に取り除かれます",
+                illegal.Select(c => (UnityEngine.Object)c.gameObject).Distinct().ToList(),
+                IncompatibilityScope.AllPlatforms));
         }
     }
 }

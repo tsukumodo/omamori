@@ -494,12 +494,13 @@ namespace AvatarOmamori.Editor
 
             if (incompatibilities != null && incompatibilities.Count > 0)
             {
-                EditorGUILayout.Space(2);
-                EditorGUILayout.LabelField("Quest では使えないもの", EditorStyles.miniBoldLabel);
-                foreach (var item in incompatibilities)
-                {
-                    DrawIncompatibility(item);
-                }
+                // Quest 固有の話と、PC でも剥がされる話を混ぜない。
+                // 混ぜると PC しか使わない人が後者を「Quest の話」として読み飛ばす
+                DrawIncompatibilityGroup(
+                    "Quest では使えないもの", incompatibilities, IncompatibilityScope.Quest);
+                DrawIncompatibilityGroup(
+                    "アップロード時に取り除かれるもの（PC / Quest 共通）",
+                    incompatibilities, IncompatibilityScope.AllPlatforms);
             }
 
             EditorGUILayout.EndVertical();
@@ -597,6 +598,24 @@ namespace AvatarOmamori.Editor
             EditorGUILayout.EndHorizontal();
         }
 
+        /// <summary>
+        /// 指定した <paramref name="scope"/> の項目だけを見出し付きで描画する。
+        /// 該当が1件も無ければ見出しごと出さない。
+        /// </summary>
+        private void DrawIncompatibilityGroup(
+            string heading, IReadOnlyList<QuestIncompatibility> items, IncompatibilityScope scope)
+        {
+            var matched = items.Where(i => i.Scope == scope).ToList();
+            if (matched.Count == 0) return;
+
+            EditorGUILayout.Space(2);
+            EditorGUILayout.LabelField(heading, EditorStyles.miniBoldLabel);
+            foreach (var item in matched)
+            {
+                DrawIncompatibility(item);
+            }
+        }
+
         private void DrawIncompatibility(QuestIncompatibility item)
         {
             EditorGUILayout.BeginHorizontal();
@@ -613,9 +632,12 @@ namespace AvatarOmamori.Editor
                 }
             }
 
-            if (GUILayout.Button("調べる", EditorStyles.miniButton, GUILayout.Width(56)))
+            // 案内先が無い項目（PC / Quest 共通の非対応コンポーネントなど）ではボタンを出さない。
+            // Quest のドキュメントを開かせると、Quest の話だと誤解させてしまう
+            if (!string.IsNullOrEmpty(item.DocumentUrl)
+                && GUILayout.Button("調べる", EditorStyles.miniButton, GUILayout.Width(56)))
             {
-                Application.OpenURL(PerformanceCategoryLabels.QuestDocUrl);
+                Application.OpenURL(item.DocumentUrl);
             }
 
             EditorGUILayout.EndHorizontal();

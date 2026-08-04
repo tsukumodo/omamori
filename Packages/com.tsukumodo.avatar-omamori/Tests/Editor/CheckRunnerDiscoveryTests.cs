@@ -22,7 +22,6 @@ namespace AvatarOmamori.Tests.Editor
                 "ExpressionParameterBitLimitCheck",
                 "AnimatorLayerWeightCheck",
                 "EmissionCheck",
-                "MeshReadWriteCheck",
                 "MAMenuItemUnboundCheck",
                 "MAObjectToggleCheck",
                 "MAUnsetupAccessoryCheck",

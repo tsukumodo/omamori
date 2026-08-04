@@ -6,7 +6,6 @@
 - 各項目に「あと何をどこまで減らすと1ランク上がるか」を表示。目標値は VRChat SDK が持っている閾値をそのまま使うため、SDK の更新にも追従する
 - Quest / iOS で使えない要素の明示を追加。非対応シェーダー・Quest では無効になるコンポーネント（Light / Camera / Audio Source / Cloth / 物理）・Unity の Constraint を、それぞれ件数と影響つきで表示する。対象は Hierarchy で選択できる
 - 各項目に VRChat 公式ドキュメントを開く「調べる」ボタンを追加
-- [SDK] メッシュの Read/Write Enabled が無効になっているものをエラーとして検出。この状態だとポリゴン数が計測できず、PC・Quest ともにパフォーマンスランクが Very Poor になる
 
 ### 変更
 - VRC Avatar Descriptor の重複を検出したとき、結果件数が実際の問題数より多く表示されていたのを改善。重複箇所の行はサマリーの内訳として字下げ表示し、件数は「問題1件」として数えるようにした（Descriptor が3個なら「3 Error」ではなく「1 Error」）。重複箇所を Hierarchy で確認する「選択」ボタンはそのまま使える
