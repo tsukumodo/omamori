@@ -77,22 +77,36 @@ namespace AvatarOmamori.Editor.Performance
         /// <summary>総合ランクが Medium 以下かどうか。UI の色分けに使う。</summary>
         public bool IsHeavy { get; }
 
+        /// <summary>
+        /// 総合ランクが最高（Excellent）かどうか。
+        /// <see cref="Factors"/> が空になる理由は「本当に軽い」と「要因が内訳の対象外だった」の2通りあり、
+        /// UI がこの2つを取り違えないように区別するためのフラグ。
+        /// </summary>
+        public bool IsBestRating { get; }
+
         /// <summary>総合ランクが取得できたかどうか。false ならセクションを描画しない。</summary>
         public bool IsValid { get; }
 
-        /// <summary>ランクを下げている要因（改善効果の大きい順）。</summary>
+        /// <summary>
+        /// ランクを下げている要因（改善効果の大きい順）。
+        /// 総合ランクを下げている項目が <see cref="PerformanceCategoryLabels.Entries"/> に無い場合
+        /// （アバターの大きさ＝AABB、パーティクルのトレイル／コリジョンなど）は、
+        /// ランクが低くてもここは空になる。<see cref="IsBestRating"/> と併せて解釈すること。
+        /// </summary>
         public IReadOnlyList<PerformanceFactor> Factors { get; }
 
         public PlatformPerformance(
             PerformancePlatform platform,
             string overallRatingName,
             bool isHeavy,
+            bool isBestRating,
             bool isValid,
             IReadOnlyList<PerformanceFactor> factors)
         {
             Platform = platform;
             OverallRatingName = overallRatingName;
             IsHeavy = isHeavy;
+            IsBestRating = isBestRating;
             IsValid = isValid;
             Factors = factors ?? new List<PerformanceFactor>();
         }

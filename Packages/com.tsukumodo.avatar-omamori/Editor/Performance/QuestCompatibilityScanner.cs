@@ -18,7 +18,7 @@ namespace AvatarOmamori.Editor.Performance
         /// <summary>件数。</summary>
         public int Count { get; }
 
-        /// <summary>内訳や影響の説明（例: "lilToon 系 10 / Mobile/Particles/Additive 1"）。</summary>
+        /// <summary>内訳や影響の説明（例: "Hidden/lilToonOutline / Hidden/lilToonTransparent ほか — Quest では…"）。</summary>
         public string Detail { get; }
 
         /// <summary>「対象を選択」で Hierarchy 選択する対象。空なら選択ボタンを出さない。</summary>
@@ -103,25 +103,38 @@ namespace AvatarOmamori.Editor.Performance
 
             if (illegalShaders.Count == 0) return;
 
-            // どの Renderer が該当シェーダーを使っているかを引き当てて、選択できるようにする
+            // どの Renderer が該当シェーダーを使っているかを引き当てて、選択できるようにする。
+            // あわせてシェーダーごとの使用マテリアル数を数え、影響の大きいものから並べる
+            // （illegalShaders は集合なので、シェーダー自体を GroupBy しても件数は常に1になり並べ替えの意味がない）
             var targets = new List<UnityEngine.Object>();
+            var materialCountByShader = new Dictionary<string, int>(StringComparer.Ordinal);
             foreach (var renderer in avatarRoot.GetComponentsInChildren<Renderer>(true))
             {
+                var used = false;
                 foreach (var material in renderer.sharedMaterials)
                 {
                     if (material == null || material.shader == null) continue;
                     if (!illegalShaders.Contains(material.shader)) continue;
-                    targets.Add(renderer.gameObject);
-                    break;
+
+                    materialCountByShader.TryGetValue(material.shader.name, out var count);
+                    materialCountByShader[material.shader.name] = count + 1;
+                    used = true;
                 }
+
+                if (used) targets.Add(renderer.gameObject);
             }
 
-            var detail = string.Join(" / ", illegalShaders
-                .GroupBy(s => s.name)
-                .OrderByDescending(g => g.Count())
+            var detail = string.Join(" / ", materialCountByShader
+                .OrderByDescending(pair => pair.Value)
+                .ThenBy(pair => pair.Key, StringComparer.Ordinal)
                 .Take(3)
-                .Select(g => g.Key));
-            if (illegalShaders.Count > 3) detail += " ほか";
+                .Select(pair => $"{pair.Key} ×{pair.Value}"));
+            if (materialCountByShader.Count > 3) detail += " ほか";
+            if (detail.Length == 0)
+            {
+                // Renderer 以外（アニメーションで差し替わるマテリアル等）にしか無い場合の保険
+                detail = string.Join(" / ", illegalShaders.Select(s => s.name).OrderBy(n => n, StringComparer.Ordinal).Take(3));
+            }
 
             results.Add(new QuestIncompatibility(
                 "Quest では使えないシェーダー",

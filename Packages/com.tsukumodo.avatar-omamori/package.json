@@ -15,6 +15,6 @@
   ],
   "license": "MIT",
   "vpmDependencies": {
-    "com.vrchat.avatars": ">=3.5.0"
+    "com.vrchat.avatars": ">=3.7.0"
   }
 }

@@ -145,7 +145,7 @@ namespace AvatarOmamori.Editor.Performance
             if (!TryGetRating(stats, AvatarPerformanceCategory.Overall, out var overall)
                 || RatingOrder(overall) < 0)
             {
-                return new PlatformPerformance(platform, "-", false, false, null);
+                return new PlatformPerformance(platform, "-", false, false, false, null);
             }
 
             var factors = BuildFactors(stats, overall, isMobile);
@@ -154,6 +154,7 @@ namespace AvatarOmamori.Editor.Performance
                 platform,
                 PerformanceCategoryLabels.FormatRating(overall),
                 RatingOrder(overall) >= RatingOrder(PerformanceRating.Medium),
+                RatingOrder(overall) == 0, // Excellent＝これ以上は上がらない
                 true,
                 factors);
         }
@@ -175,7 +176,8 @@ namespace AvatarOmamori.Editor.Performance
                 var ratingOrder = RatingOrder(rating);
                 if (ratingOrder < 0) continue; // None など、ランク判定の対象外
 
-                // 総合ランクと同じか、それより悪い項目だけが「足を引っ張っている」項目
+                // 総合ランクは各カテゴリの最悪値なので、ここを通るのは実質「総合ランクと同じランクの項目」。
+                // それらを1つ上のランクの範囲まで下げると、総合ランクが1つ上がる
                 if (ratingOrder < overallOrder) continue;
 
                 if (!PerformanceCategoryLabels.TryGetNumericValue(stats, entry.FieldPath, out var currentValue))

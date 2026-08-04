@@ -125,9 +125,11 @@ namespace AvatarOmamori.Editor
             // サマリー。内訳行は「1つの問題を説明する補助行」なので件数に数えない（CountPrimary）
             var summary = $"結果: {CountPrimary(_errors)} Error / {CountPrimary(_warnings)} Warning / {CountPrimary(_infos)} Info";
             var summaryStyle = GetSummaryStyle();
-            if (_errors.Count > 0)
+            // 色は表示している件数と同じ数え方で決める。生の Count で判定すると
+            // 内訳行しかない Severity で「0 Error」を赤く塗ってしまう
+            if (CountPrimary(_errors) > 0)
                 summaryStyle.normal.textColor = new Color(0.9f, 0.2f, 0.2f);
-            else if (_warnings.Count > 0)
+            else if (CountPrimary(_warnings) > 0)
                 summaryStyle.normal.textColor = new Color(0.9f, 0.7f, 0.1f);
             else
                 summaryStyle.normal.textColor = new Color(0.2f, 0.8f, 0.2f);
@@ -147,6 +149,8 @@ namespace AvatarOmamori.Editor
 
             DrawPerformanceSection();
 
+            // 表示条件は CountPrimary ではなく生の Count で見る。
+            // 内訳行を1行も取りこぼさないため（見出しの件数は DrawSeverityGroup 側で CountPrimary を使う）
             if (_errors.Count > 0)
                 DrawSeverityGroup("Error", _errors, ref _foldError, new Color(0.9f, 0.2f, 0.2f));
             if (_warnings.Count > 0)
@@ -491,6 +495,15 @@ namespace AvatarOmamori.Editor
 
             if (platform.Factors.Count == 0)
             {
+                // 要因が空になる理由は2通りある。ランクが低いのに「軽く動きます」と書くと矛盾するため、
+                // 総合ランクが最高かどうかで文言を分ける（AABB・パーティクル設定などは内訳の対象外）
+                if (!platform.IsBestRating)
+                {
+                    return "ランクを下げている項目を、この画面では特定できませんでした。"
+                           + "アバターの大きさやパーティクルの設定が原因のことがあります。"
+                           + "詳しくは VRChat SDK のビルドパネルでご確認ください。";
+                }
+
                 return isQuest
                     ? "Quest / iOS でも軽く動きます。"
                     : "PC では軽く動きます。";

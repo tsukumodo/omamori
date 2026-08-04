@@ -45,8 +45,10 @@ namespace AvatarOmamori.Editor.Checks
 
         /// <summary>
         /// Renderer が描画しているメッシュを返す。無ければ null。
-        /// ⚠ <c>GetComponent&lt;MeshFilter&gt;()?.sharedMesh</c> は Unity の疑似 null をすり抜けて
-        /// MissingComponentException になるため、必ず TryGetComponent で受ける。
+        /// ⚠ <c>GetComponent&lt;MeshFilter&gt;()?.sharedMesh</c> は使わない。
+        /// <c>?.</c> は C# の参照 null しか見ないため、破棄済みコンポーネント（Unity の疑似 null）を
+        /// 「非 null」として通してしまう。<c>TryGetComponent</c> なら Unity 側の判定を通るうえ、
+        /// 未取得時のアロケーションも避けられる。
         /// </summary>
         private static Mesh GetMesh(Renderer renderer)
         {

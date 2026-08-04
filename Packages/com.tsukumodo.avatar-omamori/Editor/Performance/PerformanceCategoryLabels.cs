@@ -80,6 +80,9 @@ namespace AvatarOmamori.Editor.Performance
             new Entry(AvatarPerformanceCategory.PhysBoneColliderCount, "PhysBone コライダー数", "physBone.colliderCount", ValueFormat.Count),
             new Entry(AvatarPerformanceCategory.PhysBoneCollisionCheckCount, "PhysBone の衝突判定数", "physBone.collisionCheckCount", ValueFormat.Count),
             new Entry(AvatarPerformanceCategory.ContactCount, "Contact の数", "contactCount", ValueFormat.Count),
+            // ⚠ ConstraintsCount / ConstraintDepth は VRChat Constraints（SDK 3.7.0）で追加された項目。
+            //    これより古い SDK では列挙値が存在せずパッケージ全体がコンパイルできないため、
+            //    package.json の vpmDependencies を >=3.7.0 未満に戻さないこと
             new Entry(AvatarPerformanceCategory.ConstraintsCount, "Constraint の数", "constraintsCount", ValueFormat.Count),
             new Entry(AvatarPerformanceCategory.ConstraintDepth, "Constraint の深さ", "constraintDepth", ValueFormat.Count),
             new Entry(AvatarPerformanceCategory.ParticleSystemCount, "パーティクルシステム数", "particleSystemCount", ValueFormat.Count),
@@ -163,7 +166,8 @@ namespace AvatarOmamori.Editor.Performance
             }
         }
 
-        // UnityEngine への依存をこのファイルに持ち込まないための小さなヘルパー
+        // UnityEngine.Mathf.RoundToInt は銀行家丸め（0.5 → 偶数側）なので、
+        // 表示上の期待と揃うよう AwayFromZero で丸める
         private static int Mathf_RoundToInt(float value) => (int)Math.Round(value, MidpointRounding.AwayFromZero);
 
         /// <summary>SDK のランク列挙を、表示用の文字列にする（SDK・公式ドキュメントと表記を揃えるため英語のまま）。</summary>
