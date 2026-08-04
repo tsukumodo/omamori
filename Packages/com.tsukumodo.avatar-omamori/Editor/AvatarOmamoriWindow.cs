@@ -57,6 +57,7 @@ namespace AvatarOmamori.Editor
         // GUIStyle のキャッシュ
         private GUIStyle _summaryStyle;
         private GUIStyle _foldoutStyle;
+        private GUIStyle _ratingStyle;
 
         [MenuItem("Tools/アバター改変おまもり")]
         public static void ShowWindow()
@@ -295,6 +296,27 @@ namespace AvatarOmamori.Editor
             return _summaryStyle;
         }
 
+        /// <summary>
+        /// 総合ランク表示用のスタイル。色だけ呼び出しごとに差し替える。
+        /// OnGUI 内で GUIStyle を new すると Repaint のたびにアロケーションが発生するため、
+        /// このファイルの他のスタイルと同じくキャッシュする。
+        /// </summary>
+        private GUIStyle GetRatingStyle(bool isHeavy)
+        {
+            if (_ratingStyle == null)
+            {
+                _ratingStyle = new GUIStyle(EditorStyles.boldLabel)
+                {
+                    alignment = TextAnchor.MiddleRight
+                };
+            }
+
+            _ratingStyle.normal.textColor = isHeavy
+                ? new Color(0.9f, 0.7f, 0.1f)
+                : new Color(0.35f, 0.75f, 0.45f);
+            return _ratingStyle;
+        }
+
         private GUIStyle GetFoldoutStyle()
         {
             if (_foldoutStyle == null)
@@ -461,12 +483,8 @@ namespace AvatarOmamori.Editor
             EditorGUILayout.BeginHorizontal();
             EditorGUILayout.LabelField(title, EditorStyles.boldLabel, GUILayout.Width(90));
             GUILayout.FlexibleSpace();
-            var ratingStyle = new GUIStyle(EditorStyles.boldLabel)
-            {
-                alignment = TextAnchor.MiddleRight,
-                normal = { textColor = platform.IsHeavy ? new Color(0.9f, 0.7f, 0.1f) : new Color(0.35f, 0.75f, 0.45f) }
-            };
-            EditorGUILayout.LabelField(platform.OverallRatingName, ratingStyle, GUILayout.Width(110));
+            EditorGUILayout.LabelField(
+                platform.OverallRatingName, GetRatingStyle(platform.IsHeavy), GUILayout.Width(110));
             EditorGUILayout.EndHorizontal();
 
             // 説明文。ランクを突きつけず「上げると何が良くなるか」を書く（DEC-069 決定事項7）

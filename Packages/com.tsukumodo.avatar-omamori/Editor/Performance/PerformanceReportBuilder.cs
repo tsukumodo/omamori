@@ -34,7 +34,7 @@ namespace AvatarOmamori.Editor.Performance
         };
 
         /// <summary>ランクの「悪さ」を表す 0（Excellent）〜4（Very Poor）の順位。未知のランクは -1。</summary>
-        private static int RatingOrder(PerformanceRating rating) => Array.IndexOf(RatingsBestToWorst, rating);
+        internal static int RatingOrder(PerformanceRating rating) => Array.IndexOf(RatingsBestToWorst, rating);
 
         /// <summary>
         /// アバターを計測し、PC / Quest 両方の結果と Quest 非対応要因をまとめて返す。
@@ -209,7 +209,7 @@ namespace AvatarOmamori.Editor.Performance
         /// <b>現在値より実際に小さい閾値</b>が現れるまで、良いランク方向へ辿る。
         /// </para>
         /// </summary>
-        private static (float Limit, PerformanceRating Rating)? FindNextTarget(
+        internal static (float Limit, PerformanceRating Rating)? FindNextTarget(
             PerformanceCategoryLabels.Entry entry, float currentValue, PerformanceRating overall, bool isMobile)
         {
             // 総合ランクの1つ上から順に、良い方向へ見ていく
@@ -234,7 +234,7 @@ namespace AvatarOmamori.Editor.Performance
             return null;
         }
 
-        private static float ExcessRatio(float current, float limit)
+        internal static float ExcessRatio(float current, float limit)
         {
             // 上限が 0 の項目（Quest のライト・Audio Source 等）は「0 にするしかない」＝最優先で見せたい
             if (limit <= 0f) return float.MaxValue;
