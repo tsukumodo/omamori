@@ -45,11 +45,14 @@ namespace AvatarOmamori.Tests.Editor
             Assert.That(summary.Message, Does.Contain("2 個"));
             Assert.IsTrue(summary.HasFix, "サマリー結果に修正アクションが付いていない");
             Assert.IsTrue(summary.SkipConfirm, "選択ウィンドウを出す修正は SkipConfirm であるべき");
+            Assert.IsFalse(summary.IsDetail, "サマリー結果は件数に数える本体行であるべき");
 
             var duplicate = results[1];
             Assert.AreEqual(Severity.Error, duplicate.Severity);
             Assert.That(duplicate.Message, Does.Contain("Avatar/Child"));
             Assert.IsFalse(duplicate.HasFix, "重複箇所の結果に修正アクションは付かない（サマリーに集約）");
+            Assert.IsTrue(duplicate.IsDetail, "重複箇所はサマリーの内訳行なので件数に数えない");
+            Assert.IsNotNull(duplicate.TargetObject, "内訳行は Hierarchy で場所を確認できる必要がある");
         }
     }
 }

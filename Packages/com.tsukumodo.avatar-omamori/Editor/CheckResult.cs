@@ -60,6 +60,14 @@ namespace AvatarOmamori.Editor
         /// <summary>修正後の値の文字列表現（例: "1"）。null 可。</summary>
         public string AfterValue { get; }
 
+        /// <summary>
+        /// true の場合、直前のサマリー結果の「内訳」として扱う。
+        /// UI では字下げして表示し、結果サマリー（"N Error"）・Foldout の件数・カード画像の件数には数えない。
+        /// 1つの問題を複数行で説明するチェック（例: Descriptor 重複のサマリー＋各重複箇所）で、
+        /// 件数が水増しされ、実際より多くの問題があるように見えるのを防ぐ。
+        /// </summary>
+        public bool IsDetail { get; }
+
         /// <summary>自動修正が利用可能かどうか。</summary>
         public bool HasFix => FixAction != null;
 
@@ -76,6 +84,7 @@ namespace AvatarOmamori.Editor
         /// <param name="valueLabel">Before/After 表示用の項目名（任意）。例: "FX Layer / Weight"。</param>
         /// <param name="beforeValue">修正前の値（任意）。例: "0"。</param>
         /// <param name="afterValue">修正後の値（任意）。例: "1"。</param>
+        /// <param name="isDetail">true にすると直前のサマリー結果の内訳として扱い、件数に数えず字下げ表示する。</param>
         public CheckResult(
             Severity severity,
             string message,
@@ -86,7 +95,8 @@ namespace AvatarOmamori.Editor
             bool skipConfirm = false,
             string valueLabel = null,
             string beforeValue = null,
-            string afterValue = null)
+            string afterValue = null,
+            bool isDetail = false)
         {
             Severity = severity;
             Message = message;
@@ -98,6 +108,7 @@ namespace AvatarOmamori.Editor
             ValueLabel = valueLabel;
             BeforeValue = beforeValue;
             AfterValue = afterValue;
+            IsDetail = isDetail;
         }
     }
 }

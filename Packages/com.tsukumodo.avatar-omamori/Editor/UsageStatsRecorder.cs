@@ -85,6 +85,35 @@ namespace AvatarOmamori.Editor
         }
 
         /// <summary>
+        /// 検出件数だけを加算する（チェック実行回数は増やさない）。
+        /// <see cref="CheckRunner"/> を経由しない機能（パフォーマンス表示など）から呼ぶ。
+        /// <see cref="RecordCheckRun"/> と同じ実行で併用しても check_run_count が二重計上されないようにするための入口。
+        /// opt-out 中は何もしない。
+        /// </summary>
+        public static void RecordDetections(IReadOnlyDictionary<string, int> detectionsByKey)
+        {
+            var stats = Load();
+            if (stats.OptOut) return;
+            if (detectionsByKey == null) return;
+
+            var changed = false;
+            foreach (var kv in detectionsByKey)
+            {
+                if (kv.Value <= 0) continue;
+                var key = SanitizeKey(kv.Key);
+                if (key == null) continue; // 識別子として不正なキーは捨てる（個人情報混入の最終防波堤）
+                stats.DetectionCounts.TryGetValue(key, out int cur);
+                stats.DetectionCounts[key] = cur + kv.Value;
+                changed = true;
+            }
+
+            if (!changed) return;
+
+            Touch(stats);
+            Save(stats);
+        }
+
+        /// <summary>
         /// 自動修正1回分を記録する。<paramref name="checkTypeName"/> は修正を提供したチェッククラス名。
         /// opt-out 中は何もしない。
         /// </summary>

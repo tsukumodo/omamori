@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using AvatarOmamori.Editor.Performance;
 using UnityEditor;
 using UnityEngine;
 
@@ -22,6 +23,27 @@ namespace AvatarOmamori.Editor
         private bool _foldWarning = true;
         private bool _foldInfo = true;
         private bool _foldHistory = false; // 履歴はデフォルト閉じる（結果カードを優先）
+
+        // パフォーマンス表示（v0.9.0）。ランクは「問題」ではないので Error/Warning/Info の件数には含めず、
+        // 専用セクションで PC / Quest を並べて見せる（DEC-070）。
+        private AvatarPerformanceReport _performanceReport;
+        private bool _foldPerformance = true; // 主役機能なので既定は展開
+
+        // 「ほか N 件を見る」で展開済みのプラットフォーム。
+        // [NonSerialized] が必須。EditorWindow はドメインリロード（スクリプト再コンパイル）をまたいで
+        // 状態を復元する際、シリアライズ対象外の参照フィールドを null にして戻すことがあるため、
+        // 参照する側でも必ず EnsureExpandedFactors() を通す。
+        [NonSerialized]
+        private HashSet<PerformancePlatform> _expandedFactors;
+
+        /// <summary>常時表示する要因の件数。残りは「ほか N 件を見る」で展開する（DEC-070）。</summary>
+        private const int VisibleFactorCount = 3;
+
+        /// <summary>Severity アイコンの表示幅。内訳行では同じ幅を空けて本文の開始位置を揃える。</summary>
+        private const float SeverityIconWidth = 20f;
+
+        /// <summary>内訳行（<see cref="CheckResult.IsDetail"/>）の字下げ幅。</summary>
+        private const float DetailIndentWidth = 16f;
 
         // 「カードを保存」で選ばれた出力先。GL 描画は Repaint イベント中に行う必要があるため、
         // ボタン押下時はパスだけ確保し、次の Repaint で実際の書き出しを実行する。
@@ -50,8 +72,7 @@ namespace AvatarOmamori.Editor
         public void RefreshResults()
         {
             if (_avatarRoot == null) return;
-            _results = CheckRunner.RunAll(_avatarRoot);
-            CacheResultsByCategory();
+            RunChecks();
             Repaint();
         }
 
@@ -76,13 +97,13 @@ namespace AvatarOmamori.Editor
                 // オンボーディング時のボタン押し忘れを防ぎ、ツールの価値をすぐに体験してもらうため。
                 if (_avatarRoot != null)
                 {
-                    _results = CheckRunner.RunAll(_avatarRoot);
-                    CacheResultsByCategory();
+                    RunChecks();
                 }
                 else
                 {
                     // アバター参照がクリアされたら結果も消す（古い結果が残ると誤解の元）
                     _results = null;
+                    _performanceReport = null;
                 }
             }
 
@@ -92,8 +113,7 @@ namespace AvatarOmamori.Editor
             {
                 if (GUILayout.Button("チェック実行", GUILayout.Height(30)))
                 {
-                    _results = CheckRunner.RunAll(_avatarRoot);
-                    CacheResultsByCategory();
+                    RunChecks();
                 }
             }
 
@@ -102,8 +122,8 @@ namespace AvatarOmamori.Editor
 
             EditorGUILayout.Space(4);
 
-            // サマリー
-            var summary = $"結果: {_errors.Count} Error / {_warnings.Count} Warning / {_infos.Count} Info";
+            // サマリー。内訳行は「1つの問題を説明する補助行」なので件数に数えない（CountPrimary）
+            var summary = $"結果: {CountPrimary(_errors)} Error / {CountPrimary(_warnings)} Warning / {CountPrimary(_infos)} Info";
             var summaryStyle = GetSummaryStyle();
             if (_errors.Count > 0)
                 summaryStyle.normal.textColor = new Color(0.9f, 0.2f, 0.2f);
@@ -113,7 +133,8 @@ namespace AvatarOmamori.Editor
                 summaryStyle.normal.textColor = new Color(0.2f, 0.8f, 0.2f);
 
             EditorGUILayout.BeginHorizontal();
-            EditorGUILayout.LabelField(summary, summaryStyle);
+            // LabelField はプレフィックスラベル扱いで labelWidth に切り詰められるため GUILayout.Label を使う
+            GUILayout.Label(summary, summaryStyle);
             GUILayout.FlexibleSpace();
             if (GUILayout.Button("カードを保存", GUILayout.Width(100)))
             {
@@ -123,6 +144,8 @@ namespace AvatarOmamori.Editor
             EditorGUILayout.Space(2);
 
             _scrollPos = EditorGUILayout.BeginScrollView(_scrollPos);
+
+            DrawPerformanceSection();
 
             if (_errors.Count > 0)
                 DrawSeverityGroup("Error", _errors, ref _foldError, new Color(0.9f, 0.2f, 0.2f));
@@ -180,9 +203,10 @@ namespace AvatarOmamori.Editor
             {
                 var data = new CardExporter.CardData
                 {
-                    ErrorCount = _errors.Count,
-                    WarningCount = _warnings.Count,
-                    InfoCount = _infos.Count,
+                    // 画面のサマリー表示と数え方を揃える（内訳行は数えない）
+                    ErrorCount = CountPrimary(_errors),
+                    WarningCount = CountPrimary(_warnings),
+                    InfoCount = CountPrimary(_infos),
                     FixCount = FixHistoryStore.Count,
                     DateText = DateTime.Now.ToString("yyyy-MM-dd"), // 年月日のみ（DEC-055 準拠）
                     ToolVersion = UsageStatsRecorder.GetSnapshot().ToolVersion,
@@ -225,6 +249,19 @@ namespace AvatarOmamori.Editor
         }
 
         /// <summary>
+        /// 全チェックとパフォーマンス計測を実行し、表示用の状態を作り直す。
+        /// </summary>
+        private void RunChecks()
+        {
+            _results = CheckRunner.RunAll(_avatarRoot);
+            CacheResultsByCategory();
+
+            _performanceReport = PerformanceReportBuilder.Build(_avatarRoot);
+            EnsureExpandedFactors().Clear(); // 再チェックのたびに「ほか N 件」は畳み直す
+            RecordPerformanceUsage(_performanceReport);
+        }
+
+        /// <summary>
         /// チェック結果を Severity 別に分類してキャッシュする。
         /// </summary>
         private void CacheResultsByCategory()
@@ -233,6 +270,14 @@ namespace AvatarOmamori.Editor
             _warnings = _results.Where(r => r.Severity == Severity.Warning).ToList();
             _infos = _results.Where(r => r.Severity == Severity.Info).ToList();
         }
+
+        /// <summary>
+        /// 件数表示に使う「問題の数」を数える。
+        /// 内訳行（<see cref="CheckResult.IsDetail"/>）は1つの問題を補足する行なので数えない。
+        /// リスト自体は表示のため全件保持したままにする。
+        /// </summary>
+        internal static int CountPrimary(List<CheckResult> items)
+            => items.Count(r => !r.IsDetail);
 
         private GUIStyle GetSummaryStyle()
         {
@@ -264,21 +309,36 @@ namespace AvatarOmamori.Editor
             style.normal.textColor = color;
             style.onNormal.textColor = color;
 
-            foldout = EditorGUILayout.Foldout(foldout, $"{label} ({items.Count})", true, style);
+            foldout = EditorGUILayout.Foldout(foldout, $"{label} ({CountPrimary(items)})", true, style);
             if (!foldout)
                 return;
 
             EditorGUI.indentLevel++;
             foreach (var result in items)
             {
+                // 内訳行は1段字下げして、直前のサマリー行にぶら下がっていることを見た目で示す
+                if (result.IsDetail)
+                {
+                    EditorGUILayout.BeginHorizontal();
+                    GUILayout.Space(DetailIndentWidth);
+                }
+
                 EditorGUILayout.BeginVertical("box");
                 EditorGUILayout.BeginHorizontal();
 
-                // Severity アイコン
-                var iconContent = GetSeverityIcon(result.Severity);
-                if (iconContent != null)
+                // Severity アイコン。内訳行では出さず（同じ赤アイコンが並ぶと問題が複数あるように見えるため）、
+                // 代わりに同じ幅だけ空けて本文の開始位置をサマリー行と揃える
+                if (result.IsDetail)
                 {
-                    GUILayout.Label(iconContent, GUILayout.Width(20), GUILayout.Height(20));
+                    GUILayout.Space(SeverityIconWidth);
+                }
+                else
+                {
+                    var iconContent = GetSeverityIcon(result.Severity);
+                    if (iconContent != null)
+                    {
+                        GUILayout.Label(iconContent, GUILayout.Width(SeverityIconWidth), GUILayout.Height(20));
+                    }
                 }
 
                 EditorGUILayout.LabelField(result.Message, EditorStyles.wordWrappedLabel);
@@ -335,9 +395,219 @@ namespace AvatarOmamori.Editor
                 }
 
                 EditorGUILayout.EndVertical();
+
+                if (result.IsDetail)
+                {
+                    EditorGUILayout.EndHorizontal();
+                }
+
                 EditorGUILayout.Space(2);
             }
             EditorGUI.indentLevel--;
+        }
+
+        // ───────────────────────────── パフォーマンス表示（v0.9.0 / DEC-070） ─────────────────────────────
+
+        /// <summary>ブランドの金色。パフォーマンスセクションの見出しに使い、Severity の色と混同させない。</summary>
+        private static readonly Color AccentGold = new Color(0.784f, 0.659f, 0.486f);
+
+        /// <summary>
+        /// PC / Quest の総合ランクと、ランクを下げている要因を表示する（DEC-070）。
+        /// ランクは「見つかった問題」ではないため、結果サマリーの件数には含めない。
+        /// </summary>
+        private void DrawPerformanceSection()
+        {
+            if (_performanceReport == null) return;
+
+            var foldoutStyle = GetFoldoutStyle();
+            foldoutStyle.normal.textColor = AccentGold;
+            foldoutStyle.onNormal.textColor = AccentGold;
+
+            _foldPerformance = EditorGUILayout.Foldout(_foldPerformance, "パフォーマンス", true, foldoutStyle);
+            if (!_foldPerformance) return;
+
+            if (!_performanceReport.IsValid)
+            {
+                EditorGUILayout.HelpBox(_performanceReport.FailureReason, MessageType.Info);
+                return;
+            }
+
+            DrawPlatformBlock(_performanceReport.Pc);
+            DrawPlatformBlock(_performanceReport.Quest, _performanceReport.QuestIncompatibilities);
+
+            // 注記は折りたたみの中に隠さず常時表示する（DEC-070）
+            EditorGUILayout.HelpBox(
+                "ここの数値は Modular Avatar などの非破壊改変ツールを適用する前のものです。"
+                + "最終的な値は VRChat SDK のビルドパネルでご確認ください。",
+                MessageType.None);
+            EditorGUILayout.Space(4);
+        }
+
+        private void DrawPlatformBlock(
+            PlatformPerformance platform, IReadOnlyList<QuestIncompatibility> incompatibilities = null)
+        {
+            if (platform == null || !platform.IsValid) return;
+
+            var isQuest = platform.Platform == PerformancePlatform.Quest;
+            var title = isQuest ? "Quest / iOS" : "PC";
+
+            EditorGUILayout.BeginVertical("box");
+
+            // 見出し行: プラットフォーム名 ─ 総合ランク
+            EditorGUILayout.BeginHorizontal();
+            EditorGUILayout.LabelField(title, EditorStyles.boldLabel, GUILayout.Width(90));
+            GUILayout.FlexibleSpace();
+            var ratingStyle = new GUIStyle(EditorStyles.boldLabel)
+            {
+                alignment = TextAnchor.MiddleRight,
+                normal = { textColor = platform.IsHeavy ? new Color(0.9f, 0.7f, 0.1f) : new Color(0.35f, 0.75f, 0.45f) }
+            };
+            EditorGUILayout.LabelField(platform.OverallRatingName, ratingStyle, GUILayout.Width(110));
+            EditorGUILayout.EndHorizontal();
+
+            // 説明文。ランクを突きつけず「上げると何が良くなるか」を書く（DEC-069 決定事項7）
+            EditorGUILayout.LabelField(BuildPlatformLead(platform), EditorStyles.wordWrappedMiniLabel);
+
+            DrawFactors(platform);
+
+            if (incompatibilities != null && incompatibilities.Count > 0)
+            {
+                EditorGUILayout.Space(2);
+                EditorGUILayout.LabelField("Quest では使えないもの", EditorStyles.miniBoldLabel);
+                foreach (var item in incompatibilities)
+                {
+                    DrawIncompatibility(item);
+                }
+            }
+
+            EditorGUILayout.EndVertical();
+            EditorGUILayout.Space(2);
+        }
+
+        /// <summary>プラットフォームごとの導入文。</summary>
+        private static string BuildPlatformLead(PlatformPerformance platform)
+        {
+            var isQuest = platform.Platform == PerformancePlatform.Quest;
+
+            if (platform.Factors.Count == 0)
+            {
+                return isQuest
+                    ? "Quest / iOS でも軽く動きます。"
+                    : "PC では軽く動きます。";
+            }
+
+            return isQuest
+                ? "Quest / iOS では Medium 以上にすると、既定で他の人から見えるようになります。"
+                  + "下の項目をすべて次のランクの範囲まで下げると、総合ランクが1つ上がります。"
+                : "下の項目をすべて次のランクの範囲まで下げると、総合ランクが1つ上がります。";
+        }
+
+        /// <summary>
+        /// ランクを下げている要因を、改善効果の大きい順に表示する。
+        /// 常時表示は上位 <see cref="VisibleFactorCount"/> 件で、残りは「ほか N 件を見る」で展開（DEC-070）。
+        /// </summary>
+        private void DrawFactors(PlatformPerformance platform)
+        {
+            if (platform.Factors.Count == 0) return;
+
+            var expandedFactors = EnsureExpandedFactors();
+            var expanded = expandedFactors.Contains(platform.Platform);
+            var shownCount = expanded ? platform.Factors.Count : Math.Min(VisibleFactorCount, platform.Factors.Count);
+
+            for (var i = 0; i < shownCount; i++)
+            {
+                DrawFactorRow(platform.Factors[i]);
+            }
+
+            var hiddenCount = platform.Factors.Count - shownCount;
+            if (hiddenCount > 0)
+            {
+                if (GUILayout.Button($"ほか {hiddenCount} 件を見る", EditorStyles.miniButton))
+                {
+                    expandedFactors.Add(platform.Platform);
+                }
+            }
+            else if (expanded && platform.Factors.Count > VisibleFactorCount)
+            {
+                if (GUILayout.Button("折りたたむ", EditorStyles.miniButton))
+                {
+                    expandedFactors.Remove(platform.Platform);
+                }
+            }
+        }
+
+        /// <summary>
+        /// 展開状態のセットを返す。ドメインリロード後に null になっていても作り直す。
+        /// </summary>
+        private HashSet<PerformancePlatform> EnsureExpandedFactors()
+        {
+            return _expandedFactors ?? (_expandedFactors = new HashSet<PerformancePlatform>());
+        }
+
+        private void DrawFactorRow(PerformanceFactor factor)
+        {
+            EditorGUILayout.BeginHorizontal();
+
+            EditorGUILayout.LabelField($"・{factor.Label}", GUILayout.Width(200));
+
+            var valueText = factor.TargetText == null
+                ? factor.CurrentText
+                : $"{factor.CurrentText} → {factor.TargetText} まで（{factor.TargetRatingName}）";
+            EditorGUILayout.LabelField(valueText, EditorStyles.wordWrappedLabel);
+
+            if (!string.IsNullOrEmpty(factor.DocumentUrl))
+            {
+                if (GUILayout.Button("調べる", EditorStyles.miniButton, GUILayout.Width(56)))
+                {
+                    Application.OpenURL(factor.DocumentUrl);
+                }
+            }
+
+            EditorGUILayout.EndHorizontal();
+        }
+
+        private void DrawIncompatibility(QuestIncompatibility item)
+        {
+            EditorGUILayout.BeginHorizontal();
+
+            EditorGUILayout.LabelField(
+                $"・{item.Label}（{item.Count} 件）{item.Detail}", EditorStyles.wordWrappedLabel);
+
+            if (item.Targets.Count > 0)
+            {
+                if (GUILayout.Button("選択", EditorStyles.miniButton, GUILayout.Width(40)))
+                {
+                    Selection.objects = item.Targets.ToArray();
+                    EditorGUIUtility.PingObject(item.Targets[0]);
+                }
+            }
+
+            if (GUILayout.Button("調べる", EditorStyles.miniButton, GUILayout.Width(56)))
+            {
+                Application.OpenURL(PerformanceCategoryLabels.QuestDocUrl);
+            }
+
+            EditorGUILayout.EndHorizontal();
+        }
+
+        /// <summary>
+        /// パフォーマンス表示の発火を利用統計に記録する（DEC-069 T-7）。
+        /// キーは ASCII 識別子のみ。アバター名・パス等は一切渡さない（DEC-055 の収集境界を維持）。
+        /// </summary>
+        private static void RecordPerformanceUsage(AvatarPerformanceReport report)
+        {
+            if (report == null || !report.IsValid) return;
+
+            var counts = new Dictionary<string, int>();
+            if (report.Pc != null && report.Pc.IsValid) counts["performance_rank_pc"] = 1;
+            if (report.Quest != null && report.Quest.IsValid) counts["performance_rank_quest"] = 1;
+            if (report.QuestIncompatibilities.Count > 0)
+                counts["quest_incompatibility"] = report.QuestIncompatibilities.Count;
+
+            if (counts.Count == 0) return;
+
+            // CheckRunner.RunAll と同じ実行で呼ばれるため、実行回数を二重計上しない入口を使う
+            UsageStatsRecorder.RecordDetections(counts);
         }
 
         /// <summary>

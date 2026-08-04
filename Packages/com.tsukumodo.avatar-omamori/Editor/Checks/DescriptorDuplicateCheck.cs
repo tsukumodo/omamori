@@ -48,13 +48,16 @@ namespace AvatarOmamori.Editor.Checks
                 afterValue: "1個"
             );
 
-            // 各重複箇所も検出行として報告（FixAction はサマリー側に集約済み）
+            // 各重複箇所も検出行として報告（FixAction はサマリー側に集約済み）。
+            // isDetail: true にして上のサマリーの内訳として扱う。1つの問題が件数に複数回数えられると、
+            // 「Error 3件」のように実際より深刻に見えてしまうため（Hierarchy で場所を確認する導線は残す）。
             for (int i = 1; i < descriptors.Length; i++)
             {
                 yield return new CheckResult(
                     Severity.Error,
                     $"重複した VRC Avatar Descriptor: {HierarchyPathUtil.GetHierarchyPath(descriptors[i].gameObject)}",
-                    descriptors[i]
+                    descriptors[i],
+                    isDetail: true
                 );
             }
         }
