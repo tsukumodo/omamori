@@ -17,10 +17,13 @@ permissions:
   pages: write
   id-token: write
   
-# Allow one concurrent deployment
+# 同時デプロイは1つに制限する。ただし進行中のデプロイはキャンセルしない。
+# GitHub 公式の Pages スターターワークフローも cancel-in-progress: false を使っている。
+# true にすると、Build Release 直後の自動発火と手動実行が重なったときに
+# 後発が本番デプロイを途中で殺してしまい、リスティングが古いまま残る
 concurrency:
   group: "pages"
-  cancel-in-progress: true
+  cancel-in-progress: false
 
 jobs:
   
