@@ -69,4 +69,7 @@ AGENTS.md
 
 # BOOTH / distribution resources
 Resources/
+
+# AI coding assistant local state
 .claude/settings.local.json
+.codex/
