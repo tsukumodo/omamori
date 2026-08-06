@@ -103,6 +103,21 @@ namespace AvatarOmamori.Tests.Editor
         }
 
         [Test]
+        public void UnityのConstraintの調べるリンクはQuest制限ページでなくConstraints解説ページになる()
+        {
+            // Detail は「VRChat Constraints への置き換えをおすすめします」なので、
+            // 案内先（DocumentUrl）も Quest のコンテンツ制限ページ（既定値）ではなく、
+            // 実際に移行方法が書かれている Constraints の解説ページに揃っているべき
+            Child.AddComponent<ParentConstraint>();
+
+            var results = QuestCompatibilityScanner.Scan(_root, isMobileBuildTarget: false);
+
+            var constraint = results.Single(r => r.Label.Contains("Unity の Constraint"));
+            Assert.AreEqual(PerformanceCategoryLabels.ConstraintDocUrl, constraint.DocumentUrl);
+            Assert.AreNotEqual(PerformanceCategoryLabels.QuestDocUrl, constraint.DocumentUrl);
+        }
+
+        [Test]
         public void 複数の禁止コンポーネントはそれぞれ別の項目になる()
         {
             Child.AddComponent<Light>();

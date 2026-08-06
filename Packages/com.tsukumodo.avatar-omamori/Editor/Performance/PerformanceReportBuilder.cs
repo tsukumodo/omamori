@@ -191,7 +191,7 @@ namespace AvatarOmamori.Editor.Performance
                     target.HasValue ? PerformanceCategoryLabels.FormatValue(target.Value.Limit, entry.Format) : null,
                     target.HasValue ? PerformanceCategoryLabels.FormatRating(target.Value.Rating) : null,
                     target.HasValue ? ExcessRatio(currentValue, target.Value.Limit) : 1f,
-                    PerformanceCategoryLabels.PerformanceDocUrl));
+                    entry.DocumentUrl));
             }
 
             return factors

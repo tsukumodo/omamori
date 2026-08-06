@@ -251,7 +251,10 @@ namespace AvatarOmamori.Editor.Performance
                 "Unity の Constraint",
                 components.Count,
                 "Quest / iOS では動きません。VRChat Constraints への置き換えをおすすめします",
-                components.Select(c => (UnityEngine.Object)c.gameObject).ToList()));
+                components.Select(c => (UnityEngine.Object)c.gameObject).ToList(),
+                // Detail は VRChat Constraints への置き換えを案内しているので、
+                // リンク先も Quest の制限ページ（既定値）ではなく Constraints の解説ページに揃える
+                documentUrl: PerformanceCategoryLabels.ConstraintDocUrl));
         }
 
         /// <summary>

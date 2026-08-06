@@ -22,13 +22,43 @@ namespace AvatarOmamori.Editor.Performance
     /// </summary>
     internal static class PerformanceCategoryLabels
     {
-        /// <summary>パフォーマンスランク全体の解説（層B の「調べる」リンク先）。</summary>
+        /// <summary>
+        /// パフォーマンスランク全体の解説（層B の「調べる」リンク先のフォールバック）。
+        /// このページには項目ごとのアンカーが無い（見出しは #pc-limits 等の粒度のみ）ため、
+        /// 専用の解説ページが無いカテゴリだけがここに落ちる。
+        /// </summary>
         public const string PerformanceDocUrl =
             "https://creators.vrchat.com/avatars/avatar-performance-ranking-system";
 
         /// <summary>Quest / iOS のコンテンツ制限（層A の「調べる」リンク先）。</summary>
         public const string QuestDocUrl =
             "https://creators.vrchat.com/platforms/android/quest-content-limitations";
+
+        /// <summary>アバター最適化のヒント（項目別の解説はこのページのアンカーに散らばっている）。</summary>
+        private const string OptimizingTipsUrl = "https://creators.vrchat.com/avatars/avatar-optimizing-tips/";
+
+        private const string MeshDocUrl = OptimizingTipsUrl + "#reduce-the-amount-of-meshes-on-your-avatar";
+        private const string TextureDocUrl = OptimizingTipsUrl + "#watch-your-vram-usage";
+        private const string MaterialDocUrl = OptimizingTipsUrl + "#reduce-the-amount-of-material-slots-you-use";
+        private const string BoneDocUrl = OptimizingTipsUrl + "#reduce-the-amount-of-bones";
+
+        // "amountamount" はタイポに見えるが誤記ではない。VRChat公式ページの見出し
+        // 「Reduce the emission amount/amount of particle systems」から生成された実際のアンカー。
+        // 親切心で直すとリンク切れになるので触らないこと
+        private const string ParticleDocUrl = OptimizingTipsUrl + "#reduce-the-emission-amountamount-of-particle-systems";
+
+        private const string LightDocUrl = OptimizingTipsUrl + "#limit-the-number-of-lights-your-avatar-uses";
+        private const string ClothDocUrl = OptimizingTipsUrl + "#limit-usage-of-cloth";
+
+        /// <summary>PhysBone の解説。</summary>
+        public const string PhysBoneDocUrl = "https://creators.vrchat.com/avatars/avatar-dynamics/physbones";
+        private const string PhysBoneColliderDocUrl = PhysBoneDocUrl + "#vrcphysbonecollider";
+
+        /// <summary>Contact の解説。</summary>
+        private const string ContactDocUrl = "https://creators.vrchat.com/avatars/avatar-dynamics/contacts";
+
+        /// <summary>VRChat Constraints の解説（Unity Constraint からの移行案内を含む）。</summary>
+        public const string ConstraintDocUrl = "https://creators.vrchat.com/avatars/avatar-dynamics/constraints";
 
         /// <summary>値の書式。</summary>
         public enum ValueFormat
@@ -48,12 +78,19 @@ namespace AvatarOmamori.Editor.Performance
             public string FieldPath { get; }
             public ValueFormat Format { get; }
 
-            public Entry(AvatarPerformanceCategory category, string label, string fieldPath, ValueFormat format)
+            /// <summary>「調べる」ボタンで開く、この項目の専用解説ページ。専用ページが無い場合は <see cref="PerformanceDocUrl"/>。</summary>
+            public string DocumentUrl { get; }
+
+            // 既定値を付けない。項目追加時に URL 指定を忘れると全項目が同じリンクに戻ってしまうため、
+            // コンパイル時に必ず明示させる
+            public Entry(
+                AvatarPerformanceCategory category, string label, string fieldPath, ValueFormat format, string documentUrl)
             {
                 Category = category;
                 Label = label;
                 FieldPath = fieldPath;
                 Format = format;
+                DocumentUrl = documentUrl;
             }
         }
 
@@ -68,35 +105,35 @@ namespace AvatarOmamori.Editor.Performance
         /// </summary>
         public static readonly IReadOnlyList<Entry> Entries = new List<Entry>
         {
-            new Entry(AvatarPerformanceCategory.PolyCount, "ポリゴン数", "polyCount", ValueFormat.Count),
-            new Entry(AvatarPerformanceCategory.TextureMegabytes, "テクスチャ使用量", "textureMegabytes", ValueFormat.Megabytes),
-            new Entry(AvatarPerformanceCategory.MaterialCount, "マテリアルスロット数", "materialCount", ValueFormat.Count),
-            new Entry(AvatarPerformanceCategory.SkinnedMeshCount, "スキンメッシュ数", "skinnedMeshCount", ValueFormat.Count),
-            new Entry(AvatarPerformanceCategory.MeshCount, "メッシュ数", "meshCount", ValueFormat.Count),
-            new Entry(AvatarPerformanceCategory.BoneCount, "ボーン数", "boneCount", ValueFormat.Count),
-            new Entry(AvatarPerformanceCategory.AnimatorCount, "Animator 数", "animatorCount", ValueFormat.Count),
-            new Entry(AvatarPerformanceCategory.PhysBoneComponentCount, "PhysBone の数", "physBone.componentCount", ValueFormat.Count),
-            new Entry(AvatarPerformanceCategory.PhysBoneTransformCount, "PhysBone が動かすボーン数", "physBone.transformCount", ValueFormat.Count),
-            new Entry(AvatarPerformanceCategory.PhysBoneColliderCount, "PhysBone コライダー数", "physBone.colliderCount", ValueFormat.Count),
-            new Entry(AvatarPerformanceCategory.PhysBoneCollisionCheckCount, "PhysBone の衝突判定数", "physBone.collisionCheckCount", ValueFormat.Count),
-            new Entry(AvatarPerformanceCategory.ContactCount, "Contact の数", "contactCount", ValueFormat.Count),
+            new Entry(AvatarPerformanceCategory.PolyCount, "ポリゴン数", "polyCount", ValueFormat.Count, MeshDocUrl),
+            new Entry(AvatarPerformanceCategory.TextureMegabytes, "テクスチャ使用量", "textureMegabytes", ValueFormat.Megabytes, TextureDocUrl),
+            new Entry(AvatarPerformanceCategory.MaterialCount, "マテリアルスロット数", "materialCount", ValueFormat.Count, MaterialDocUrl),
+            new Entry(AvatarPerformanceCategory.SkinnedMeshCount, "スキンメッシュ数", "skinnedMeshCount", ValueFormat.Count, MeshDocUrl),
+            new Entry(AvatarPerformanceCategory.MeshCount, "メッシュ数", "meshCount", ValueFormat.Count, MeshDocUrl),
+            new Entry(AvatarPerformanceCategory.BoneCount, "ボーン数", "boneCount", ValueFormat.Count, BoneDocUrl),
+            new Entry(AvatarPerformanceCategory.AnimatorCount, "Animator 数", "animatorCount", ValueFormat.Count, PerformanceDocUrl),
+            new Entry(AvatarPerformanceCategory.PhysBoneComponentCount, "PhysBone の数", "physBone.componentCount", ValueFormat.Count, PhysBoneDocUrl),
+            new Entry(AvatarPerformanceCategory.PhysBoneTransformCount, "PhysBone が動かすボーン数", "physBone.transformCount", ValueFormat.Count, PhysBoneDocUrl),
+            new Entry(AvatarPerformanceCategory.PhysBoneColliderCount, "PhysBone コライダー数", "physBone.colliderCount", ValueFormat.Count, PhysBoneColliderDocUrl),
+            new Entry(AvatarPerformanceCategory.PhysBoneCollisionCheckCount, "PhysBone の衝突判定数", "physBone.collisionCheckCount", ValueFormat.Count, PhysBoneColliderDocUrl),
+            new Entry(AvatarPerformanceCategory.ContactCount, "Contact の数", "contactCount", ValueFormat.Count, ContactDocUrl),
             // ⚠ ConstraintsCount / ConstraintDepth は VRChat Constraints（SDK 3.7.0）で追加された項目。
             //    これより古い SDK では列挙値が存在せずパッケージ全体がコンパイルできないため、
             //    package.json の vpmDependencies を >=3.7.0 未満に戻さないこと
-            new Entry(AvatarPerformanceCategory.ConstraintsCount, "Constraint の数", "constraintsCount", ValueFormat.Count),
-            new Entry(AvatarPerformanceCategory.ConstraintDepth, "Constraint の深さ", "constraintDepth", ValueFormat.Count),
-            new Entry(AvatarPerformanceCategory.ParticleSystemCount, "パーティクルシステム数", "particleSystemCount", ValueFormat.Count),
-            new Entry(AvatarPerformanceCategory.ParticleTotalCount, "パーティクル総数", "particleTotalCount", ValueFormat.Count),
-            new Entry(AvatarPerformanceCategory.ParticleMaxMeshPolyCount, "メッシュパーティクルのポリゴン数", "particleMaxMeshPolyCount", ValueFormat.Count),
-            new Entry(AvatarPerformanceCategory.TrailRendererCount, "Trail Renderer の数", "trailRendererCount", ValueFormat.Count),
-            new Entry(AvatarPerformanceCategory.LineRendererCount, "Line Renderer の数", "lineRendererCount", ValueFormat.Count),
-            new Entry(AvatarPerformanceCategory.LightCount, "ライトの数", "lightCount", ValueFormat.Count),
-            new Entry(AvatarPerformanceCategory.AudioSourceCount, "Audio Source の数", "audioSourceCount", ValueFormat.Count),
-            new Entry(AvatarPerformanceCategory.ClothCount, "Cloth の数", "clothCount", ValueFormat.Count),
-            new Entry(AvatarPerformanceCategory.ClothMaxVertices, "Cloth の頂点数", "clothMaxVertices", ValueFormat.Count),
-            new Entry(AvatarPerformanceCategory.PhysicsColliderCount, "物理コライダー数", "physicsColliderCount", ValueFormat.Count),
-            new Entry(AvatarPerformanceCategory.PhysicsRigidbodyCount, "Rigidbody の数", "physicsRigidbodyCount", ValueFormat.Count),
-            new Entry(AvatarPerformanceCategory.RaycastCount, "Raycast の数", "raycastCount", ValueFormat.Count),
+            new Entry(AvatarPerformanceCategory.ConstraintsCount, "Constraint の数", "constraintsCount", ValueFormat.Count, ConstraintDocUrl),
+            new Entry(AvatarPerformanceCategory.ConstraintDepth, "Constraint の深さ", "constraintDepth", ValueFormat.Count, ConstraintDocUrl),
+            new Entry(AvatarPerformanceCategory.ParticleSystemCount, "パーティクルシステム数", "particleSystemCount", ValueFormat.Count, ParticleDocUrl),
+            new Entry(AvatarPerformanceCategory.ParticleTotalCount, "パーティクル総数", "particleTotalCount", ValueFormat.Count, ParticleDocUrl),
+            new Entry(AvatarPerformanceCategory.ParticleMaxMeshPolyCount, "メッシュパーティクルのポリゴン数", "particleMaxMeshPolyCount", ValueFormat.Count, ParticleDocUrl),
+            new Entry(AvatarPerformanceCategory.TrailRendererCount, "Trail Renderer の数", "trailRendererCount", ValueFormat.Count, PerformanceDocUrl),
+            new Entry(AvatarPerformanceCategory.LineRendererCount, "Line Renderer の数", "lineRendererCount", ValueFormat.Count, PerformanceDocUrl),
+            new Entry(AvatarPerformanceCategory.LightCount, "ライトの数", "lightCount", ValueFormat.Count, LightDocUrl),
+            new Entry(AvatarPerformanceCategory.AudioSourceCount, "Audio Source の数", "audioSourceCount", ValueFormat.Count, PerformanceDocUrl),
+            new Entry(AvatarPerformanceCategory.ClothCount, "Cloth の数", "clothCount", ValueFormat.Count, ClothDocUrl),
+            new Entry(AvatarPerformanceCategory.ClothMaxVertices, "Cloth の頂点数", "clothMaxVertices", ValueFormat.Count, ClothDocUrl),
+            new Entry(AvatarPerformanceCategory.PhysicsColliderCount, "物理コライダー数", "physicsColliderCount", ValueFormat.Count, PerformanceDocUrl),
+            new Entry(AvatarPerformanceCategory.PhysicsRigidbodyCount, "Rigidbody の数", "physicsRigidbodyCount", ValueFormat.Count, PerformanceDocUrl),
+            new Entry(AvatarPerformanceCategory.RaycastCount, "Raycast の数", "raycastCount", ValueFormat.Count, PerformanceDocUrl),
         };
 
         /// <summary>

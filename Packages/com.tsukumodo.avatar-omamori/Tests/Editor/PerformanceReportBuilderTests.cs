@@ -21,7 +21,8 @@ namespace AvatarOmamori.Tests.Editor
                 AvatarPerformanceCategory.PolyCount,
                 "ポリゴン数",
                 "polyCount",
-                PerformanceCategoryLabels.ValueFormat.Count);
+                PerformanceCategoryLabels.ValueFormat.Count,
+                PerformanceCategoryLabels.PerformanceDocUrl);
 
         [SetUp]
         public void SetUp()
@@ -132,7 +133,8 @@ namespace AvatarOmamori.Tests.Editor
                 AvatarPerformanceCategory.PolyCount,
                 "ポリゴン数",
                 "存在しないフィールド",
-                PerformanceCategoryLabels.ValueFormat.Count);
+                PerformanceCategoryLabels.ValueFormat.Count,
+                PerformanceCategoryLabels.PerformanceDocUrl);
 
             var target = PerformanceReportBuilder.FindNextTarget(
                 entry, 999999f, PerformanceRating.VeryPoor, false);

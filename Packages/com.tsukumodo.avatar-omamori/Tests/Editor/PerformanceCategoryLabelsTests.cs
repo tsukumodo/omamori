@@ -1,3 +1,4 @@
+using System.Linq;
 using AvatarOmamori.Editor.Performance;
 using NUnit.Framework;
 
@@ -96,6 +97,43 @@ namespace AvatarOmamori.Tests.Editor
             {
                 StringAssert.DoesNotContain("downloadSize", entry.FieldPath);
                 StringAssert.DoesNotContain("uncompressedSize", entry.FieldPath);
+            }
+        }
+
+        [Test]
+        public void 全項目にドキュメントURLが設定されている()
+        {
+            // Entry のコンストラクタは documentUrl を必須引数にしているが、
+            // それでも「空文字を渡す」抜け道は残るため、実データ側でも空でないことを確認する
+            foreach (var entry in PerformanceCategoryLabels.Entries)
+            {
+                Assert.IsFalse(
+                    string.IsNullOrEmpty(entry.DocumentUrl),
+                    $"{entry.Label} の DocumentUrl が未設定です");
+            }
+        }
+
+        [Test]
+        public void ドキュメントURLは全項目で同一ではない()
+        {
+            // 「26項目すべての『調べる』ボタンが同じURLを開く」という指摘の再発防止。
+            // 項目ごとに専用ページへ振り分けたことを固定する（全部同じURLに戻ったら落ちる）。
+            // しきい値は現在の実データ（12種類）よりだいぶ低い5にして、将来ページ構成が
+            // 多少変わっても壊れすぎないようにしつつ、退行があれば確実に検知できるようにする
+            var distinctUrlCount = PerformanceCategoryLabels.Entries
+                .Select(entry => entry.DocumentUrl)
+                .Distinct()
+                .Count();
+
+            Assert.GreaterOrEqual(distinctUrlCount, 5);
+        }
+
+        [Test]
+        public void ドキュメントURLはすべてVRChat公式ドメインを指す()
+        {
+            foreach (var entry in PerformanceCategoryLabels.Entries)
+            {
+                StringAssert.StartsWith("https://creators.vrchat.com/", entry.DocumentUrl);
             }
         }
     }
