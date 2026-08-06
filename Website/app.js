@@ -1,4 +1,6 @@
-import { baseLayerLuminance, StandardLuminance } from 'https://unpkg.com/@fluentui/web-components';
+// バージョン未固定の unpkg 参照は latest（v3）に切り替わった時点で baseLayerLuminance が
+// 消えて import ごと死ぬ（2026-08-07 に実際に発生・Issue #28）。同梱した v2.6.1 を使う
+import { baseLayerLuminance, StandardLuminance } from './vendor/fluentui-web-components-2.6.1.min.js';
 
 const LISTING_URL = "{{ listingInfo.Url }}";
 

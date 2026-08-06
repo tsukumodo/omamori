@@ -4,7 +4,9 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>アバター改変おまもり — つくも堂</title>
-  <script type="module" src="https://unpkg.com/@fluentui/web-components"></script>
+  <!-- Fluent UI はバージョン未固定の unpkg 参照だと latest（v3・破壊的変更）を掴んで
+       ページ全体が動かなくなるため、v2.6.1 を同梱して配信する（Issue #28 / 2026-08-07 に実際に発生） -->
+  <script type="module" src="vendor/fluentui-web-components-2.6.1.min.js"></script>
   <link rel="stylesheet" href="styles.css">
   <link rel="icon" href="./favicon.ico">
   <link rel="preconnect" href="https://fonts.googleapis.com">
