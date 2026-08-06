@@ -10,6 +10,11 @@ on:
     workflows: [Build Release]
     types:
       - completed
+  # ⚠ 一時的な自動再試行（2026-08-06 の Pages バックエンド逼迫対応）。
+  #    v0.9.0 が index.json に反映されたことを確認したら、この schedule ブロックは削除すること。
+  #    UTC 15/21時 = JST 0時/6時。深夜と早朝に無人で再挑戦する
+  schedule:
+    - cron: '0 15,21 * * *'
 
 # Sets permissions of the GITHUB_TOKEN to allow deployment to GitHub Pages
 permissions:
@@ -81,5 +86,7 @@ jobs:
           # 既定は10分。2026-08-06 に Pages バックエンドの処理逼迫で
           # deployment_queued / in_progress のまま10分を超え、アクション側の
           # タイムアウトがデプロイ自体を取り消してしまう事象が起きた。
-          # バックエンドが遅いだけならクライアントは待てば完走できるため、60分に延長する
-          timeout: 3600000
+          # バックエンドが遅いだけならクライアントは待てば完走できるため、大きく延長する。
+          # 5時間50分 = ジョブの6時間上限からビルド分の余裕を引いた値。
+          # 健全時のデプロイは数十秒で終わるので、この値が長くても害はない
+          timeout: 21000000
