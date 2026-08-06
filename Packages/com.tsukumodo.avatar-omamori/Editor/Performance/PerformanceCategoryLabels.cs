@@ -116,6 +116,10 @@ namespace AvatarOmamori.Editor.Performance
                 if (current == null) return false;
             }
 
+            // Convert.ToSingle(bool) は例外にならず true→1 / false→0 を返してしまうため、
+            // ここで明示的に弾く（下の catch は Bounds など変換不能な型が対象で、bool はすり抜けてしまう）
+            if (current is bool) return false;
+
             try
             {
                 value = Convert.ToSingle(current, CultureInfo.InvariantCulture);
@@ -123,7 +127,7 @@ namespace AvatarOmamori.Editor.Performance
             }
             catch (Exception)
             {
-                // 数値に変換できない型（bool / Bounds 等）は内訳の対象外
+                // 数値に変換できない型（Bounds 等）は内訳の対象外
                 return false;
             }
         }

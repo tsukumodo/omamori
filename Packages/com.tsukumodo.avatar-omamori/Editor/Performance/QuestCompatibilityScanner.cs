@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using UnityEditor;
 using UnityEngine;
 using UnityEngine.Animations;
 
@@ -101,24 +102,55 @@ namespace AvatarOmamori.Editor.Performance
 
         /// <summary>
         /// アバター配下を走査し、Quest / iOS で問題になる要素を列挙する。
-        /// 検出ゼロなら空のリストを返す。
+        /// 検出ゼロなら空のリストを返す。現在のビルドターゲットから mobile 判定を行う。
         /// </summary>
         public static List<QuestIncompatibility> Scan(GameObject avatarRoot)
+        {
+            var activeBuildTarget = EditorUserBuildSettings.activeBuildTarget;
+            var isMobileBuildTarget = activeBuildTarget == BuildTarget.Android || activeBuildTarget == BuildTarget.iOS;
+            return Scan(avatarRoot, isMobileBuildTarget);
+        }
+
+        /// <summary>
+        /// <see cref="Scan(GameObject)"/> の実処理。ビルドターゲット判定をテストから固定できるよう分離している。
+        /// </summary>
+        internal static List<QuestIncompatibility> Scan(GameObject avatarRoot, bool isMobileBuildTarget)
         {
             var results = new List<QuestIncompatibility>();
             if (avatarRoot == null) return results;
 
             // 同じコンポーネントを2つの項目で数えないようにする。
-            // ⚠ SDK 判定を先に走らせ、自前リスト側から除外する（逆にしてはいけない）。
-            //    自前リストは typeof(Collider) のように粗く、文言も「PC では動作します」で固定だが、
-            //    MeshCollider のように PC でも剥がされるものが混ざっている。
-            //    SDK 判定のほうが現在のビルドターゲットに対して正確なので、そちらを優先して残す。
+            // ⚠ 「どちらを先に reported へ登録するか」はビルドターゲットで入れ替える（片方を止めるのではない）。
+            //    - Standalone ターゲット: SDK の FindIllegalComponents は #if UNITY_STANDALONE の外側では
+            //      「PC でも剥がされるもの」しか返さない。これは常に正しいので先に登録し、自前リスト側から除外する。
+            //    - Android / iOS ターゲット: SDK は Light / Camera / AudioSource / Cloth / Collider / Rigidbody /
+            //      Joint / Unity Constraint まで含めて「非対応」を返してくる。これを先に AllPlatforms として
+            //      登録すると、本来 PC では動く要素まで「PC / Quest を問わず取り除かれます」という誤った説明になり、
+            //      Unity Constraint の置き換え案内（自前リスト側の価値）も消えてしまう。
+            //      そのため自前リストを先に登録し、SDK 側の結果はその残り（＝本当に PC でも剥がされるもの）だけを見る
+            //    - 副作用として、Android / iOS ターゲットでは MeshCollider のような「自前リストの
+            //      Collider（物理）にも該当し、かつ PC でも剥がされる」型が「（PC では動作します）」と
+            //      誤って説明される。これは許容する: Android ターゲットでは SDK の Standalone 用
+            //      ホワイトリストがそもそもコンパイルされず「PC でも非対応か」を判定する術が無く、
+            //      影響も実質 MeshCollider 系のみ。Light / Camera / Audio Source というアバターで遥かに
+            //      一般的な要素の誤説明（入れ替えない場合の弊害）のほうが実害が大きい。正すには SDK の
+            //      PC 側ホワイトリストを自前で持つ必要があり、「自前の判定表を持たない」方針（DEC-069 決定事項8）に反する
             var reported = new HashSet<Component>();
 
             AddIllegalShaders(avatarRoot, results);
-            AddSdkIllegalComponents(avatarRoot, results, reported);
-            AddForbiddenComponents(avatarRoot, results, reported);
-            AddUnityConstraints(avatarRoot, results, reported);
+
+            if (isMobileBuildTarget)
+            {
+                AddForbiddenComponents(avatarRoot, results, reported);
+                AddUnityConstraints(avatarRoot, results, reported);
+                AddSdkIllegalComponents(avatarRoot, results, reported);
+            }
+            else
+            {
+                AddSdkIllegalComponents(avatarRoot, results, reported);
+                AddForbiddenComponents(avatarRoot, results, reported);
+                AddUnityConstraints(avatarRoot, results, reported);
+            }
 
             return results;
         }
@@ -185,7 +217,8 @@ namespace AvatarOmamori.Editor.Performance
         {
             foreach (var (type, label) in MobileForbiddenComponents)
             {
-                // SDK が「PC でも非対応」と判定済みのものは、そちらの項目に任せる。
+                // Standalone ターゲットでは、このメソッドより先に SDK 判定（AddSdkIllegalComponents）が走る。
+                // SDK が「PC でも非対応」と判定済みのものはそちらの項目に任せる。
                 // ここの文言は「PC では動作します」で固定なので、混ぜると誤った説明になる
                 var found = avatarRoot.GetComponentsInChildren(type, true)
                     .Where(c => !reported.Contains(c))
@@ -223,9 +256,18 @@ namespace AvatarOmamori.Editor.Performance
 
         /// <summary>
         /// 現在のビルドターゲットで SDK 自身が「非対応」と判定するコンポーネント。
-        /// PC ターゲットで検出されるのは DynamicBone / MeshCollider など、<b>PC でも剥がされるもの</b>。
+        ///
+        /// <para>
+        /// Standalone ターゲットで検出されるのは DynamicBone / MeshCollider など、<b>PC でも剥がされるもの</b>。
         /// Quest 固有の話ではないので <see cref="IncompatibilityScope.AllPlatforms"/> として報告し、
         /// UI 側でも「Quest では使えないもの」とは別の見出しに置く。
+        /// </para>
+        /// <para>
+        /// Android / iOS ターゲットでは、このメソッドより先に自前リスト（<see cref="AddForbiddenComponents"/> /
+        /// <see cref="AddUnityConstraints"/>）が走り、<paramref name="reported"/> に登録済みになっている。
+        /// SDK がこのターゲットで返す集合には Light / Camera など「PC では動く」ものまで含まれるため、
+        /// <paramref name="reported"/> でフィルタして残りだけを AllPlatforms として報告する。
+        /// </para>
         /// </summary>
         private static void AddSdkIllegalComponents(
             GameObject avatarRoot, List<QuestIncompatibility> results, HashSet<Component> reported)
@@ -237,6 +279,7 @@ namespace AvatarOmamori.Editor.Performance
                     .FindIllegalComponents(avatarRoot)
                     .Where(c => c != null)
                     .Distinct()
+                    .Where(c => !reported.Contains(c))
                     .ToList();
             }
             catch (Exception e)
@@ -247,7 +290,8 @@ namespace AvatarOmamori.Editor.Performance
 
             if (illegal.Count == 0) return;
 
-            // ここで報告したものは、あとから走る自前リスト側では数えない
+            // ここで報告したものは登録しておく（Standalone ターゲットではこのあとに自前リストが走るため、
+            // 二重報告を防ぐ。Android / iOS ターゲットではこのメソッドが最後に走るので実質意味を持たない）
             foreach (var component in illegal) reported.Add(component);
 
             var detail = string.Join(" / ", illegal

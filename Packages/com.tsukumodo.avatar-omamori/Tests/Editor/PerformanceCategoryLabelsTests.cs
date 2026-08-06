@@ -78,6 +78,16 @@ namespace AvatarOmamori.Tests.Editor
         }
 
         [Test]
+        public void bool型のフィールドは数値として取り出さない()
+        {
+            // Convert.ToSingle(bool) は例外にならず true→1f を返してしまう。
+            // ParticleTrailsEnabled のような bool 項目を将来 Entries に足したときに
+            // 内訳へ "1" と表示されてしまわないよう、bool は明示的に対象外にする
+            Assert.IsFalse(PerformanceCategoryLabels.TryGetNumericValue(new StatsStub(), "flag", out var value));
+            Assert.AreEqual(0f, value);
+        }
+
+        [Test]
         public void 内訳の定義にはビルド後にしか確定しない項目を含めない()
         {
             // DownloadSize / UncompressedSize はエディタ上では常に null になる（T-1 実機検証）。

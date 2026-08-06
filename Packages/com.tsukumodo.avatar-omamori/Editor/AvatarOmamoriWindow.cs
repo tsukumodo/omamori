@@ -510,8 +510,8 @@ namespace AvatarOmamori.Editor
                 return;
             }
 
-            DrawPlatformBlock(_performanceReport.Pc);
-            DrawPlatformBlock(_performanceReport.Quest, _performanceReport.QuestIncompatibilities);
+            DrawPlatformBlock(PerformancePlatform.PC, _performanceReport.Pc);
+            DrawPlatformBlock(PerformancePlatform.Quest, _performanceReport.Quest, _performanceReport.QuestIncompatibilities);
 
             // 注記は折りたたみの中に隠さず常時表示する（DEC-070）
             EditorGUILayout.HelpBox(
@@ -521,30 +521,56 @@ namespace AvatarOmamori.Editor
             EditorGUILayout.Space(4);
         }
 
+        /// <summary>
+        /// PC / Quest 1ブロック分を描画する。
+        ///
+        /// <para>
+        /// ランクと非対応要素（<paramref name="incompatibilities"/>）は独立した情報として扱う。
+        /// 以前はランク計測（<paramref name="platform"/>）が無効なら丸ごと return していたため、
+        /// Quest 側のランク取得だけ失敗した（PC は成功）ケースで、シェーダー・コンポーネントの
+        /// 非対応情報まで一緒に消えていた。見出しの決定も <paramref name="platform"/> に頼らないよう、
+        /// どちらのブロックかは <paramref name="platformKind"/> で明示的に受け取る。
+        /// </para>
+        /// </summary>
         private void DrawPlatformBlock(
-            PlatformPerformance platform, IReadOnlyList<QuestIncompatibility> incompatibilities = null)
+            PerformancePlatform platformKind,
+            PlatformPerformance platform,
+            IReadOnlyList<QuestIncompatibility> incompatibilities = null)
         {
-            if (platform == null || !platform.IsValid) return;
+            var hasRating = platform != null && platform.IsValid;
+            var hasIncompatibilities = incompatibilities != null && incompatibilities.Count > 0;
 
-            var isQuest = platform.Platform == PerformancePlatform.Quest;
+            // 出すものが何も無ければ box ごと出さない（従来通り）
+            if (!hasRating && !hasIncompatibilities) return;
+
+            var isQuest = platformKind == PerformancePlatform.Quest;
             var title = isQuest ? "Quest / iOS" : "PC";
 
             EditorGUILayout.BeginVertical("box");
 
-            // 見出し行: プラットフォーム名 ─ 総合ランク
+            // 見出し行: プラットフォーム名 ─ 総合ランク（取得できた場合のみ）
             EditorGUILayout.BeginHorizontal();
             EditorGUILayout.LabelField(title, EditorStyles.boldLabel, GUILayout.Width(90));
             GUILayout.FlexibleSpace();
-            EditorGUILayout.LabelField(
-                platform.OverallRatingName, GetRatingStyle(platform.IsHeavy), GUILayout.Width(110));
+            if (hasRating)
+            {
+                EditorGUILayout.LabelField(
+                    platform.OverallRatingName, GetRatingStyle(platform.IsHeavy), GUILayout.Width(110));
+            }
             EditorGUILayout.EndHorizontal();
 
-            // 説明文。ランクを突きつけず「上げると何が良くなるか」を書く（DEC-069 決定事項7）
-            EditorGUILayout.LabelField(BuildPlatformLead(platform), EditorStyles.wordWrappedMiniLabel);
+            if (hasRating)
+            {
+                // 説明文。ランクを突きつけず「上げると何が良くなるか」を書く（DEC-069 決定事項7）
+                EditorGUILayout.LabelField(BuildPlatformLead(platform), EditorStyles.wordWrappedMiniLabel);
+                DrawFactors(platform);
+            }
+            else
+            {
+                EditorGUILayout.LabelField("総合ランクを取得できませんでした。", EditorStyles.wordWrappedMiniLabel);
+            }
 
-            DrawFactors(platform);
-
-            if (incompatibilities != null && incompatibilities.Count > 0)
+            if (hasIncompatibilities)
             {
                 // Quest 固有の話と、PC でも剥がされる話を混ぜない。
                 // 混ぜると PC しか使わない人が後者を「Quest の話」として読み飛ばす

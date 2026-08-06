@@ -11,6 +11,12 @@ namespace AvatarOmamori.Tests.Editor
     ///
     /// シェーダー判定は SDK（<c>AvatarValidation.FindIllegalShaders</c>）に委譲しているため、
     /// ここでは自前リストで判定しているコンポーネント側を固定する。
+    ///
+    /// <para>
+    /// <c>Scan(GameObject)</c> は実行中の Editor の実際のアクティブビルドターゲットに依存するため、
+    /// ここでは常に <c>Scan(GameObject, bool)</c> を使い、意図するターゲット（Standalone / mobile）を明示する。
+    /// これにより、テストがどのビルドターゲットで実行されても結果が変わらない。
+    /// </para>
     /// </summary>
     public class QuestCompatibilityScannerTests
     {
@@ -40,7 +46,7 @@ namespace AvatarOmamori.Tests.Editor
         [Test]
         public void 禁止コンポーネントが無ければコンポーネント系の検出は出ない()
         {
-            var results = QuestCompatibilityScanner.Scan(_root);
+            var results = QuestCompatibilityScanner.Scan(_root, isMobileBuildTarget: false);
 
             Assert.IsFalse(HasLabelContaining(results, "Light"));
             Assert.IsFalse(HasLabelContaining(results, "Audio Source"));
@@ -52,7 +58,7 @@ namespace AvatarOmamori.Tests.Editor
         {
             Child.AddComponent<Light>();
 
-            var results = QuestCompatibilityScanner.Scan(_root);
+            var results = QuestCompatibilityScanner.Scan(_root, isMobileBuildTarget: false);
 
             var light = results.FirstOrDefault(r => r.Label.Contains("Light"));
             Assert.IsNotNull(light);
@@ -65,7 +71,7 @@ namespace AvatarOmamori.Tests.Editor
         {
             Child.AddComponent<AudioSource>();
 
-            var results = QuestCompatibilityScanner.Scan(_root);
+            var results = QuestCompatibilityScanner.Scan(_root, isMobileBuildTarget: false);
 
             var audio = results.FirstOrDefault(r => r.Label.Contains("Audio Source"));
             Assert.IsNotNull(audio);
@@ -78,7 +84,7 @@ namespace AvatarOmamori.Tests.Editor
             Child.AddComponent<Light>();
             Child.SetActive(false);
 
-            var results = QuestCompatibilityScanner.Scan(_root);
+            var results = QuestCompatibilityScanner.Scan(_root, isMobileBuildTarget: false);
 
             Assert.IsTrue(HasLabelContaining(results, "Light"));
         }
@@ -88,7 +94,7 @@ namespace AvatarOmamori.Tests.Editor
         {
             Child.AddComponent<ParentConstraint>();
 
-            var results = QuestCompatibilityScanner.Scan(_root);
+            var results = QuestCompatibilityScanner.Scan(_root, isMobileBuildTarget: false);
 
             var constraint = results.FirstOrDefault(r => r.Label.Contains("Unity の Constraint"));
             Assert.IsNotNull(constraint);
@@ -102,7 +108,7 @@ namespace AvatarOmamori.Tests.Editor
             Child.AddComponent<Light>();
             Child.AddComponent<AudioSource>();
 
-            var results = QuestCompatibilityScanner.Scan(_root);
+            var results = QuestCompatibilityScanner.Scan(_root, isMobileBuildTarget: false);
 
             Assert.IsTrue(HasLabelContaining(results, "Light"));
             Assert.IsTrue(HasLabelContaining(results, "Audio Source"));
@@ -113,7 +119,7 @@ namespace AvatarOmamori.Tests.Editor
         {
             Child.AddComponent<Light>();
 
-            var results = QuestCompatibilityScanner.Scan(_root);
+            var results = QuestCompatibilityScanner.Scan(_root, isMobileBuildTarget: false);
 
             var light = results.First(r => r.Label.Contains("Light"));
             Assert.AreEqual(IncompatibilityScope.Quest, light.Scope);
@@ -126,7 +132,7 @@ namespace AvatarOmamori.Tests.Editor
             // 同じ問題が2行に出ると件数が信用されなくなるため、必ずどちらか一方に寄せる
             Child.AddComponent<MeshCollider>();
 
-            var results = QuestCompatibilityScanner.Scan(_root);
+            var results = QuestCompatibilityScanner.Scan(_root, isMobileBuildTarget: false);
 
             var reportingChild = results.Where(r => r.Targets.Contains(Child)).ToList();
             Assert.AreEqual(
@@ -140,10 +146,11 @@ namespace AvatarOmamori.Tests.Editor
         {
             // MeshCollider は PC でも取り除かれるので、自前リストの
             // 「Quest では無効になる Collider（物理）… PC では動作します」に寄せると説明が嘘になる。
-            // SDK 判定のほうが現在のビルドターゲットに対して正確なので、そちらを残す
+            // Standalone ターゲットでは SDK 判定のほうが正確なので、そちらを残す
+            // （Android / iOS ターゲットではこの優先順位が入れ替わる。QuestCompatibilityScanner.Scan 参照）
             Child.AddComponent<MeshCollider>();
 
-            var results = QuestCompatibilityScanner.Scan(_root);
+            var results = QuestCompatibilityScanner.Scan(_root, isMobileBuildTarget: false);
 
             var row = results.Single(r => r.Targets.Contains(Child));
             Assert.AreEqual(IncompatibilityScope.AllPlatforms, row.Scope);
@@ -156,7 +163,7 @@ namespace AvatarOmamori.Tests.Editor
             // BoxCollider は PC では動作するので、自前リスト側の説明で正しい
             Child.AddComponent<BoxCollider>();
 
-            var results = QuestCompatibilityScanner.Scan(_root);
+            var results = QuestCompatibilityScanner.Scan(_root, isMobileBuildTarget: false);
 
             var row = results.Single(r => r.Targets.Contains(Child));
             Assert.AreEqual(IncompatibilityScope.Quest, row.Scope);
@@ -170,12 +177,58 @@ namespace AvatarOmamori.Tests.Editor
             // PC しか使わないユーザーが「自分には関係ない」と誤解する
             Child.AddComponent<Light>();
 
-            var results = QuestCompatibilityScanner.Scan(_root);
+            var results = QuestCompatibilityScanner.Scan(_root, isMobileBuildTarget: false);
 
             foreach (var item in results.Where(r => r.Scope == IncompatibilityScope.AllPlatforms))
             {
                 Assert.IsNull(item.DocumentUrl, $"{item.Label} に Quest のドキュメントが割り当てられています");
             }
+        }
+
+        [Test]
+        public void Androidターゲット相当ではLightがQuestスコープのまま報告される()
+        {
+            // Android / iOS ターゲットでは SDK の FindIllegalComponents が Light も「非対応」として
+            // 返してくる（#if UNITY_STANDALONE の外側）。SDK 判定を先に通すと AllPlatforms 扱いになり、
+            // 「PC / Quest を問わず取り除かれます」という誤った説明になってしまう。
+            // 自前リストを先に走らせることで、PC では動く Light は Quest スコープのまま報告されるべき
+            Child.AddComponent<Light>();
+
+            var results = QuestCompatibilityScanner.Scan(_root, isMobileBuildTarget: true);
+
+            var light = results.Single(r => r.Label.Contains("Light"));
+            Assert.AreEqual(IncompatibilityScope.Quest, light.Scope);
+        }
+
+        [Test]
+        public void Androidターゲット相当でもUnityのConstraintの案内が出る()
+        {
+            // 自前リストを先に走らせても、Unity Constraint の置き換え案内（自前リスト側の価値）が
+            // 消えないことを確認する
+            Child.AddComponent<ParentConstraint>();
+
+            var results = QuestCompatibilityScanner.Scan(_root, isMobileBuildTarget: true);
+
+            var constraint = results.FirstOrDefault(r => r.Label.Contains("Unity の Constraint"));
+            Assert.IsNotNull(constraint);
+            StringAssert.Contains("VRChat Constraints", constraint.Detail);
+        }
+
+        [Test]
+        public void Androidターゲット相当でも同じオブジェクトが複数の項目から二重に報告されない()
+        {
+            // 優先順位を入れ替えても reported による重複排除自体は効き続けるべき
+            Child.AddComponent<Light>();
+            Child.AddComponent<AudioSource>();
+            Child.AddComponent<ParentConstraint>();
+
+            var results = QuestCompatibilityScanner.Scan(_root, isMobileBuildTarget: true);
+
+            var reportingChild = results.Where(r => r.Targets.Contains(Child)).ToList();
+            Assert.AreEqual(
+                3, reportingChild.Count,
+                "Light / Audio Source / Constraint の3件で報告されるはずが、重複または不足しています: "
+                + string.Join(" / ", reportingChild.Select(r => r.Label)));
         }
     }
 }

@@ -17,7 +17,7 @@ VRChatアバターの設定ミスをビルド前に一括検出するUnity Edito
 ## 動作要件
 
 - Unity 2022.3 以降
-- VRChat SDK - Avatars 3.5.0 以降
+- VRChat SDK - Avatars 3.7.0 以降（パフォーマンス表示の Constraint 項目が 3.7.0 で追加された値を使うため）
 - Modular Avatar（オプション — 未インストール時はMAチェックをスキップ）
 
 ## ダウンロード
