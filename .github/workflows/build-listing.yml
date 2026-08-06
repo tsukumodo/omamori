@@ -77,3 +77,9 @@ jobs:
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v5
+        with:
+          # 既定は10分。2026-08-06 に Pages バックエンドの処理逼迫で
+          # deployment_queued / in_progress のまま10分を超え、アクション側の
+          # タイムアウトがデプロイ自体を取り消してしまう事象が起きた。
+          # バックエンドが遅いだけならクライアントは待てば完走できるため、60分に延長する
+          timeout: 3600000
