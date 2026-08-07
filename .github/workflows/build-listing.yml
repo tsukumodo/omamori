@@ -74,14 +74,11 @@ jobs:
           path: ${{ env.listPublishDirectory }}
       
       # Deploy the uploaded VPM Listing Website to GitHub Pages
+      # ⚠ deploy-pages v5 の timeout は最大 600000ms（10分）に切り詰められる。
+      #    超過値を渡しても「timeout set to the maximum」警告が出るだけで延長効果はない
+      #    （2026-08-06 の Pages 逼迫時に 5時間50分を指定して実測確認）。
+      #    バックエンド逼迫でここが10分を超えて詰まる場合、「待つ」対処は不可能なので
+      #    ワークフローの再実行を反復して拾うこと。経緯は decisions/decision-log.md の DEC-076
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v5
-        with:
-          # 既定は10分。2026-08-06 に Pages バックエンドの処理逼迫で
-          # deployment_queued / in_progress のまま10分を超え、アクション側の
-          # タイムアウトがデプロイ自体を取り消してしまう事象が起きた。
-          # バックエンドが遅いだけならクライアントは待てば完走できるため、大きく延長する。
-          # 5時間50分 = ジョブの6時間上限からビルド分の余裕を引いた値。
-          # 健全時のデプロイは数十秒で終わるので、この値が長くても害はない
-          timeout: 21000000
