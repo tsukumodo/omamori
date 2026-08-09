@@ -90,6 +90,40 @@ namespace AvatarOmamori.Editor
                 DrawFirstRunNotice();
             }
 
+            DrawAvatarRootField();
+
+            EditorGUILayout.Space(4);
+
+            DrawCheckButton();
+
+            if (_results == null)
+                return;
+
+            EditorGUILayout.Space(4);
+
+            DrawSummary();
+
+            // ランクは1行だけスクロールの外に出す。詳細は結果の下（DEC-073）
+            DrawPerformanceSummaryLine();
+            EditorGUILayout.Space(2);
+
+            DrawResultsScrollView();
+
+            // GL 描画とフォントアトラスの状態が安定している Repaint イベント中に、カードの書き出しを実行する。
+            // 空文字も弾く（RequestCardSave 側のキャンセル判定と条件を揃える）。
+            if (Event.current.type == EventType.Repaint && !string.IsNullOrEmpty(_pendingCardSavePath))
+            {
+                var path = _pendingCardSavePath;
+                _pendingCardSavePath = null;
+                ExportCard(path);
+            }
+        }
+
+        /// <summary>
+        /// アバタールートの ObjectField を描画し、参照が変わったら自動でチェックを走らせる。
+        /// </summary>
+        private void DrawAvatarRootField()
+        {
             var newAvatarRoot = (GameObject)EditorGUILayout.ObjectField(
                 "アバタールート", _avatarRoot, typeof(GameObject), true);
             if (newAvatarRoot != _avatarRoot)
@@ -108,9 +142,13 @@ namespace AvatarOmamori.Editor
                     _performanceReport = null;
                 }
             }
+        }
 
-            EditorGUILayout.Space(4);
-
+        /// <summary>
+        /// 「チェック実行」ボタンを描画する。アバター未指定のときは押せない。
+        /// </summary>
+        private void DrawCheckButton()
+        {
             using (new EditorGUI.DisabledScope(_avatarRoot == null))
             {
                 if (GUILayout.Button("チェック実行", GUILayout.Height(30)))
@@ -118,12 +156,13 @@ namespace AvatarOmamori.Editor
                     RunChecks();
                 }
             }
+        }
 
-            if (_results == null)
-                return;
-
-            EditorGUILayout.Space(4);
-
+        /// <summary>
+        /// 件数サマリーと「カードを保存」ボタンの行を描画する。
+        /// </summary>
+        private void DrawSummary()
+        {
             // サマリー。内訳行は「1つの問題を説明する補助行」なので件数に数えない（CountPrimary）
             var summary = $"結果: {CountPrimary(_errors)} Error / {CountPrimary(_warnings)} Warning / {CountPrimary(_infos)} Info";
             var summaryStyle = GetSummaryStyle();
@@ -145,11 +184,13 @@ namespace AvatarOmamori.Editor
                 RequestCardSave();
             }
             EditorGUILayout.EndHorizontal();
+        }
 
-            // ランクは1行だけスクロールの外に出す。詳細は結果の下（DEC-073）
-            DrawPerformanceSummaryLine();
-            EditorGUILayout.Space(2);
-
+        /// <summary>
+        /// Severity グループ・パフォーマンス詳細・修正履歴をまとめたスクロール領域を描画する。
+        /// </summary>
+        private void DrawResultsScrollView()
+        {
             _scrollPos = EditorGUILayout.BeginScrollView(_scrollPos);
 
             // 表示条件は CountPrimary ではなく生の Count で見る。
@@ -178,15 +219,6 @@ namespace AvatarOmamori.Editor
             }
 
             EditorGUILayout.EndScrollView();
-
-            // GL 描画とフォントアトラスの状態が安定している Repaint イベント中に、カードの書き出しを実行する。
-            // 空文字も弾く（RequestCardSave 側のキャンセル判定と条件を揃える）。
-            if (Event.current.type == EventType.Repaint && !string.IsNullOrEmpty(_pendingCardSavePath))
-            {
-                var path = _pendingCardSavePath;
-                _pendingCardSavePath = null;
-                ExportCard(path);
-            }
         }
 
         /// <summary>
@@ -341,7 +373,16 @@ namespace AvatarOmamori.Editor
             return _ratingStyle;
         }
 
-        private GUIStyle GetFoldoutStyle()
+        /// <summary>
+        /// Foldout 見出しのスタイルを、<paramref name="color"/> を設定した状態で返す。
+        ///
+        /// <para>
+        /// 色は必ず引数で受け取る。以前は共有インスタンスを返すだけで、呼び出し元が描画直前に
+        /// textColor を書き換える約束になっていたため、設定を忘れた呼び出し元が直前の Foldout の色を
+        /// 引き継いでしまう暗黙依存があった（#34）。引数化して構造的に起こらないようにしている。
+        /// </para>
+        /// </summary>
+        private GUIStyle GetFoldoutStyle(Color color)
         {
             if (_foldoutStyle == null)
             {
@@ -350,116 +391,154 @@ namespace AvatarOmamori.Editor
                     fontStyle = FontStyle.Bold
                 };
             }
+
+            _foldoutStyle.normal.textColor = color;
+            _foldoutStyle.onNormal.textColor = color;
             return _foldoutStyle;
         }
 
         private void DrawSeverityGroup(string label, List<CheckResult> items, ref bool foldout, Color color)
         {
-            var style = GetFoldoutStyle();
-            style.normal.textColor = color;
-            style.onNormal.textColor = color;
-
-            foldout = EditorGUILayout.Foldout(foldout, $"{label} ({CountPrimary(items)})", true, style);
+            foldout = EditorGUILayout.Foldout(
+                foldout, $"{label} ({CountPrimary(items)})", true, GetFoldoutStyle(color));
             if (!foldout)
                 return;
 
             EditorGUI.indentLevel++;
             foreach (var result in items)
             {
-                // 内訳行は1段字下げして、直前のサマリー行にぶら下がっていることを見た目で示す
-                if (result.IsDetail)
-                {
-                    EditorGUILayout.BeginHorizontal();
-                    GUILayout.Space(DetailIndentWidth);
-                }
-
-                EditorGUILayout.BeginVertical("box");
-                EditorGUILayout.BeginHorizontal();
-
-                // Severity アイコン。内訳行では出さず（同じ赤アイコンが並ぶと問題が複数あるように見えるため）、
-                // 代わりに同じ幅だけ空けて本文の開始位置をサマリー行と揃える
-                if (result.IsDetail)
-                {
-                    GUILayout.Space(SeverityIconWidth);
-                }
-                else
-                {
-                    var iconContent = GetSeverityIcon(result.Severity);
-                    if (iconContent != null)
-                    {
-                        GUILayout.Label(iconContent, GUILayout.Width(SeverityIconWidth), GUILayout.Height(20));
-                    }
-                }
-
-                EditorGUILayout.LabelField(result.Message, EditorStyles.wordWrappedLabel);
-
-                if (result.TargetObject != null)
-                {
-                    if (GUILayout.Button("選択", GUILayout.Width(40)))
-                    {
-                        EditorGUIUtility.PingObject(result.TargetObject);
-                        Selection.activeObject = result.TargetObject;
-                    }
-                }
-
-                if (result.HasFix)
-                {
-                    var fixLabel = result.FixLabel ?? "修正";
-                    // デフォルト「修正」のときは「選択」ボタンと幅を揃え、カスタムラベル指定時のみ内容に合わせて広げる
-                    var fixWidth = result.FixLabel == null
-                        ? 40f
-                        : GUI.skin.button.CalcSize(new GUIContent(fixLabel)).x + 8f;
-                    if (GUILayout.Button(fixLabel, GUILayout.Width(fixWidth)))
-                    {
-                        var capturedResult = result;
-                        if (capturedResult.SkipConfirm)
-                        {
-                            // FixAction 側で独自ウィンドウを出す項目（例: Descriptor 重複の選択ウィンドウ）。
-                            // 事前確認は出さず、再チェックも FixAction 側が完了時に RefreshResults() を呼ぶ責任を持つ。
-                            ExecuteFix(capturedResult, refreshAfter: false);
-                        }
-                        else
-                        {
-                            var msg = capturedResult.FixConfirmMessage ?? "この問題を自動修正しますか？\nUndo（Ctrl+Z）で元に戻せます。";
-                            OmamoriConfirmWindow.Show(
-                                title: "おまもり — 自動修正",
-                                message: msg,
-                                okLabel: "修正する",
-                                cancelLabel: "キャンセル",
-                                onOk: () => ExecuteFix(capturedResult, refreshAfter: true));
-                        }
-                    }
-                }
-
-                EditorGUILayout.EndHorizontal();
-
-                if (!string.IsNullOrEmpty(result.ValueLabel) &&
-                    (result.BeforeValue != null || result.AfterValue != null))
-                {
-                    EditorGUILayout.BeginHorizontal();
-                    // アイコン幅(20)+α + 上位の indentLevel 分(15px×段数) を加算してメッセージ本文の下に揃える
-                    GUILayout.Space(24f + EditorGUI.indentLevel * 15f);
-                    OmamoriPopupStyles.DrawValueSnapshot(
-                        result.ValueLabel, result.BeforeValue, result.AfterValue);
-                    EditorGUILayout.EndHorizontal();
-                }
-
-                EditorGUILayout.EndVertical();
-
-                if (result.IsDetail)
-                {
-                    EditorGUILayout.EndHorizontal();
-                }
-
-                EditorGUILayout.Space(2);
+                DrawResultCard(result);
             }
             EditorGUI.indentLevel--;
+        }
+
+        /// <summary>
+        /// 結果1件分のカードを描画する。
+        ///
+        /// <para>
+        /// 字下げ量の計算が <see cref="EditorGUI.indentLevel"/> に依存しているため、
+        /// 必ず <see cref="DrawSeverityGroup"/> の indentLevel++ / -- の内側から呼ぶこと。
+        /// </para>
+        /// </summary>
+        private void DrawResultCard(CheckResult result)
+        {
+            // 内訳行は1段字下げして、直前のサマリー行にぶら下がっていることを見た目で示す
+            if (result.IsDetail)
+            {
+                EditorGUILayout.BeginHorizontal();
+                GUILayout.Space(DetailIndentWidth);
+            }
+
+            EditorGUILayout.BeginVertical("box");
+            EditorGUILayout.BeginHorizontal();
+
+            // Severity アイコン。内訳行では出さず（同じ赤アイコンが並ぶと問題が複数あるように見えるため）、
+            // 代わりに同じ幅だけ空けて本文の開始位置をサマリー行と揃える
+            if (result.IsDetail)
+            {
+                GUILayout.Space(SeverityIconWidth);
+            }
+            else
+            {
+                var iconContent = GetSeverityIcon(result.Severity);
+                if (iconContent != null)
+                {
+                    GUILayout.Label(iconContent, GUILayout.Width(SeverityIconWidth), GUILayout.Height(20));
+                }
+            }
+
+            EditorGUILayout.LabelField(result.Message, EditorStyles.wordWrappedLabel);
+
+            if (result.TargetObject != null)
+            {
+                if (GUILayout.Button("選択", GUILayout.Width(40)))
+                {
+                    EditorGUIUtility.PingObject(result.TargetObject);
+                    Selection.activeObject = result.TargetObject;
+                }
+            }
+
+            DrawFixButton(result);
+
+            EditorGUILayout.EndHorizontal();
+
+            if (!string.IsNullOrEmpty(result.ValueLabel) &&
+                (result.BeforeValue != null || result.AfterValue != null))
+            {
+                // アイコン幅(20)+α の分だけ右にずらしてメッセージ本文の下に揃える
+                DrawValueSnapshotRow(result.ValueLabel, result.BeforeValue, result.AfterValue, 24f);
+            }
+
+            EditorGUILayout.EndVertical();
+
+            if (result.IsDetail)
+            {
+                EditorGUILayout.EndHorizontal();
+            }
+
+            EditorGUILayout.Space(2);
+        }
+
+        /// <summary>
+        /// 結果カードの「修正」ボタンを描画する。
+        /// <see cref="CheckResult.SkipConfirm"/> の項目は FixAction 側が独自 UI と再チェックの責任を持つため、
+        /// 事前確認ウィンドウを出さずに実行する。
+        /// </summary>
+        private void DrawFixButton(CheckResult result)
+        {
+            if (result.HasFix)
+            {
+                var fixLabel = result.FixLabel ?? "修正";
+                // デフォルト「修正」のときは「選択」ボタンと幅を揃え、カスタムラベル指定時のみ内容に合わせて広げる
+                var fixWidth = result.FixLabel == null
+                    ? 40f
+                    : GUI.skin.button.CalcSize(new GUIContent(fixLabel)).x + 8f;
+                if (GUILayout.Button(fixLabel, GUILayout.Width(fixWidth)))
+                {
+                    var capturedResult = result;
+                    if (capturedResult.SkipConfirm)
+                    {
+                        // FixAction 側で独自ウィンドウを出す項目（例: Descriptor 重複の選択ウィンドウ）。
+                        // 事前確認は出さず、再チェックも FixAction 側が完了時に RefreshResults() を呼ぶ責任を持つ。
+                        ExecuteFix(capturedResult, refreshAfter: false);
+                    }
+                    else
+                    {
+                        var msg = capturedResult.FixConfirmMessage ?? "この問題を自動修正しますか？\nUndo（Ctrl+Z）で元に戻せます。";
+                        OmamoriConfirmWindow.Show(
+                            title: "おまもり — 自動修正",
+                            message: msg,
+                            okLabel: "修正する",
+                            cancelLabel: "キャンセル",
+                            onOk: () => ExecuteFix(capturedResult, refreshAfter: true));
+                    }
+                }
+            }
+        }
+
+        /// <summary>
+        /// Before / After の値を1行で描画する。
+        ///
+        /// <para>
+        /// <paramref name="leftOffset"/> は呼び出し元ごとに異なる（結果カードは Severity アイコン幅を
+        /// 考慮して 24、修正履歴はヘッダ行に合わせて 4）。ここを揃えると見た目が変わるので引数で受け取る。
+        /// </para>
+        /// </summary>
+        private static void DrawValueSnapshotRow(string label, string before, string after, float leftOffset)
+        {
+            EditorGUILayout.BeginHorizontal();
+            GUILayout.Space(leftOffset + EditorGUI.indentLevel * 15f);
+            OmamoriPopupStyles.DrawValueSnapshot(label, before, after);
+            EditorGUILayout.EndHorizontal();
         }
 
         // ───────────────────────────── パフォーマンス表示（v0.9.0 / DEC-070） ─────────────────────────────
 
         /// <summary>ブランドの金色。パフォーマンスセクションの見出しに使い、Severity の色と混同させない。</summary>
         private static readonly Color AccentGold = new Color(0.784f, 0.659f, 0.486f);
+
+        /// <summary>修正履歴の見出し色。Severity・パフォーマンスのどちらとも混同させないための灰色。</summary>
+        private static readonly Color HistoryGray = new Color(0.6f, 0.6f, 0.6f);
 
         /// <summary>
         /// 総合ランクだけを1行で表示する（DEC-073）。
@@ -497,11 +576,8 @@ namespace AvatarOmamori.Editor
         {
             if (_performanceReport == null) return;
 
-            var foldoutStyle = GetFoldoutStyle();
-            foldoutStyle.normal.textColor = AccentGold;
-            foldoutStyle.onNormal.textColor = AccentGold;
-
-            _foldPerformance = EditorGUILayout.Foldout(_foldPerformance, "パフォーマンス", true, foldoutStyle);
+            _foldPerformance = EditorGUILayout.Foldout(
+                _foldPerformance, "パフォーマンス", true, GetFoldoutStyle(AccentGold));
             if (!_foldPerformance) return;
 
             if (!_performanceReport.IsValid)
@@ -747,13 +823,9 @@ namespace AvatarOmamori.Editor
         /// </summary>
         private void DrawFixHistoryGroup()
         {
-            var foldoutStyle = GetFoldoutStyle();
-            foldoutStyle.normal.textColor = new Color(0.6f, 0.6f, 0.6f);
-            foldoutStyle.onNormal.textColor = new Color(0.6f, 0.6f, 0.6f);
-
             EditorGUILayout.BeginHorizontal();
             _foldHistory = EditorGUILayout.Foldout(
-                _foldHistory, $"修正履歴 ({FixHistoryStore.Count})", true, foldoutStyle);
+                _foldHistory, $"修正履歴 ({FixHistoryStore.Count})", true, GetFoldoutStyle(HistoryGray));
             GUILayout.FlexibleSpace();
             if (GUILayout.Button("クリア", GUILayout.Width(60)))
             {
@@ -783,11 +855,7 @@ namespace AvatarOmamori.Editor
                 }
                 EditorGUILayout.EndHorizontal();
 
-                EditorGUILayout.BeginHorizontal();
-                GUILayout.Space(4f + EditorGUI.indentLevel * 15f);
-                OmamoriPopupStyles.DrawValueSnapshot(
-                    entry.ValueLabel, entry.BeforeValue, entry.AfterValue);
-                EditorGUILayout.EndHorizontal();
+                DrawValueSnapshotRow(entry.ValueLabel, entry.BeforeValue, entry.AfterValue, 4f);
 
                 EditorGUILayout.EndVertical();
                 EditorGUILayout.Space(2);
