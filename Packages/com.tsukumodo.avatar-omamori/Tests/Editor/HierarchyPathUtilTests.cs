@@ -31,7 +31,7 @@ namespace AvatarOmamori.Tests.Editor
         {
             _root = new GameObject("Root");
 
-            Assert.AreEqual("CI-RED-CHECK", HierarchyPathUtil.GetHierarchyPath(_root)); // 一時的にわざと失敗させている
+            Assert.AreEqual("Root", HierarchyPathUtil.GetHierarchyPath(_root));
         }
     }
 }
