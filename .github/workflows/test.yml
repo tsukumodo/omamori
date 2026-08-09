@@ -22,8 +22,11 @@ jobs:
 
       - name: Resolve VPM packages
         run: |
-          vrc-get repo add -- "https://vrchat.github.io/packages/index.json?download"
-          vrc-get repo add -- "https://vpm.nadena.dev/vpm.json"
+          # setup-vrc-get は公式リポジトリを登録済みの状態で来ることがあり、
+          # 二重登録は `already repository added` で終了コード1になる。
+          # ここは登録の有無を揃えるだけなので握りつぶし、実際の可否は resolve で判定する。
+          vrc-get repo add -- "https://vrchat.github.io/packages/index.json?download" || true
+          vrc-get repo add -- "https://vpm.nadena.dev/vpm.json" || true
           vrc-get resolve --project .
 
       - name: Cache Library
@@ -45,9 +48,11 @@ jobs:
           testMode: editmode
           checkName: EditMode Test Results
 
+      # テスト手前で落ちると artifactsPath が空になり、path 未指定で
+      # このステップ自体がもう1件エラーを増やす。出力がある場合だけ実行する。
       - name: Upload test results
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
-        if: always()
+        if: always() && steps.tests.outputs.artifactsPath != ''
         with:
           name: test-results
           path: ${{ steps.tests.outputs.artifactsPath }}
