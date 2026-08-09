@@ -1,0 +1,53 @@
+name: Run Tests
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+  checks: write
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      # vrc-get で VRChat SDK を解決する（Modular Avatar 本体の CI と同方式）
+      - name: Setup vrc-get
+        uses: anatawa12/sh-actions/setup-vrc-get@1d155c7a26bcd0a54ffd9cb38fd66ab0d32d23cd # master (2024-10-16)
+
+      - name: Resolve VPM packages
+        run: |
+          vrc-get repo add -- "https://vrchat.github.io/packages/index.json?download"
+          vrc-get repo add -- "https://vpm.nadena.dev/vpm.json"
+          vrc-get resolve --project .
+
+      - name: Cache Library
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: Library
+          key: Library-${{ hashFiles('Packages/vpm-manifest.json', 'Packages/manifest.json') }}
+          restore-keys: Library-
+
+      - name: Run EditMode tests
+        uses: game-ci/unity-test-runner@0ff419b913a3630032cbe0de48a0099b5a9f0ed9 # v4.3.1
+        id: tests
+        env:
+          UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
+          UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
+          UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
+        with:
+          unityVersion: 2022.3.22f1
+          testMode: editmode
+          checkName: EditMode Test Results
+
+      - name: Upload test results
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        if: always()
+        with:
+          name: test-results
+          path: ${{ steps.tests.outputs.artifactsPath }}
