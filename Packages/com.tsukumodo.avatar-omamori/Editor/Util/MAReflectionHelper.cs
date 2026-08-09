@@ -12,6 +12,7 @@ namespace AvatarOmamori.Editor.Util
     public static class MAReflectionHelper
     {
         private static bool s_initialized;
+        private static bool s_warnedResolveFailure;
         private static Assembly s_maAssembly;
         private static Type s_menuItemType;
         private static Type s_menuInstallerType;
@@ -117,7 +118,7 @@ namespace AvatarOmamori.Editor.Util
 
         /// <summary>
         /// ToggledObject から参照先の GameObject を解決する。
-        /// 優先順位: Get(Component) メソッド → targetObject フィールド
+        /// 解決処理そのものは <see cref="ResolveAvatarObjectReference"/> に委譲する。
         /// </summary>
         public static GameObject ResolveToggledTarget(object toggledObject, Component context)
         {
@@ -128,7 +129,26 @@ namespace AvatarOmamori.Editor.Util
             var avatarObjRef = s_toggledObjectObjectField?.GetValue(toggledObject);
             if (avatarObjRef == null) return null;
 
-            // 方法1: Get(Component) メソッドで解決
+            return ResolveAvatarObjectReference(avatarObjRef, context);
+        }
+
+        /// <summary>
+        /// AvatarObjectReference を解決して GameObject を返す共通メソッド。
+        /// 優先順位: Get(Component) メソッド → targetObject フィールド
+        ///
+        /// <para>
+        /// 「方法1が失敗して方法2で成功」は MA のバージョン差を吸収するための正常系なので警告しない。
+        /// 参照が未設定で素直に null になるケースも正常系（設定済みかどうかの判定は呼び出し元の役目）。
+        /// 両方の経路で解決できず、かつ例外が発生していたときだけ、MA のバージョンに追随できていない
+        /// 可能性としてセッション中1回だけ警告する。
+        /// </para>
+        /// </summary>
+        private static GameObject ResolveAvatarObjectReference(object avatarObjRef, Component context)
+        {
+            if (avatarObjRef == null) return null;
+
+            Exception failure = null;
+
             if (s_avatarObjectReferenceGetMethod != null)
             {
                 try
@@ -137,13 +157,12 @@ namespace AvatarOmamori.Editor.Util
                     if (resolved is GameObject go) return go;
                     if (resolved is Transform t) return t.gameObject;
                 }
-                catch
+                catch (Exception e)
                 {
-                    // フォールバックへ
+                    failure = e; // フォールバックへ
                 }
             }
 
-            // 方法2: targetObject フィールドの直接読み取り
             if (s_targetObjectField != null)
             {
                 try
@@ -151,49 +170,29 @@ namespace AvatarOmamori.Editor.Util
                     var target = s_targetObjectField.GetValue(avatarObjRef) as GameObject;
                     if (target != null) return target;
                 }
-                catch
+                catch (Exception e)
                 {
-                    // 解決不能
+                    failure = e;
                 }
+            }
+
+            if (failure != null)
+            {
+                WarnResolveFailureOnce(failure);
             }
 
             return null;
         }
 
         /// <summary>
-        /// AvatarObjectReference を解決して GameObject を返す共通メソッド。
+        /// 参照解決に失敗したことをセッション中1回だけ警告する。
+        /// 毎回出すと ObjectToggle の項目数だけログが並ぶため、初回のみに絞る。
         /// </summary>
-        private static GameObject ResolveAvatarObjectReference(object avatarObjRef, Component context)
+        private static void WarnResolveFailureOnce(Exception e)
         {
-            if (avatarObjRef == null) return null;
-
-            if (s_avatarObjectReferenceGetMethod != null)
-            {
-                try
-                {
-                    var resolved = s_avatarObjectReferenceGetMethod.Invoke(avatarObjRef, new object[] { context });
-                    if (resolved is GameObject go) return go;
-                    if (resolved is Transform t) return t.gameObject;
-                }
-                catch
-                {
-                    // フォールバックへ
-                }
-            }
-
-            if (s_targetObjectField != null)
-            {
-                try
-                {
-                    return s_targetObjectField.GetValue(avatarObjRef) as GameObject;
-                }
-                catch
-                {
-                    // 解決不能
-                }
-            }
-
-            return null;
+            if (s_warnedResolveFailure) return;
+            s_warnedResolveFailure = true;
+            Debug.LogWarning($"[AvatarOmamori] Modular Avatar の参照解決に失敗しました。MA のバージョンに未対応の可能性があります: {e.Message}");
         }
 
         private static void EnsureInitialized()
