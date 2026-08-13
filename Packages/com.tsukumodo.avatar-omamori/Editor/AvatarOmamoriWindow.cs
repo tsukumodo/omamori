@@ -614,7 +614,10 @@ namespace AvatarOmamori.Editor
             IReadOnlyList<QuestIncompatibility> incompatibilities = null)
         {
             var hasRating = platform != null && platform.IsValid;
-            var hasIncompatibilities = incompatibilities != null && incompatibilities.Count > 0;
+            // AllPlatforms スコープの項目は v0.10.0 で UnsupportedComponentCheck へ移した。
+            // 生の Count で見ると、Quest 固有の検出が無いのに空の枠だけ出ることがある
+            var hasIncompatibilities = incompatibilities != null
+                && incompatibilities.Any(i => i.Scope == IncompatibilityScope.Quest);
 
             // 出すものが何も無ければ box ごと出さない（従来通り）
             if (!hasRating && !hasIncompatibilities) return;
@@ -648,13 +651,11 @@ namespace AvatarOmamori.Editor
 
             if (hasIncompatibilities)
             {
-                // Quest 固有の話と、PC でも剥がされる話を混ぜない。
-                // 混ぜると PC しか使わない人が後者を「Quest の話」として読み飛ばす
+                // 「アップロード時に取り除かれるもの（PC / Quest 共通）」は v0.10.0 で
+                // チェック一覧側（UnsupportedComponentCheck）へ移した。
+                // 同じ検出をここにも出すと、Foldout の件数が水増しされる（DEC-071）
                 DrawIncompatibilityGroup(
                     "Quest では使えないもの", incompatibilities, IncompatibilityScope.Quest);
-                DrawIncompatibilityGroup(
-                    "アップロード時に取り除かれるもの（PC / Quest 共通）",
-                    incompatibilities, IncompatibilityScope.AllPlatforms);
             }
 
             EditorGUILayout.EndVertical();
@@ -808,8 +809,12 @@ namespace AvatarOmamori.Editor
             var counts = new Dictionary<string, int>();
             if (report.Pc != null && report.Pc.IsValid) counts["performance_rank_pc"] = 1;
             if (report.Quest != null && report.Quest.IsValid) counts["performance_rank_quest"] = 1;
-            if (report.QuestIncompatibilities.Count > 0)
-                counts["quest_incompatibility"] = report.QuestIncompatibilities.Count;
+            // AllPlatforms スコープの検出は UnsupportedComponentCheck が
+            // detectionsByCheckType 側に計上するため、ここで数えると二重計上になる（v0.10.0）
+            var questOnlyCount = report.QuestIncompatibilities
+                .Count(i => i.Scope == IncompatibilityScope.Quest);
+            if (questOnlyCount > 0)
+                counts["quest_incompatibility"] = questOnlyCount;
 
             if (counts.Count == 0) return;
 
