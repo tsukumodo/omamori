@@ -438,23 +438,39 @@
           <li>VCCが開いたら「Add」→「I Understand」の順にクリック</li>
           <li>プロジェクトを開いて「アバター改変おまもり」を追加</li>
         </ol>
-        <p class="michi-note">VCCがまだ手元にない場合は、先にVRChat公式のVCCを導入してからお試しください。</p>
+        <!-- 第9ラウンドB: ALCOMへの言及(オーナー質問「ALCOMでもいいんだよね？」対応)。
+             書いてよい事実は監督が一次情報(vrc-get公式CHANGELOG-gui.md)で確認した
+             3点のみ: (1)ALCOMはVCC互換クライアントで設定ファイルを共有、
+             (2)vcc://対応はv0.1.4以降・macOSは既定で有効・Windows/Linuxは
+             ALCOMの設定画面で手動有効化、(3)URL手動登録は同じ手順で通る。
+             ALCOM外部サイトへのリンクは張らない(オーナー未承認)。
+             初心者が迷わないよう「ALCOMをお使いの方は」と条件から入り、
+             ALCOMを知らない読者はVCCの一文だけ読めば済む構成にする。 -->
+        <p class="michi-note">VCCがまだ手元にない場合は、先に<a href="https://vcc.docs.vrchat.com/" target="_blank" rel="noopener">VRChat公式のVCC</a>を導入してからお試しください。VCC互換クライアントのALCOMをお使いの方も、このボタンをそのままお使いいただけます(vcc://リンクへの対応はALCOM v0.1.4以降です)。macOSでは初めから有効ですが、Windows / LinuxではALCOMの設定画面で vcc:// リンクを有効にしておく必要があります。</p>
       </div>
 
+      <!-- 第9ラウンドA: URL欄を手順リストの上へ移した。旧配置では手順2で
+           「URLを貼り付け」と言われた時点でコピー元が視界の下にあり、
+           読む順と操作する順が逆だった。コピーを手順1として明示し、
+           「コピーしてから貼り付ける」という実際の作業順とページ上の
+           並び(=DOM順=フォーカス順)を一致させる。注記の
+           「URLは上のコピー ボタンから控えられます」は手順1と重複する
+           ため削除(「上の」が指す先も変わるので文言ごと整理)。 -->
       <div class="michi-panel">
         <h3 class="michi-panel-title">URLで手動登録</h3>
-        <p class="michi-panel-summary">上のボタンがうまく働かないときは、リスティングURLをVCCの「Add Repository」に直接貼り付けて登録できます。</p>
-        <ol class="michi-steps">
-          <li>VCCを開いて Settings → 「Packages」タブへ</li>
-          <li>「Add Repository」をクリックし、リスティングURLを貼り付け</li>
-          <li>「Add」→「I Understand」をクリックしてプロジェクトに追加</li>
-        </ol>
+        <p class="michi-panel-summary">上のボタンがうまく働かないときは、下のリスティングURLをVCCの「Add Repository」に直接貼り付けて登録できます。</p>
         <div class="michi-url-row">
           <label for="listingUrlPanel" class="visually-hidden">VPMリスティングURL</label>
           <input type="text" readonly id="listingUrlPanel" value="{{ listingInfo.Url }}">
           <button type="button" id="copyListingUrlPanel" class="btn btn-ghost btn-small">コピー</button>
         </div>
-        <p class="michi-note">URLは上のコピー ボタンから控えられます。VCCの反応がない場合は再起動をお試しください。</p>
+        <ol class="michi-steps">
+          <li>上の「コピー」ボタンで、リスティングURLを控える</li>
+          <li>VCCを開いて Settings → 「Packages」タブへ</li>
+          <li>「Add Repository」をクリックし、控えたURLを貼り付け</li>
+          <li>「Add」→「I Understand」をクリックしてプロジェクトに追加</li>
+        </ol>
+        <p class="michi-note">VCCの反応がない場合は、VCCの再起動をお試しください。この手順は、ALCOMでも同じように登録できます。</p>
       </div>
     </section>
 

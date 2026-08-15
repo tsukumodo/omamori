@@ -912,6 +912,22 @@ section > h2,
   margin: 0;
 }
 
+/* 第9ラウンドB: 注記内リンク(VRChat公式のVCC)のタップターゲット。
+   文中リンクの素の実測は390pxで高さ39px。.koujou-cta-note a と同じ
+   padding+同量の負マージン法で、見た目と行間を変えずに当たり判定
+   だけを44px以上へ広げる。 */
+.michi-note a {
+  color: inherit;
+  font-weight: 700;
+  text-decoration: underline;
+  display: inline-block;
+  padding: 15px 2px;
+  margin: -15px -2px;
+}
+.michi-note a:hover {
+  text-decoration: none;
+}
+
 /* --- 各タブ内の実行手段（C-1/C-3: 参照ではなく、その場で完結させる） --- */
 .michi-panel-action {
   margin-bottom: 1.25rem;
@@ -1673,20 +1689,32 @@ dialog:focus-visible {
   .koujou-cta-note {
     text-align: center;
   }
-  .michi-url-row {
-    flex-direction: column;
-  }
   /* タブ廃止(第8ラウンドA)で2つの道が常時表示になり、360pxの全長が
      8195→8351pxに伸びた。モバイルではパネルの内余白と手順の行間を
-     少し詰めて増分の一部を相殺する(内容は削らない)。 */
+     少し詰めて増分の一部を相殺する(内容は削らない)。
+     第9ラウンド: ALCOM注記とコピー手順の明示で再び伸びたぶんを、
+     URL欄・手順・注記まわりの余白でさらに一部相殺する(内容は削らない)。 */
+  .michi-url-row {
+    flex-direction: column;
+    margin: 0.75rem 0;
+  }
   .michi-panel {
     padding: 1.1rem;
   }
   .michi-panel + .michi-panel {
     margin-top: 1rem;
   }
+  .michi-panel-action {
+    margin-bottom: 1rem;
+  }
+  .michi-steps {
+    margin-bottom: 1rem;
+  }
   .michi-steps li {
     margin-bottom: 0.6rem;
+  }
+  .michi-note {
+    padding-top: 0.7rem;
   }
   .tana-item-actions {
     flex-direction: column;
