@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 300 60" preserveAspectRatio="none" role="img" aria-labelledby="noren-title">
+  <title id="noren-title">暖簾の下端（3本の切れ込み）</title>
+  <!-- 横幅可変。上端 y=0〜10 は棒に掛かる布として必ず地続き（切れ込みなし）。
+       その下 y=10〜60 で3本のスリットが4枚の裾に分け、各裾はゆるい丸みで垂れる -->
+  <path fill="currentColor" d="
+    M0 0 L300 0 L300 10 L0 10 Z
+    M0 10 L70.5 10 L70.5 38 Q35.25 60 0 38 Z
+    M76.5 10 L147 10 L147 38 Q111.75 60 76.5 38 Z
+    M153 10 L223.5 10 L223.5 38 Q188.25 60 153 38 Z
+    M229.5 10 L300 10 L300 38 Q264.75 60 229.5 38 Z
+  "/>
+</svg>

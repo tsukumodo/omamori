@@ -1,329 +1,1076 @@
+/* =========================================================================
+   つくも堂 VPMリスティング — styles.css
+   「つくも堂の店先」— 和の道具屋の店構え。暖簾をくぐり、棚に並ぶ
+   おまもりを手に取る、という一枚のページ。
+
+   構成:
+     1. リセット & 基本
+     2. デザイントークン（ライト定義 → ダークは上書きのみ）
+     3. 地紋・テクスチャ（元 patterns.css を統合）
+     4. レイアウト共通 / ユーティリティ
+     5. 暖簾ヘッダー
+     6. 口上（ヒーロー）
+     7. 三つの道（タブ）
+     8. 守り札グリッド
+     9. 棚（パッケージ一覧）+ 詳細ダイアログ
+    10. 利用統計のお約束 / 動作環境
+    11. 落款フッター
+    12. フォーカス・reduced-motion・レスポンシブ
+   ========================================================================= */
+
+/* ─── 1. リセット & 基本 ─────────────────────────────────────────────── */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  font-family: 'Noto Sans JP', 'Zen Maru Gothic', sans-serif;
+  font-size: 16px;
+  line-height: 1.8;
+  color: var(--text-primary);
+  background: var(--page-bg);
+  overflow-x: hidden;
+}
+
+h1, h2, h3, h4 {
+  font-family: 'Zen Maru Gothic', 'Noto Sans JP', sans-serif;
+  line-height: 1.5;
+  margin: 0;
+}
+
+p {
+  margin: 0 0 1em;
+}
+p:last-child {
+  margin-bottom: 0;
+}
+
+ul, ol {
+  margin: 0;
+  padding: 0;
+}
+
+a {
+  color: inherit;
+}
+
+img, svg {
+  max-width: 100%;
+  display: block;
+}
+
+button, input {
+  font: inherit;
+  color: inherit;
+}
+
+/* =========================================================================
+   2. デザイントークン
+   ========================================================================= */
 :root {
   color-scheme: light dark;
 
+  /* ブランドカラー（固定・テーマ非依存） */
   --omamori-green: #467A56;
   --omamori-green-light: #4E8862;
   --omamori-cream: #F0E8D0;
   --omamori-gold: #C8A87C;
+  --omamori-navy: #162244;
 
-  --page-bg: #F7F5F0;
-  --text-primary: #2C2A25;
+  /* 地紋トークン（patterns.css と共用。ライト既定値） */
+  --tsukumo-paper: #F7F5F0;
+  --tsukumo-ink: #2C2A25;
+
+  /* マスコット配色（固定。どの背景の上でも自立して見えるように） */
+  --tsukumo-gear: var(--omamori-gold);
+  --tsukumo-navy: var(--omamori-navy);
+  --tsukumo-eye-white: #FBFAF6;
+  --tsukumo-pupil: var(--omamori-navy);
+
+  /* ページトークン */
+  --page-bg: var(--tsukumo-paper);
+  --text-primary: var(--tsukumo-ink);
   --text-secondary: #6B665E;
   --card-bg: #FFFFFF;
+  --card-bg-alt: #FBF9F4;
   --border: #E0DCD4;
-  --hero-bg: #467A56;
-  --hero-text: #F0E8D0;
-  --hero-sub: #C8D8C0;
-  --badge-bg: rgba(240, 232, 208, 0.2);
-  --badge-border: rgba(240, 232, 208, 0.4);
-  --badge-text: #F0E8D0;
   --footer-text: #8A857C;
+
+  --hero-bg: var(--omamori-green);
+  --hero-text: var(--omamori-cream);
+  --hero-sub: #DCE8D6;
+
+  --chip-bg: rgba(70, 122, 86, 0.1);
+  --chip-border: rgba(70, 122, 86, 0.3);
+  --chip-text: var(--omamori-green);
+
+  --severity-error-bg: #FBE3DD;
+  --severity-error-border: #CE6B4F;
+  --severity-error-text: #8A3220;
+  --severity-warning-bg: #F6ECD1;
+  --severity-warning-border: #B99135;
+  --severity-warning-text: #6B4E12;
+
+  --focus-ring: var(--omamori-green);
+
+  --glow: none;
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --page-bg: #1A1915;
-    --text-primary: #E8E4DC;
-    --text-secondary: #9E9890;
+    --tsukumo-paper: #1A1915;
+    --tsukumo-ink: #F0E8D0;
+
+    --tsukumo-gear: #DEBD8C; /* 夜は金茶がわずかに明るく光る */
+
+    --page-bg: var(--tsukumo-paper);
+    --text-primary: var(--tsukumo-ink);
+    --text-secondary: #B0A99C;
     --card-bg: #242220;
+    --card-bg-alt: #1F1D1A;
     --border: #3A3632;
-    --footer-text: #6B665E;
+    --footer-text: #7A7568;
+
+    --hero-bg: #2E4E3B;
+    --hero-text: var(--omamori-cream);
+    --hero-sub: #BFD4C0;
+
+    --chip-bg: rgba(222, 189, 140, 0.12);
+    --chip-border: rgba(222, 189, 140, 0.35);
+    --chip-text: #E4CFA4;
+
+    --severity-error-bg: rgba(206, 107, 79, 0.16);
+    --severity-error-border: rgba(206, 107, 79, 0.6);
+    --severity-error-text: #EFA98D;
+    --severity-warning-bg: rgba(185, 145, 53, 0.16);
+    --severity-warning-border: rgba(185, 145, 53, 0.6);
+    --severity-warning-text: #E2C578;
+
+    --focus-ring: var(--omamori-gold);
+
+    --glow: 0 0 10px rgba(222, 189, 140, 0.35);
   }
 }
 
-* {
-  box-sizing: border-box;
+/* =========================================================================
+   3. 地紋・テクスチャ（元 assets/patterns.css を統合）
+   ========================================================================= */
+
+/* --- .washi：和紙の地。外部画像なし、color-mix()で --tsukumo-ink から極薄に生成 --- */
+.washi {
+  background-color: var(--tsukumo-paper);
+  background-image:
+    radial-gradient(ellipse at 18% 25%, color-mix(in srgb, var(--tsukumo-ink) 4%, transparent), transparent 60%),
+    radial-gradient(ellipse at 82% 72%, color-mix(in srgb, var(--tsukumo-ink) 3%, transparent), transparent 55%),
+    repeating-linear-gradient(112deg, color-mix(in srgb, var(--tsukumo-ink) 2.5%, transparent) 0 1px, transparent 1px 3px),
+    repeating-linear-gradient(24deg, color-mix(in srgb, var(--tsukumo-ink) 2%, transparent) 0 1px, transparent 1px 4px);
+  background-size: 100% 100%, 100% 100%, 6px 6px, 7px 7px;
 }
 
-body {
-  padding: 0;
-  margin: 0;
-  min-width: 100vw;
-  min-height: 100vh;
-  display: flex;
-  align-items: flex-start;
-  justify-content: center;
-  font-family: 'Zen Maru Gothic', 'Noto Sans JP', sans-serif;
-  color: var(--text-primary);
-  background: var(--page-bg);
+/* --- .asanoha / .seigaiha：地紋（data-URI SVG）。専用の装飾レイヤーにのみ使う --- */
+.asanoha {
+  background-color: transparent;
+  background-repeat: repeat;
+  background-size: 20px 34.7px;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='60' height='104' viewBox='0 0 60 104'%3E%3Cg fill='none' stroke='%23000' stroke-opacity='0.05' stroke-width='1'%3E%3Cpath d='M30 0L60 17.3V51.9L30 69.2L0 51.9V17.3Z'/%3E%3Cpath d='M30 0V69.2M0 17.3L60 51.9M60 17.3L0 51.9'/%3E%3Cpath d='M30 69.2L60 86.5V104M30 69.2L0 86.5V104M30 69.2V104'/%3E%3C/g%3E%3C/svg%3E");
 }
 
-.hidden {
-  display: none !important;
+.seigaiha {
+  background-color: transparent;
+  background-repeat: repeat;
+  background-size: 20px 10px;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='60' height='30' viewBox='0 0 60 30'%3E%3Cg fill='none' stroke='%23000' stroke-opacity='0.05' stroke-width='1'%3E%3Cpath d='M0 30a30 30 0 0 1 60 0'/%3E%3Cpath d='M0 30a20 20 0 0 1 40 0M20 30a20 20 0 0 1 40 0M-20 30a20 20 0 0 1 40 0'/%3E%3Cpath d='M0 30a10 10 0 0 1 20 0M20 30a10 10 0 0 1 20 0M40 30a10 10 0 0 1 20 0M-20 30a10 10 0 0 1 20 0'/%3E%3C/g%3E%3C/svg%3E");
 }
 
-.row {
-  display: flex;
-  flex-direction: row;
+@media (prefers-color-scheme: dark) {
+  .asanoha,
+  .seigaiha {
+    filter: invert(1);
+  }
 }
 
-.col {
-  display: flex;
-  flex-direction: column;
+/* --- .sumi-rule：墨線の区切り --- */
+.sumi-rule {
+  border: 0;
+  height: 1px;
+  margin: 2.5em auto;
+  max-width: 880px;
+  background: linear-gradient(
+    to right,
+    transparent 0%,
+    color-mix(in srgb, var(--tsukumo-ink) 45%, transparent) 10%,
+    color-mix(in srgb, var(--tsukumo-ink) 45%, transparent) 90%,
+    transparent 100%
+  );
 }
 
-.content {
-  max-width: 800px;
-  width: 100%;
+/* --- おまもり札クリップ（軽量な繰り返し用の型抜き） --- */
+.omamori-card-clip {
+  clip-path: polygon(12% 0%, 88% 0%, 100% 74%, 50% 100%, 0% 74%);
+}
+
+/* =========================================================================
+   4. レイアウト共通 / ユーティリティ
+   ========================================================================= */
+.wrap {
+  max-width: 880px;
   margin: 0 auto;
-}
-
-.align-items-center {
-  align-items: center;
-}
-
-.justify-content-between {
-  justify-content: space-between;
-}
-
-.justify-content-end {
-  justify-content: flex-end;
-}
-
-/* ─── Shop header ─── */
-.shop-header {
-  width: 100%;
-  background: #162244;
-}
-
-.shop-header-img {
-  width: 100%;
-  max-height: 120px;
-  object-fit: cover;
-  display: block;
-}
-
-/* ─── Hero ─── */
-.hero {
-  width: 100%;
-  background: var(--hero-bg);
-  padding: 2rem 2rem 2rem;
-  text-align: center;
-}
-
-.hero-thumbnail {
-  width: 200px;
-  height: auto;
-  border-radius: 12px;
-  margin-bottom: 1.2rem;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
-}
-
-.hero-title {
-  font-family: 'Zen Maru Gothic', sans-serif;
-  font-size: 1.8rem;
-  font-weight: 700;
-  color: var(--hero-text);
-  margin: 0 0 0.4rem;
-  letter-spacing: 0.06em;
-}
-
-.hero-subtitle {
-  font-size: 0.9rem;
-  color: var(--hero-sub);
-  margin: 0 0 1.2rem;
-  line-height: 1.6;
-  font-weight: 400;
-}
-
-.hero-badges {
-  display: flex;
-  gap: 0.4rem;
-  flex-wrap: wrap;
-  justify-content: center;
-}
-
-.badge {
-  border-radius: 4px;
-  padding: 0.2rem 0.6rem;
-  font-size: 0.75rem;
-  font-weight: 500;
-  background: var(--badge-bg);
-  border: 1px solid var(--badge-border);
-  color: var(--badge-text);
-  letter-spacing: 0.02em;
-}
-
-/* ─── Install ─── */
-.install-section {
-  width: 100%;
-  padding: 1.5rem 1.5rem 0;
-}
-
-.addToVccBlock {
-  flex-wrap: wrap;
-  gap: 0.5rem;
-  justify-content: center;
-  width: 100%;
-}
-
-.vccUrlField {
-  min-width: 300px;
-  max-width: 90%;
-  flex-grow: 1;
-}
-
-@media (max-width: 600px) {
-  .vccUrlField {
-    min-width: 100%;
-  }
-  .hero-thumbnail {
-    width: 150px;
-  }
-  .hero-title {
-    font-size: 1.4rem;
-  }
-}
-
-/* ─── Search ─── */
-.searchBlock {
-  margin-top: 1rem;
-  width: 100%;
   padding: 0 1.5rem;
 }
 
-.searchBlock .root {
-  width: 100%;
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
 }
 
-#searchInput {
-  width: 100%;
+.skip-link {
+  position: absolute;
+  top: -3rem;
+  left: 1rem;
+  background: var(--omamori-navy);
+  color: var(--omamori-cream);
+  padding: 0.6rem 1rem;
+  border-radius: 6px;
+  z-index: 100;
+  transition: top 0.15s ease;
+}
+.skip-link:focus {
+  top: 0.75rem;
 }
 
-/* ─── Packages ─── */
-.packages {
-  margin: 0.5rem 1.5rem 1rem;
-  padding: 0.25rem;
+section {
+  padding: 3rem 0;
+}
+
+section > .wrap > h2 {
+  font-size: 1.4rem;
+  margin-bottom: 0.6rem;
+}
+
+.section-lead {
+  color: var(--text-secondary);
+  max-width: 62ch;
+  margin: 0 0 1.75rem;
+}
+
+/* --- ボタン --- */
+.btn {
+  appearance: none;
+  border: none;
+  cursor: pointer;
+  border-radius: 999px;
+  font-family: 'Zen Maru Gothic', 'Noto Sans JP', sans-serif;
+  font-weight: 700;
+  font-size: 0.95rem;
+  padding: 0.7rem 1.5rem;
+  letter-spacing: 0.02em;
+  transition: transform 0.12s ease, box-shadow 0.12s ease, background-color 0.12s ease;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+}
+.btn:hover {
+  transform: translateY(-1px);
+}
+.btn:active {
+  transform: translateY(0);
+}
+
+.btn-primary {
+  background: var(--omamori-green);
+  color: var(--omamori-cream);
+  box-shadow: 0 3px 10px rgba(70, 122, 86, 0.35), var(--glow);
+}
+.btn-primary:hover {
+  background: var(--omamori-green-light);
+}
+
+.btn-ghost {
+  background: transparent;
+  color: var(--text-primary);
+  border: 1px solid var(--border);
+}
+.btn-ghost:hover {
+  background: var(--card-bg-alt);
+}
+.btn-ghost.is-copied {
+  border-color: var(--omamori-green);
+  color: var(--omamori-green);
+}
+
+.btn-small {
+  padding: 0.45rem 1rem;
+  font-size: 0.85rem;
+}
+
+/* --- 汎用チップ / バッジ --- */
+.chip {
+  display: inline-flex;
+  align-items: center;
+  border-radius: 999px;
+  padding: 0.25rem 0.75rem;
+  font-size: 0.78rem;
+  font-weight: 500;
+  background: var(--chip-bg);
+  border: 1px solid var(--chip-border);
+  color: var(--chip-text);
+  letter-spacing: 0.01em;
+}
+
+/* =========================================================================
+   5. 暖簾ヘッダー
+   ========================================================================= */
+.noren {
+  background: var(--omamori-navy);
+  position: relative;
+  overflow: hidden;
+}
+
+.noren-band {
+  position: relative;
+  padding: 1.6rem 1.5rem 2.2rem;
   display: flex;
-  flex: 1;
-  border-radius: 8px;
-  max-width: calc(100% - 3rem);
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
 }
 
-#packageGrid {
-  overflow-y: auto;
-  width: 100%;
-  max-height: 40rem;
+.noren-band-pattern {
+  position: absolute;
+  inset: 0;
+  opacity: 0.5;
+  pointer-events: none;
 }
 
-.packages .packageName {
+.noren-crest {
+  width: 46px;
+  height: 46px;
+  flex-shrink: 0;
+}
+
+.noren-shopname {
+  position: relative;
   font-family: 'Zen Maru Gothic', sans-serif;
+  font-weight: 700;
+  color: var(--omamori-cream);
+  font-size: 1.3rem;
+  letter-spacing: 0.12em;
+  margin: 0;
+  display: flex;
+  align-items: baseline;
+  gap: 0.6rem;
+}
+
+.noren-shopname-en {
+  font-size: 0.65rem;
+  font-weight: 500;
+  letter-spacing: 0.22em;
+  color: var(--omamori-gold);
+  opacity: 0.9;
+}
+
+.noren-hem {
+  height: 18px;
+  width: 100%;
+  background-color: var(--omamori-navy);
+  -webkit-mask-image: url('noren.svg');
+  mask-image: url('noren.svg');
+  -webkit-mask-size: 100% 100%;
+  mask-size: 100% 100%;
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
+}
+
+/* =========================================================================
+   6. 口上（ヒーロー）
+   ========================================================================= */
+.koujou {
+  background: var(--hero-bg);
+  color: var(--hero-text);
+  text-align: center;
+  padding: 3rem 0 3.5rem;
+  position: relative;
+  overflow: hidden;
+}
+
+.koujou-pattern {
+  position: absolute;
+  inset: 0;
+  opacity: 0.4;
+  pointer-events: none;
+}
+
+.koujou .wrap {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.koujou-charm {
+  width: 118px;
+  margin-bottom: 1.4rem;
+  filter: drop-shadow(0 6px 14px rgba(0, 0, 0, 0.22));
+}
+
+.koujou-charm-shape {
+  width: 100%;
+}
+
+.koujou-charm-face {
+  width: 58%;
+  margin: -78% auto 0;
+  display: block;
+}
+
+.koujou-title {
+  font-size: 1.7rem;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  margin-bottom: 1rem;
+  max-width: 22ch;
+}
+
+.koujou-lead {
+  font-size: 0.98rem;
+  color: var(--hero-sub);
+  max-width: 46ch;
+  margin: 0 auto 1.5rem;
+  text-align: left;
+}
+
+.koujou-badges {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.5rem;
+  list-style: none;
+  margin-bottom: 2rem;
+}
+
+.koujou-badges .chip {
+  background: rgba(240, 232, 208, 0.15);
+  border-color: rgba(240, 232, 208, 0.4);
+  color: var(--hero-text);
+}
+
+.koujou-cta {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
+  width: 100%;
+}
+
+.koujou-cta .btn-primary {
+  background: var(--omamori-gold);
+  color: var(--omamori-navy);
+  font-size: 1.05rem;
+  padding: 0.85rem 2.2rem;
+}
+.koujou-cta .btn-primary:hover {
+  background: #D8BC8E;
+}
+
+.koujou-cta-note {
+  font-size: 0.82rem;
+  color: var(--hero-sub);
+  max-width: 46ch;
+  margin: 0;
+}
+
+.koujou-url-row {
+  display: flex;
+  gap: 0.5rem;
+  width: 100%;
+  max-width: 480px;
+  margin-top: 0.5rem;
+}
+
+#listingUrl {
+  flex: 1;
+  min-width: 0;
+  border: 1px solid rgba(240, 232, 208, 0.4);
+  background: rgba(0, 0, 0, 0.12);
+  color: var(--hero-text);
+  border-radius: 8px;
+  padding: 0.55rem 0.75rem;
+  font-size: 0.82rem;
+}
+
+/* =========================================================================
+   7. 三つの道（タブ）
+   ========================================================================= */
+.michi-tabs {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 1.5rem;
+}
+
+.michi-tab {
+  appearance: none;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  padding: 0.75rem 1rem;
+  font-family: 'Zen Maru Gothic', 'Noto Sans JP', sans-serif;
+  font-weight: 700;
+  font-size: 0.95rem;
+  color: var(--text-secondary);
+  border-bottom: 3px solid transparent;
+  margin-bottom: -1px;
+}
+
+.michi-tab[aria-selected="true"] {
+  color: var(--omamori-green);
+  border-bottom-color: var(--omamori-green);
+}
+
+.michi-panel {
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 1.5rem;
+}
+
+.michi-panel-summary {
+  font-weight: 500;
+  margin-bottom: 1rem;
+}
+
+.michi-steps {
+  list-style: none;
+  counter-reset: michi-step;
+  margin-bottom: 1.25rem;
+}
+
+.michi-steps li {
+  counter-increment: michi-step;
+  position: relative;
+  padding-left: 2.4rem;
+  margin-bottom: 0.85rem;
+}
+.michi-steps li:last-child {
+  margin-bottom: 0;
+}
+
+.michi-steps li::before {
+  content: counter(michi-step);
+  position: absolute;
+  left: 0;
+  top: -0.05em;
+  width: 1.7rem;
+  height: 1.7rem;
+  border-radius: 50%;
+  background: var(--omamori-green);
+  color: var(--omamori-cream);
+  font-family: 'Zen Maru Gothic', sans-serif;
+  font-weight: 700;
+  font-size: 0.85rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.michi-note {
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  border-top: 1px solid var(--border);
+  padding-top: 1rem;
+  margin: 0;
+}
+
+/* =========================================================================
+   8. 守り札グリッド
+   ========================================================================= */
+.fuda-grid {
+  list-style: none;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 1.1rem;
+  margin-bottom: 2rem;
+}
+
+.fuda-card {
+  position: relative;
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  clip-path: polygon(6% 0%, 94% 0%, 100% calc(100% - 30px), 50% 100%, 0% calc(100% - 30px));
+  padding: 1.4rem 1.3rem calc(30px + 0.8rem);
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+.fuda-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 6%;
+  right: 6%;
+  height: 4px;
+  background: var(--severity-error-border);
+  border-radius: 0 0 3px 3px;
+}
+.fuda-card[data-severity="warning"]::before {
+  background: var(--severity-warning-border);
+}
+.fuda-card[data-severity="both"]::before {
+  background: linear-gradient(to right, var(--severity-warning-border) 50%, var(--severity-error-border) 50%);
+}
+
+.fuda-card-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.6rem;
+}
+
+.fuda-card-title {
   font-size: 1.05rem;
   font-weight: 700;
-  margin: 0.25rem 0;
 }
 
-/* ─── Caption ─── */
-h1 {
-  margin-bottom: 0.5rem;
+.fuda-severity-group {
+  display: flex;
+  gap: 0.3rem;
+  flex-shrink: 0;
+  flex-wrap: wrap;
+  justify-content: flex-end;
 }
 
-.caption1 {
+.fuda-severity {
+  display: inline-flex;
+  align-items: center;
+  border-radius: 999px;
+  padding: 0.2rem 0.65rem;
+  font-size: 0.72rem;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.fuda-severity--error {
+  background: var(--severity-error-bg);
+  color: var(--severity-error-text);
+  border: 1px solid var(--severity-error-border);
+}
+
+.fuda-severity--warning {
+  background: var(--severity-warning-bg);
+  color: var(--severity-warning-text);
+  border: 1px solid var(--severity-warning-border);
+}
+
+.fuda-card-scene {
   font-size: 0.9rem;
   color: var(--text-secondary);
 }
 
-.caption2 {
+.fuda-card-detail {
+  font-size: 0.88rem;
+}
+
+.fuda-card-fix {
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: var(--omamori-green);
+  margin-top: auto;
+}
+
+/* --- パフォーマンスパネル（深刻度を持たない別枠） --- */
+.fuda-performance {
+  background: var(--card-bg-alt);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 1.5rem 1.6rem;
+}
+
+.fuda-performance h3 {
+  font-size: 1.1rem;
+  margin-bottom: 0.6rem;
+}
+
+.fuda-performance p {
+  font-size: 0.9rem;
+}
+
+.fuda-performance-caution {
+  color: var(--text-secondary);
+  font-size: 0.82rem;
+  border-top: 1px solid var(--border);
+  padding-top: 0.85rem;
+  margin-top: 0.85rem;
+}
+
+/* =========================================================================
+   9. 棚（パッケージ一覧）+ 詳細ダイアログ
+   ========================================================================= */
+.tana-search {
+  margin-bottom: 1.25rem;
+}
+
+.tana-search input {
+  width: 100%;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--card-bg);
+  padding: 0.65rem 1rem;
+  font-size: 0.95rem;
+}
+
+.tana-list {
+  list-style: none;
+  display: grid;
+  gap: 1rem;
+}
+
+.tana-item {
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 1.4rem 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.tana-item-name {
+  font-size: 1.15rem;
+  font-weight: 700;
+}
+
+.tana-item-desc {
+  color: var(--text-secondary);
+  font-size: 0.92rem;
+}
+
+.tana-item-meta {
   font-size: 0.78rem;
-  margin-top: 0.25rem;
+  color: var(--text-secondary);
+  display: flex;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.tana-item-version {
+  font-weight: 700;
+  color: var(--omamori-green);
+}
+
+.tana-item-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+  margin-top: 0.5rem;
+}
+
+.tana-zip {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.45rem 1rem;
+  font-size: 0.85rem;
+  font-weight: 700;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  color: var(--text-primary);
+  text-decoration: none;
+}
+.tana-zip:hover {
+  background: var(--card-bg-alt);
+}
+
+/* --- パッケージ詳細ダイアログ --- */
+#packageInfoDialog {
+  border: none;
+  border-radius: 16px;
+  padding: 0;
+  max-width: min(560px, calc(100vw - 2rem));
+  width: 100%;
+  color: var(--text-primary);
+  background: var(--card-bg);
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.3);
+}
+
+#packageInfoDialog::backdrop {
+  background: rgba(22, 34, 68, 0.55);
+}
+
+.tana-dialog-inner {
+  padding: 1.75rem;
+}
+
+.tana-dialog-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.tana-dialog-head h3 {
+  font-size: 1.2rem;
+  margin-bottom: 0.3rem;
+}
+
+.tana-dialog-meta {
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+  display: flex;
+  gap: 0.75rem;
+}
+
+.tana-dialog-close {
+  appearance: none;
+  border: none;
+  background: var(--card-bg-alt);
+  color: var(--text-primary);
+  border-radius: 50%;
+  width: 2rem;
+  height: 2rem;
+  cursor: pointer;
+  font-size: 1.1rem;
+  line-height: 1;
+  flex-shrink: 0;
+}
+.tana-dialog-close:hover {
+  background: var(--border);
+}
+
+.tana-dialog-inner h4 {
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  margin: 1.1rem 0 0.4rem;
+}
+.tana-dialog-inner h4:first-of-type {
+  margin-top: 0;
+}
+
+#packageInfoDependencies {
+  list-style: none;
+  font-size: 0.88rem;
+}
+#packageInfoDependencies li {
+  padding: 0.2rem 0;
+}
+
+#packageInfoKeywords {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+
+#packageInfoLicense {
+  font-size: 0.9rem;
+  text-decoration: underline;
+}
+
+/* =========================================================================
+   10. 利用統計のお約束 / 動作環境
+   ========================================================================= */
+.kiroku {
+  position: relative;
+  overflow: hidden;
+}
+
+.kiroku-pattern {
+  position: absolute;
+  inset: 0;
+  opacity: 0.7;
+  pointer-events: none;
+}
+
+.kiroku .wrap {
+  position: relative;
+}
+
+.kiroku-lists {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 1.5rem;
+  margin: 1.25rem 0 1.5rem;
+}
+
+.kiroku-lists h4 {
+  font-size: 0.85rem;
+  margin: 0 0 0.5rem;
+}
+
+.kiroku-lists ul {
+  list-style: none;
+  font-size: 0.88rem;
   color: var(--text-secondary);
 }
 
-/* ─── Dialogs ─── */
-#addListingToVccHelp {
-  z-index: 11;
+.kiroku-lists li {
+  padding: 0.3rem 0 0.3rem 1.3rem;
+  position: relative;
 }
 
-#packageInfoModal {
-  z-index: 10;
-}
-
-#rowMoreMenu {
-  top: 0;
-  left: 0;
+.kiroku-do li::before {
+  content: '○';
   position: absolute;
-  z-index: 10;
+  left: 0;
+  color: var(--omamori-green);
 }
 
-#rowMoreMenu a {
-  display: block;
-  text-decoration: none;
-  color: var(--neutral-foreground-rest);
+.kiroku-dont li::before {
+  content: '×';
+  position: absolute;
+  left: 0;
+  color: var(--severity-error-text);
 }
 
-/* ─── Footer ─── */
-.site-footer {
-  padding: 1.5rem 0 2rem;
+.kiroku-manage {
+  font-size: 0.88rem;
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 1.1rem 1.3rem;
+}
+
+.youken ul {
+  list-style: none;
+}
+
+.youken li {
+  padding: 0.4rem 0 0.4rem 1.4rem;
+  position: relative;
+  font-size: 0.92rem;
+}
+
+.youken li::before {
+  content: '・';
+  position: absolute;
+  left: 0;
+  color: var(--omamori-gold);
+}
+
+/* =========================================================================
+   11. 落款フッター
+   ========================================================================= */
+.rakkan {
   text-align: center;
-  width: 100%;
+  padding: 2.5rem 1.5rem 3rem;
 }
 
-.footer-logo {
-  width: 48px;
-  height: 48px;
-  margin-bottom: 0.5rem;
-  opacity: 0.6;
+.rakkan-mascot {
+  width: 40px;
+  margin: 0 auto 0.75rem;
+  opacity: 0.85;
 }
 
-.site-footer p {
+.rakkan-name {
   font-family: 'Zen Maru Gothic', sans-serif;
-  font-size: 0.8rem;
+  font-size: 0.85rem;
+  letter-spacing: 0.14em;
   color: var(--footer-text);
-  margin: 0;
-  letter-spacing: 0.08em;
+  margin-bottom: 0.9rem;
 }
 
-/* ─── Spacing utilities ─── */
-.m-0 { margin: 0; }
-.m-1 { margin: 0.25rem; }
-.m-2 { margin: 0.5rem; }
-.m-3 { margin: 0.75rem; }
-.m-4 { margin: 1rem; }
-.m-5 { margin: 2rem; }
-.mt-1 { margin-top: 0.25rem; }
-.mt-2 { margin-top: 0.5rem; }
-.mt-3 { margin-top: 0.75rem; }
-.mt-4 { margin-top: 1rem; }
-.mt-5 { margin-top: 2rem; }
-.mb-1 { margin-bottom: 0.25rem; }
-.mb-2 { margin-bottom: 0.5rem; }
-.mb-3 { margin-bottom: 0.75rem; }
-.mb-4 { margin-bottom: 1rem; }
-.mb-5 { margin-bottom: 2rem; }
-.ms-1 { margin-left: 0.25rem; }
-.ms-2 { margin-left: 0.5rem; }
-.ms-3 { margin-left: 0.75rem; }
-.ms-4 { margin-left: 1rem; }
-.ms-5 { margin-left: 2rem; }
-.me-1 { margin-right: 0.25rem; }
-.me-2 { margin-right: 0.5rem; }
-.me-3 { margin-right: 0.75rem; }
-.me-4 { margin-right: 1rem; }
-.me-5 { margin-right: 2rem; }
-.p-1 { padding: 0.25rem; }
-.p-2 { padding: 0.5rem; }
-.p-3 { padding: 0.75rem; }
-.p-4 { padding: 1rem; }
-.p-5 { padding: 2rem; }
-.pt-1 { padding-top: 0.25rem; }
-.pt-2 { padding-top: 0.5rem; }
-.pt-3 { padding-top: 0.75rem; }
-.pt-4 { padding-top: 1rem; }
-.pt-5 { padding-top: 2rem; }
-.pb-1 { padding-bottom: 0.25rem; }
-.pb-2 { padding-bottom: 0.5rem; }
-.pb-3 { padding-bottom: 0.75rem; }
-.pb-4 { padding-bottom: 1rem; }
-.pb-5 { padding-bottom: 2rem; }
-.ps-1 { padding-left: 0.25rem; }
-.ps-2 { padding-left: 0.5rem; }
-.ps-3 { padding-left: 0.75rem; }
-.ps-4 { padding-left: 1rem; }
-.ps-5 { padding-left: 2rem; }
-.pe-1 { padding-right: 0.25rem; }
-.pe-2 { padding-right: 0.5rem; }
-.pe-3 { padding-right: 0.75rem; }
-.pe-4 { padding-right: 1rem; }
-.pe-5 { padding-right: 2rem; }
-.w-100 { width: 100%; }
-.flex-1 { flex: 1; }
+.rakkan-tagline {
+  font-size: 0.82rem;
+  color: var(--footer-text);
+  max-width: 44ch;
+  margin: 0 auto 1.1rem;
+}
+
+.rakkan-links {
+  list-style: none;
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 0.4rem 1.2rem;
+}
+
+.rakkan-links a {
+  font-size: 0.85rem;
+  text-decoration: none;
+  color: var(--omamori-green);
+  font-weight: 500;
+}
+.rakkan-links a:hover {
+  text-decoration: underline;
+}
+
+/* =========================================================================
+   12. フォーカス / reduced-motion / レスポンシブ
+   ========================================================================= */
+:focus-visible {
+  outline: 3px solid var(--focus-ring);
+  outline-offset: 2px;
+}
+
+/* dialog自体のfocus-visibleが野暮ったくならないよう少し細く */
+dialog:focus-visible {
+  outline-offset: -3px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+@media (max-width: 640px) {
+  section {
+    padding: 2.25rem 0;
+  }
+  .koujou {
+    padding: 2.5rem 0 2.75rem;
+  }
+  .koujou-title {
+    font-size: 1.4rem;
+  }
+  .koujou-lead {
+    font-size: 0.92rem;
+    text-align: center;
+  }
+  .koujou-url-row {
+    flex-direction: column;
+  }
+  .michi-tabs {
+    gap: 0.25rem;
+  }
+  .michi-tab {
+    padding: 0.6rem 0.7rem;
+    font-size: 0.88rem;
+  }
+  .tana-item-actions {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .tana-item-actions .btn,
+  .tana-item-actions .tana-zip {
+    justify-content: center;
+  }
+}
+
+@media (max-width: 400px) {
+  .wrap {
+    padding: 0 1.1rem;
+  }
+  .noren-shopname {
+    font-size: 1.1rem;
+  }
+}
