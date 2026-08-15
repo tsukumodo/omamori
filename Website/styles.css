@@ -113,9 +113,15 @@ button, input {
   --border: #E0DCD4;
   --footer-text: #645F55;
 
-  --hero-bg: var(--omamori-green);
+  /* 配色体系の見直し（監督の仕様ミス修正）: 店の色は紺+金茶、抹茶は
+     「おまもり」という商品1つの色。ヒーローは店の紺地に統一し、緑は
+     おまもり札の絵の中だけに残す。紺は暖簾の帯と同じ固定ブランド色
+     （テーマ非依存）なので、--hero-* もここでのみ定義し、ダーク側の
+     @media ブロックでは上書きしない（下記参照）。 */
+  --hero-bg: var(--omamori-navy);
   --hero-text: var(--omamori-cream);
-  --hero-sub: #F0F6EB;
+  --hero-sub: #D9CFB0;
+  --hero-charm-fill: var(--omamori-green-light);
 
   --chip-bg: rgba(70, 122, 86, 0.1);
   --chip-border: rgba(70, 122, 86, 0.3);
@@ -150,6 +156,11 @@ button, input {
 
     --tsukumo-gear: #DEBD8C; /* 夜は金茶がわずかに明るく光る */
 
+    /* --hero-* は紺の店章色と同じ「固定ブランド色」に統一したため、
+       ここでは上書きしない(以前は --hero-bg を暗い緑 #2E4E3B に、
+       --hero-sub を #BFD4C0 に差し替えていたが、紺はテーマに関わらず
+       同じ紺であるべきなので廃止)。 */
+
     --page-bg: var(--tsukumo-paper);
     --text-primary: var(--tsukumo-ink);
     --text-secondary: #B0A99C;
@@ -159,10 +170,6 @@ button, input {
     /* ライトのみ 3.37→5.82 に直っていた(1-4)。ダークは #7A7568 のまま
        page-bg比 3.83:1 で AA未達だったため、こちらも明るくする。 */
     --footer-text: #9C9587;
-
-    --hero-bg: #2E4E3B;
-    --hero-text: var(--omamori-cream);
-    --hero-sub: #BFD4C0;
 
     --chip-bg: rgba(222, 189, 140, 0.12);
     --chip-border: rgba(222, 189, 140, 0.35);
@@ -469,11 +476,22 @@ section > h2,
    ========================================================================= */
 .koujou {
   /* ヒーローの既定フォーカスリング色は --hero-bg と同色で不可視になるため
-     (A-2)、ヒーロー内だけ地の緑と十分なコントラストを持つクリームに
-     上書きする。ライト実測 4.11:1 / ダーク実測 7.56:1（いずれもUI非文字の
-     3:1基準を満たす）。 */
+     (A-2)、ヒーロー内だけ地の紺と十分なコントラストを持つクリームに
+     上書きする。実測 12.74:1（UI非文字の3:1基準を大きく満たす。紺は
+     テーマ非依存の固定色になったため、ライト/ダークで値は共通）。 */
   --focus-ring: var(--omamori-cream);
-  background: var(--hero-bg);
+  /* 配色体系の見直し: ヒーロー全面を緑で塗るのをやめ、店の紺(--hero-bg)を
+     地にする。ただし暖簾の切れ込み(.noren-hem の隙間)から素通しで
+     この背景が見えるため、切れ込みの高さぶんだけ生成りの帯を重ね、
+     「紺の暖簾の向こうに、明るい店内が覗く」という見え方を保つ
+     (紺のみだと帯と地が同色になり、切れ込みが見えなくなってしまう)。 */
+  background: linear-gradient(
+    to bottom,
+    var(--omamori-cream) 0,
+    var(--omamori-cream) var(--noren-hem-h),
+    var(--hero-bg) var(--noren-hem-h),
+    var(--hero-bg) 100%
+  );
   color: var(--hero-text);
   text-align: center;
   /* 上パディングに暖簾の被せ量(--noren-hem-h)を足し、暖簾の布と
@@ -507,12 +525,6 @@ section > h2,
   width: 100%;
 }
 
-.koujou-charm-face {
-  width: 58%;
-  margin: -78% auto 0;
-  display: block;
-}
-
 .koujou-title {
   font-size: 1.7rem;
   font-weight: 700;
@@ -539,11 +551,12 @@ section > h2,
 }
 
 .koujou-badges .chip {
-  /* クリームの縁取り(明るいオーバーレイ)は地の緑を明るくしてしまい、
-     クリーム文字とのコントラストを落とすため(B-2実測 3.20:1)、
-     暗いオーバーレイに変える(実測 5.40:1 / ダーク 8.98:1)。 */
-  background: rgba(0, 0, 0, 0.16);
-  border-color: rgba(0, 0, 0, 0.35);
+  /* 紺の地は元々暗いので、緑ヒーロー時代のような暗いオーバーレイの
+     細工は不要になった。金茶の枠(店の意匠)+生成りの薄い地で、
+     店の看板らしい「紺地に金茶のふち取り」にする。
+     実測(文字 vs 実効背景): 12.6:1 前後。枠(金茶 vs 紺)は 6.94:1。 */
+  background: rgba(240, 232, 208, 0.08);
+  border-color: var(--omamori-gold);
   color: var(--hero-text);
 }
 
@@ -560,6 +573,9 @@ section > h2,
   color: var(--omamori-navy);
   font-size: 1.05rem;
   padding: 0.85rem 2.2rem;
+  /* 既定の緑みの影(rgba(70,122,86,...))は紺地の上で金茶ボタンと
+     馴染まないため、金茶みの影に差し替える。 */
+  box-shadow: 0 3px 10px rgba(200, 168, 124, 0.45), var(--glow);
 }
 .koujou-cta .btn-primary:hover {
   background: #D8BC8E;
@@ -598,8 +614,8 @@ section > h2,
 #listingUrl {
   flex: 1;
   min-width: 0;
-  border: 1px solid rgba(240, 232, 208, 0.4);
-  background: rgba(0, 0, 0, 0.12);
+  border: 1px solid rgba(200, 168, 124, 0.45);
+  background: rgba(0, 0, 0, 0.15);
   color: var(--hero-text);
   border-radius: 8px;
   padding: 0.55rem 0.75rem;
@@ -607,20 +623,20 @@ section > h2,
 }
 
 /* コピーボタンは通常 .btn-ghost（明るいカード用に text-primary の暗い墨文字）
-   だが、これを緑のヒーローに置くと 2.85:1 まで落ちる(B-2)。
-   ヒーロー内だけ専用の配色にする。実測 5.56:1(通常)/6.60:1(hover・写しました時)。 */
+   だが、これをそのまま紺のヒーローに置くと文字が地に沈む。
+   紺地は元々暗いので、緑ヒーロー時代のような黒いオーバーレイの重ね塗りは
+   不要になった。透明地+クリーム枠の「紙の荷札」の質感に戻す。
+   実測(文字 vs 紺地) 12.74:1（通常/hover/is-copied とも同色文字なので同値）。 */
 .koujou .btn-ghost {
-  background: rgba(0, 0, 0, 0.18);
+  background: transparent;
   color: var(--hero-text);
-  /* 半透明の枠線は地の緑に対して 2.18:1 まで落ちる(1-6)。ゴーストボタンは
-     枠線がボタンであることを示す唯一の形なので不透明にする(3:1以上を確保)。 */
-  border: 1px solid var(--hero-text);
+  border: 1px solid var(--hero-sub);
 }
 .koujou .btn-ghost:hover {
-  background: rgba(0, 0, 0, 0.28);
+  background: rgba(240, 232, 208, 0.12);
 }
 .koujou .btn-ghost.is-copied {
-  background: rgba(0, 0, 0, 0.28);
+  background: rgba(240, 232, 208, 0.12);
   border-color: var(--hero-text);
   color: var(--hero-text);
 }
@@ -766,15 +782,37 @@ section > h2,
 .fuda-card {
   position: relative;
   background: var(--card-bg);
+  /* おまもりの形（本体シルエット）から導いたクリップ。ブランド資材
+     (omamori-thumbnail.png)の「上辺は水平、左右はほぼ垂直に下り、
+     下半分でゆるやかに内側へカーブして底の中央でやわらかく尖る」
+     という輪郭を、11点のpolygonで近似する。紐・内枠・盾+チェック・
+     文字は情報カードには不要なので持ち込まず、シルエットだけを共有する。
+     カードは本文62〜228字で高さが大きく変わる可変高カードなので、
+     先端の「やわらかい尖り」は %ではなく固定px(--fuda-tip-h)の帯に
+     収める。こうすると背の低い札でも高い札でも、尖り方の見た目が
+     一定になり、かつ本文がその帯に食い込まない(padding-bottomで
+     同じ高さぶん確保する)。 */
+  --fuda-tip-h: 64px;
+  border: 0;
   /* clip-path が左右の縦辺に1点でしか接しないため、border は
      ほぼ全長がクリップされて描画されない(ダークで札vs地が1.12:1)。
      drop-shadow を4方向に重ねて、クリップ後のシルエットそのものに
      輪郭を与える(D-1)。 */
-  border: 0;
   filter: drop-shadow(1px 0 0 var(--border)) drop-shadow(-1px 0 0 var(--border))
           drop-shadow(0 1px 0 var(--border)) drop-shadow(0 -1px 0 var(--border));
-  clip-path: polygon(6% 0%, 94% 0%, 100% calc(100% - 30px), 50% 100%, 0% calc(100% - 30px));
-  padding: 1.4rem 1.3rem calc(30px + 0.8rem);
+  clip-path: polygon(
+    8% 0%, 92% 0%,
+    94% calc(100% - var(--fuda-tip-h)),
+    89% calc(100% - var(--fuda-tip-h) * 0.625),
+    78% calc(100% - var(--fuda-tip-h) * 0.3125),
+    63% calc(100% - var(--fuda-tip-h) * 0.125),
+    50% 100%,
+    37% calc(100% - var(--fuda-tip-h) * 0.125),
+    22% calc(100% - var(--fuda-tip-h) * 0.3125),
+    11% calc(100% - var(--fuda-tip-h) * 0.625),
+    6% calc(100% - var(--fuda-tip-h))
+  );
+  padding: 1.4rem 1.3rem calc(var(--fuda-tip-h) + 0.8rem);
   display: flex;
   flex-direction: column;
   gap: 0.6rem;
@@ -784,8 +822,8 @@ section > h2,
   content: '';
   position: absolute;
   top: 0;
-  left: 6%;
-  right: 6%;
+  left: 8%;
+  right: 8%;
   height: 4px;
   background: var(--severity-error-border);
   border-radius: 0 0 3px 3px;

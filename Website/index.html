@@ -82,58 +82,34 @@
       <div class="asanoha koujou-pattern" aria-hidden="true"></div>
       <div class="wrap">
         <div class="koujou-charm" aria-hidden="true">
-          <svg class="koujou-charm-shape" viewBox="0 0 100 140" xmlns="http://www.w3.org/2000/svg">
-            <path fill="var(--omamori-gold)" fill-rule="evenodd" d="
-              M44 8 a6 6 0 1 0 12 0 a6 6 0 1 0 -12 0 Z
-              M47 8 a3 3 0 1 0 6 0 a3 3 0 1 0 -6 0 Z
-              M48 14 L52 14 L52 24 L48 24 Z
-              M20 24 L80 24
-              Q83 24 83 27
-              L94 108
-              L50 138
-              L6 108
-              L17 27
-              Q17 24 20 24 Z
-            "/>
-          </svg>
-          <svg class="koujou-charm-face" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+          <!-- おまもりの形は Website/omamori-thumbnail.png（ブランド資材の正）に
+               忠実な線画で作り直した。輪郭線(生成り)+抹茶の地(=商品の色)、
+               上辺は水平、左右はほぼ垂直に下って下半分でゆるやかに内側へ
+               カーブし、底の中央でやわらかく尖る「縦長のU字」。
+               紐は上辺中央から半円のアーチ+細い縦線+留め具の丸。
+               内枠は本体の輪郭を少し内側に縮小した同じ形の線。
+               中央は盾+チェック、下部に「改変安全」(字間広め)。
+               九十九神マスコットの顔は入れていない: マスコットは
+               ヘッダー紋章・落款の印ですでに2箇所描かれており、
+               ブランド資材の正(このthumbnail)が盾+チェックである以上、
+               ヒーローの主役画像はそちらに合わせるのが資材との一致を
+               最優先する判断として妥当なため。 -->
+          <svg class="koujou-charm-shape" viewBox="0 0 100 148" xmlns="http://www.w3.org/2000/svg">
             <defs>
-              <path id="tooth-hero" d="M44.5 6 h11 a2.2 2.2 0 0 1 2.13 2.73 L55.2 20 h-10.4 l-2.43 -11.27 A2.2 2.2 0 0 1 44.5 6 Z"/>
+              <path id="charm-body" d="
+                M14,34 L86,34 Q90,34 90,38
+                L89,92 C88,111 79,126 65,134 Q57,139 50,141
+                Q43,139 35,134 C21,126 12,111 11,92
+                L10,38 Q10,34 14,34 Z"/>
             </defs>
-            <!-- 札の地(--omamori-gold)と歯車(--tsukumo-gear、ライトでは同じ金茶)が
-                 同色で歯車が消える(1-3)ため、ロゴと同じ入れ子構造で紺の丸座を敷く。
-                 配色トークンは変更しない。 -->
-            <circle cx="50" cy="50" r="46" fill="var(--tsukumo-navy)"/>
-            <g fill="var(--tsukumo-gear)">
-              <use href="#tooth-hero" transform="rotate(0 50 50)"/>
-              <use href="#tooth-hero" transform="rotate(45 50 50)"/>
-              <use href="#tooth-hero" transform="rotate(90 50 50)"/>
-              <use href="#tooth-hero" transform="rotate(135 50 50)"/>
-              <use href="#tooth-hero" transform="rotate(180 50 50)"/>
-              <use href="#tooth-hero" transform="rotate(225 50 50)"/>
-              <use href="#tooth-hero" transform="rotate(270 50 50)"/>
-              <use href="#tooth-hero" transform="rotate(315 50 50)"/>
-            </g>
-            <circle cx="50" cy="50" r="30" fill="var(--tsukumo-gear)"/>
-            <circle cx="50" cy="50" r="25.5" fill="var(--tsukumo-navy)"/>
-            <circle cx="50" cy="50" r="20.5" fill="none" stroke="var(--tsukumo-gear)" stroke-width="1" stroke-dasharray="2.6 2.6" opacity="0.6"/>
-            <g class="mascot-eye">
-              <ellipse cx="41.5" cy="48" rx="6.4" ry="6.8" fill="var(--tsukumo-eye-white)"/>
-              <g class="mascot-pupil" transform="translate(0,0)">
-                <circle cx="41.5" cy="49" r="4.2" fill="var(--tsukumo-pupil)"/>
-                <circle cx="39.7" cy="47.2" r="1.35" fill="var(--tsukumo-eye-white)"/>
-              </g>
-              <path class="mascot-lid" d="M35.1 48 a6.4 6.4 0 0 1 12.8 0 Z" fill="var(--tsukumo-navy)" opacity="0"/>
-            </g>
-            <g class="mascot-eye">
-              <ellipse cx="58.5" cy="48" rx="6.4" ry="6.8" fill="var(--tsukumo-eye-white)"/>
-              <g class="mascot-pupil" transform="translate(0,0)">
-                <circle cx="58.5" cy="49" r="4.2" fill="var(--tsukumo-pupil)"/>
-                <circle cx="56.7" cy="47.2" r="1.35" fill="var(--tsukumo-eye-white)"/>
-              </g>
-              <path class="mascot-lid" d="M52.1 48 a6.4 6.4 0 0 1 12.8 0 Z" fill="var(--tsukumo-navy)" opacity="0"/>
-            </g>
-            <path d="M43.5 58.5 Q50 63.5 56.5 58.5" fill="none" stroke="var(--tsukumo-gear)" stroke-width="1.8" stroke-linecap="round"/>
+            <use href="#charm-body" fill="var(--hero-charm-fill)" stroke="var(--omamori-cream)" stroke-width="2.2" stroke-linejoin="round"/>
+            <use href="#charm-body" transform="translate(50,85) scale(0.87) translate(-50,-85)" fill="none" stroke="var(--omamori-cream)" stroke-width="1" opacity="0.55"/>
+            <path d="M40,34 Q40,14 50,14 Q60,14 60,34" fill="none" stroke="var(--omamori-cream)" stroke-width="2.2" stroke-linecap="round"/>
+            <line x1="50" y1="14" x2="50" y2="4" stroke="var(--omamori-cream)" stroke-width="2.2" stroke-linecap="round"/>
+            <circle cx="50" cy="3" r="2.6" fill="var(--omamori-cream)"/>
+            <path d="M50,66 L61,70 L61,86 Q61,98 50,105 Q39,98 39,86 L39,70 Z" fill="none" stroke="var(--omamori-cream)" stroke-width="2"/>
+            <path d="M43,86 L48,92 L59,76" fill="none" stroke="var(--omamori-cream)" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/>
+            <text x="50" y="115" text-anchor="middle" font-family="'Zen Maru Gothic','Noto Sans JP',sans-serif" font-size="8.5" font-weight="700" letter-spacing="1.5" fill="var(--omamori-cream)">改変安全</text>
           </svg>
         </div>
 
