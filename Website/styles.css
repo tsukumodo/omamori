@@ -84,8 +84,10 @@ button, input {
   color-scheme: light dark;
 
   /* レイアウト寸法トークン。暖簾の切れ込み高さは .noren の被せ量(margin-bottom)と
-     .koujou の上パディング増分の両方から参照する。ここを1箇所変えれば揃って動く。 */
-  --noren-hem-h: 96px;
+     .koujou の上パディング増分の両方から参照する。ここを1箇所変えれば揃って動く。
+     96px→80px(第5ラウンド): 屋号が布(帯)側へ移って裾の布に文字の役割が
+     なくなったぶん浅くし、F-4で足した機能紹介のページ全長を一部相殺する。 */
+  --noren-hem-h: 80px;
 
   /* ブランドカラー（固定・テーマ非依存） */
   --omamori-green: #467A56;
@@ -93,13 +95,14 @@ button, input {
   --omamori-cream: #F0E8D0;
   --omamori-gold: #C8A87C;
   --omamori-navy: #162244;
-  /* 暖簾の布地色。--omamori-navy(店の地・ヒーロー背景)と同系統の藍だが、
-     明確に暗くする(色相はほぼ同じ約230°、彩度を上げつつ明度を落とした
-     "藍染めの濃い布"の色)。ヒーローが紺一色になったことで、暖簾の布と
-     地(隙間)が同じ紺では布が地に対して立たなくなった問題(D-noren)の
-     修正に使う。単純な相対輝度比（L(navy)=0.0173 / L(cloth)=0.0068）で
-     約2.55:1。要件(1.6:1以上)に対し十分な余裕を持たせてある。 */
-  --noren-cloth: #0C1325;
+  /* 暖簾の布地(第5ラウンドA-1): 布は生成り、隙間は店の中の暗がり(暗い藍)。
+     藍地に生成りの暖簾という和の実物の配色に合わせる。以前の「暗い藍の布
+     +紺の地」は、WCAG式 (L1+0.05)/(L2+0.05) での実測が 1.18:1 しかなく
+     (2.55:1 という判断は +0.05 項を落とした生の輝度比だった)、布が布として
+     読めていなかった。生成り#F0E8D0(L=0.808) vs #080C18(L=0.0038)は
+     WCAG式で約15.9:1。ダークは布をひとつ沈めた生成りにする(それでも12:1超)。 */
+  --noren-cloth: var(--omamori-cream);
+  --noren-gap: #080C18;
 
   /* 地紋トークン（patterns.css と共用。ライト既定値） */
   --tsukumo-paper: #F7F5F0;
@@ -126,15 +129,21 @@ button, input {
      ダーク側だけ明るい値に差し替える。 */
   --fuda-card-edge: var(--border);
 
-  /* 配色体系の見直し（監督の仕様ミス修正）: 店の色は紺+金茶、抹茶は
-     「おまもり」という商品1つの色。ヒーローは店の紺地に統一し、緑は
-     おまもり札の絵の中だけに残す。紺は暖簾の帯と同じ固定ブランド色
-     （テーマ非依存）なので、--hero-* もここでのみ定義し、ダーク側の
-     @media ブロックでは上書きしない（下記参照）。 */
+  /* 配色体系: 店の色は紺+金茶、抹茶は「おまもり」という商品の色。
+     ヒーローは店の紺地。--hero-bg はダーク側で一段深い紺に上書きする
+     (第5ラウンドH: ライト/ダークの第1画面の差分が1.15%しかなく、テーマを
+     切り替えても817pxスクロールするまで何も変わらなかったため、店先も
+     昼夜に参加させる)。 */
   --hero-bg: var(--omamori-navy);
   --hero-text: var(--omamori-cream);
   --hero-sub: #D9CFB0;
   --hero-charm-fill: var(--omamori-green-light);
+
+  /* 主動線ボタンの文字色(第5ラウンドC): 「おまもりを授かる」は全箇所で
+     抹茶(--omamori-green)地に統一する。生成り#F0E8D0だと 4.11:1 でAA(4.5:1)を
+     割るため、文字はわずかに明るい紙白 #FBFAF6(=--tsukumo-eye-white と同値)に
+     する。実測(WCAG式) #FBFAF6 vs #467A56 = 4.83:1。 */
+  --on-green: #FBFAF6;
 
   --chip-bg: rgba(70, 122, 86, 0.1);
   --chip-border: rgba(70, 122, 86, 0.3);
@@ -169,10 +178,13 @@ button, input {
 
     --tsukumo-gear: #DEBD8C; /* 夜は金茶がわずかに明るく光る */
 
-    /* --hero-* は紺の店章色と同じ「固定ブランド色」に統一したため、
-       ここでは上書きしない(以前は --hero-bg を暗い緑 #2E4E3B に、
-       --hero-sub を #BFD4C0 に差し替えていたが、紺はテーマに関わらず
-       同じ紺であるべきなので廃止)。 */
+    /* 夜のつくも堂(第5ラウンドH): 店先も昼夜に参加させる。
+       - ヒーローの紺を一段沈める(#162244 → #0F1830)。文字は生成り系なので
+         コントラストは全て向上する方向(実測でNGゼロを確認)
+       - 暖簾の布(生成り)も月明かりにひとつ沈める。隙間#080C18とのWCAG比は
+         12:1超のまま、布であることは崩れない */
+    --hero-bg: #0F1830;
+    --noren-cloth: #DCCFA8;
 
     --page-bg: var(--tsukumo-paper);
     --text-primary: var(--tsukumo-ink);
@@ -212,12 +224,11 @@ button, input {
     --glow: 0 0 10px rgba(222, 189, 140, 0.35);
   }
 
-  /* 「夜のつくも堂」(D-13): 店章・落款の印・ヒーローのおまもりに、
-     提灯のような柔らかい金茶の光暈を添える。紺の地はライト/ダークで
-     同じ固定色のため、この控えめな灯りだけが「夜になった」ことを
-     語る。やりすぎないよう、ぼかしは小さく・アニメーションは付けない
-     （--glow の主CTAボタンと同じ強さ）。 */
-  .noren-crest svg,
+  /* 「夜のつくも堂」(D-13): 落款の印・ヒーローのおまもりに、提灯のような
+     柔らかい金茶の光暈を添える。やりすぎないよう、ぼかしは小さく・
+     アニメーションは付けない（--glow の主CTAボタンと同じ強さ）。
+     暖簾の店章は生成りの布の上の藍染めになった(第5ラウンドA-2)ので、
+     明るい布に金茶のにじみを重ねると濁るだけになり、対象から外した。 */
   .rakkan-mascot svg {
     filter: drop-shadow(0 0 6px rgba(222, 189, 140, 0.4));
   }
@@ -367,13 +378,19 @@ section > h2,
   transform: translateY(0);
 }
 
+/* 主動線の統一(第5ラウンドC): 「おまもりを授かる」は同一クラス・同一文言・
+   同一動作なのに、ヒーローだけ金茶・他は抹茶と2色に割れていた。
+   「授かる」は商品(おまもり=抹茶)を受け取る動作なので抹茶1色に統一し、
+   金茶は店の意匠(店章・縁・肩書き)専用に残す。文字は生成り#F0E8D0だと
+   4.11:1でAA(4.5:1)を割るため、--on-green(#FBFAF6、4.83:1)にする。
+   hoverは明るくせず暗くする(明るい抹茶#4E8862は文字と3.35:1まで落ちる)。 */
 .btn-primary {
   background: var(--omamori-green);
-  color: var(--omamori-cream);
+  color: var(--on-green);
   box-shadow: 0 3px 10px rgba(70, 122, 86, 0.35), var(--glow);
 }
 .btn-primary:hover {
-  background: var(--omamori-green-light);
+  background: #3C6A4A;
 }
 
 .btn-ghost {
@@ -433,14 +450,25 @@ section > h2,
   pointer-events: none;
 }
 
+/* 帯=布の縫い上げ部分(第5ラウンドA-2)。実物の暖簾は帯と裾が同じ1枚の布
+   なので、帯も布と同じ生成りにし、店章と屋号(つくも堂 TSUKUMODO)を
+   布の上に藍で載せる。96pxの裾に何も描かれず屋号が紺の帯側にあった
+   逆転配分を、実物どおり(屋号は布に染め抜く)へ戻す。屋号が布に移った
+   ぶん、帯自体は薄くできる。 */
 .noren-band {
-  background: var(--omamori-navy);
+  background: var(--noren-cloth);
   position: relative;
-  padding: 1.6rem 1.5rem 2.6rem;
+  padding: 1.15rem 1.5rem 0.7rem;
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 0.75rem;
+  /* 店章を「生成りの布に藍で染め抜いた紋」にする。金茶の歯車のままだと
+     生成り地に対して1.6:1程度で埋もれるため、布の上では藍1色に落とす。 */
+  --tsukumo-gear: var(--omamori-navy);
+  --tsukumo-navy: var(--noren-cloth);
+  --tsukumo-eye-white: var(--noren-cloth);
+  --tsukumo-pupil: var(--omamori-navy);
 }
 
 .noren-band-pattern {
@@ -460,7 +488,7 @@ section > h2,
   position: relative;
   font-family: 'Zen Maru Gothic', sans-serif;
   font-weight: 700;
-  color: var(--omamori-cream);
+  color: var(--omamori-navy);
   font-size: 1.3rem;
   letter-spacing: 0.12em;
   margin: 0;
@@ -473,58 +501,60 @@ section > h2,
   font-size: 0.65rem;
   font-weight: 500;
   letter-spacing: 0.22em;
-  color: var(--omamori-gold);
-  opacity: 0.9;
+  /* 生成りの布の上では金茶(1.6:1程度)は読めないため、屋号と同じ藍を
+     少し淡めて添える。合成後の実測(WCAG式)はライト6.2:1 / ダーク5.5:1。 */
+  color: var(--omamori-navy);
+  opacity: 0.75;
 }
 
 .noren-hem {
-  /* 布そのものを4枚(モバイル3枚)のflexアイテムとして敷く。マスク画像は
-     使わない。枚数と隙間が画面幅から独立し、両端が必ず布1枚で
-     終わる(半端なタイルが出ない)。
-     地(布と布の隙間・裾の切れ込みから覗く色)は、.noren-hem 自身に
-     持たせる。以前は透過にしてヒーロー(.koujou)の背景を透かして
-     見せていたが、その色が変わるたびに「布に見えるか」が変わって
-     しまう不安定な結合だった(紺ヒーロー化で隙間が生成りの帯に
-     化けて暖簾が壊れた回帰の原因)。地の色をここで自己完結させ、
-     ヒーロー側が何色でも暖簾の見え方が変わらないようにする。
-     配色体系の見直しでヒーロー(.koujou)が紺一色になったのに合わせ、
-     地(隙間)はヒーローと同じ --omamori-navy にする。ヒーローに
-     このまま連続して見える(=隙間からヒーローの紺が覗いている)よう
-     になる。布そのもの(.noren-hem i)は --noren-cloth という
-     明確に暗い藍にし、地との明度差で布を布として立たせる。 */
+  /* 布そのものをflexアイテムとして敷く(枚数は下のメディアクエリで3〜6枚)。
+     地(布と布の隙間・裾から覗く色)は .noren-hem 自身に持たせて自己完結
+     させる(ヒーロー側が何色でも暖簾の見え方が変わらないようにするため)。
+     隙間は「店の中の暗がり」= --noren-gap。生成りの布との明度差(WCAG式で
+     約15.9:1、実画素で検証済み)だけで布が立つため、縁取りのdrop-shadowは
+     不要になり全て削除した(第5ラウンドA-4: 8連drop-shadowは実測でほぼ
+     描画されておらず、隙間の片側に1pxの線がランダムに出る描画バグに
+     見えていた)。 */
   display: flex;
-  gap: 10px;
+  gap: 6px;
   height: var(--noren-hem-h);
   width: 100%;
-  background: var(--omamori-navy);
+  background: var(--noren-gap);
 }
 
 .noren-hem i {
   flex: 1;
   background: var(--noren-cloth);
-  /* 裾はほぼ水平に。中央だけ10px下げて「布の重み」を出す
-     （鋭いV字の切れ込みにはしない＝バンティングに見えていた原因）。 */
-  clip-path: polygon(0 0, 100% 0, 100% calc(100% - 10px), 50% 100%, 0 calc(100% - 10px));
-  /* 布(--noren-cloth)と地(--omamori-navy)の明度差だけでも布として
-     読めるが、裾の輪郭をさらに立たせるため金茶の細い縁取りを
-     clip-path後のシルエットそのものに drop-shadow で与える
-     (§8 .fuda-card と同じ手法)。金茶は布・地のどちらに対しても
-     実測 6.9:1 / 7.9:1 とコントラストが高く、明度差だけに頼らない
-     二重の手がかりになる。両隣の布と接する左右の縁にも入るため、
-     布が4枚(モバイルは3枚)に分かれていることも縫い目のように読める。
-     オフセットを0.75pxずつ2重に重ね、1px単位の丸めで縁が消える
-     ブラウザ・拡大率があっても輪郭が残るようにする。 */
-  filter: drop-shadow(0 0.75px 0 var(--omamori-gold)) drop-shadow(0 -0.75px 0 var(--omamori-gold))
-          drop-shadow(0.75px 0 0 var(--omamori-gold)) drop-shadow(-0.75px 0 0 var(--omamori-gold))
-          drop-shadow(0 1.5px 0 var(--omamori-gold)) drop-shadow(0 -1.5px 0 var(--omamori-gold))
-          drop-shadow(1.5px 0 0 var(--omamori-gold)) drop-shadow(-1.5px 0 0 var(--omamori-gold));
+  /* 裾はほぼ水平のまま、中央をわずかに下げて布の重みを出す。
+     垂れの量は固定pxではなく%で指定する(第5ラウンドA-3)。
+     固定10pxでは布が細くなるモバイルで裾の角度が12°まで立ち、
+     三角旗(バンティング)に読めていた。%は要素自身のボックス基準で
+     解決されるため、どの幅でも裾はごく浅いまま保たれる。 */
+  clip-path: polygon(0 0, 100% 0, 100% calc(100% - 3%), 50% 100%, 0 calc(100% - 3%));
 }
 
-@media (max-width: 520px) {
-  /* モバイルは布3枚。4枚のままだと1枚あたりの幅が狭くなりすぎ、
-     暖簾ではなく縞模様に見える。 */
+/* 布の枚数(第5ラウンドA-5): 1枚の幅がどの画面でも約100〜320pxに収まる
+   よう、画面幅に応じて3〜6枚を表示する。切れ込み(隙間)の幅は
+   gap:6px の固定で、画面幅に比例して太らない。旧実装の
+   「flexの折り返し余地が尽きて4枚目が0×0になる」事故も、表示枚数を
+   メディアクエリで明示することで起きなくなる。 */
+.noren-hem i:nth-child(n+4) {
+  display: none; /* 〜560px: 3枚 */
+}
+@media (min-width: 561px) {
   .noren-hem i:nth-child(4) {
-    display: none;
+    display: block; /* 561〜999px: 4枚 */
+  }
+}
+@media (min-width: 1000px) {
+  .noren-hem i:nth-child(5) {
+    display: block; /* 1000〜1499px: 5枚 */
+  }
+}
+@media (min-width: 1500px) {
+  .noren-hem i:nth-child(6) {
+    display: block; /* 1500px〜: 6枚 */
   }
 }
 
@@ -571,12 +601,11 @@ section > h2,
 }
 
 .koujou-charm {
-  /* ヒーロー圧縮(C-2): レビュアー提示の削減候補(118→80px)を土台に、
-     1366×768でのCTA充足に必要な余裕を実測しながら72pxまで詰めた。
-     おまもりの形(比率・輪郭)はWebsite/omamori-thumbnail.pngを実測した
-     ものをそのまま使っており変更していない。ここは表示サイズの一様
-     スケールのみ(SVGのviewBoxは不変)なので、実測比率(1:1.76・側辺の
-     垂直区間77.6%)には影響しない。 */
+  /* ヒーロー圧縮(C-2): 1366×768でのCTA充足に必要な余裕を実測しながら
+     72pxまで詰めた値。ここは表示サイズの一様スケールのみで、おまもりの
+     実測比率(1:1.546、分母=最大幅)はSVGのviewBox側が持つ。
+     比率の取り直し(第5ラウンドB)で高さは154px→約140pxに縮み、
+     CTAの第1画面充足はむしろ広がる方向。 */
   width: 72px;
   margin-bottom: 0.75rem;
   filter: drop-shadow(0 6px 14px rgba(0, 0, 0, 0.22));
@@ -656,17 +685,12 @@ section > h2,
   width: 100%;
 }
 
+/* ヒーローの「授かる」も色は共通(.btn-primary)のまま、サイズだけ主役級にする。
+   抹茶#467A56 vs 紺#162244 はWCAG式3.10:1(ダークの深い紺とは3.5:1)で、
+   非文字UIの3:1を満たす。 */
 .koujou-cta .btn-primary {
-  background: var(--omamori-gold);
-  color: var(--omamori-navy);
   font-size: 1.05rem;
   padding: 0.85rem 2.2rem;
-  /* 既定の緑みの影(rgba(70,122,86,...))は紺地の上で金茶ボタンと
-     馴染まないため、金茶みの影に差し替える。 */
-  box-shadow: 0 3px 10px rgba(200, 168, 124, 0.45), var(--glow);
-}
-.koujou-cta .btn-primary:hover {
-  background: #D8BC8E;
 }
 
 .koujou-cta-note {
@@ -779,7 +803,9 @@ section > h2,
   height: 1.7rem;
   border-radius: 50%;
   background: var(--omamori-green);
-  color: var(--omamori-cream);
+  /* 生成り#F0E8D0は抹茶地で4.11:1とAAを割るため、.btn-primaryと同じ
+     --on-green(4.83:1)に揃える(第5ラウンドC連動)。 */
+  color: var(--on-green);
   font-family: 'Zen Maru Gothic', sans-serif;
   font-weight: 700;
   font-size: 0.85rem;
@@ -839,27 +865,31 @@ section > h2,
      カード内1行が15字程度しかなく複合語(「アップロード」「Merge Armature」等)の
      折り返しを量産していた(E-2)。下限を320pxに上げ、2列×5段に固定する。 */
   grid-template-columns: repeat(auto-fit, minmax(min(320px, 100%), 1fr));
-  gap: 1.1rem;
-  margin-bottom: 2rem;
+  /* 行間だけ0.9remに詰める(360pxの1列では全gapが行間になり、全長を
+     約30px回収できる)。列間は従来の1.1remのまま。 */
+  gap: 0.9rem 1.1rem;
+  margin-bottom: 1.5rem;
 }
 
 .fuda-card {
   position: relative;
   background: var(--card-bg);
-  /* おまもりの形（本体シルエット）から導いたクリップ。ブランド資材
-     (omamori-thumbnail.png)を実測(1440px版をピクセル走査)して得た輪郭を
-     11点のpolygonで近似する。カードは横長で縦横比まで一致させる必要は
-     ないため、実測の絶対比率ではなく「上辺はほぼ全幅(角の丸みはごく
-     わずか＝ほぼ直角)・側辺は長く垂直に近い・裾でやわらかく尖る」という
-     シルエットの特徴だけを、本体の中心(50%)からの距離を実測と同じ比率
-     (×1.095)でスケールして引き継ぐ。紐・内枠・盾+チェック・文字は
-     情報カードには不要なので持ち込まず、シルエットだけを共有する。
-     カードは本文62〜228字で高さが大きく変わる可変高カードなので、
-     先端の「やわらかい尖り」は %ではなく固定px(--fuda-tip-h)の帯に
-     収める。こうすると背の低い札でも高い札でも、尖り方の見た目が
-     一定になり、かつ本文がその帯に食い込まない(padding-bottomで
-     同じ高さぶん確保する)。 */
-  --fuda-tip-h: 64px;
+  /* おまもりの形（本体シルエット）から導いたクリップ(第5ラウンドB-2で
+     取り直し)。ブランド資材(omamori-thumbnail.png 1440px版)のクリーム輪郭を
+     ピクセル走査した実測プロファイル(分母=最大幅366px):
+       上辺 89.1% → 最大幅100%(高さ56.4%地点) → 収束部
+       (収束部をt=0..1として t0.3:96.4% / t0.5:88.2% / t0.65:77.7% /
+        t0.8:57.9% / t0.9:37.7% / t1:0%)
+     を、上辺と側辺はカードの横幅%に、収束部は固定px帯(--fuda-tip-h)に
+     マップする。カードは可変高の横長なので、縦横比そのものではなく
+     「上辺がやや狭い・側辺が下へ向けて張り出す・裾は長くやわらかく
+     尖る」という輪郭の性格だけを実測比率のまま引き継ぐ。
+     tip帯は64px→40pxへ浅くした: 実物の収束部は"高さの43.6%"であって
+     深い印象を作るのは幅方向のカーブなので、浅くしても輪郭の性格は
+     保たれ、カード下部の構造的な空白(カード高の25〜38%が空白と
+     指摘されていた)と、F-4で足した機能紹介ぶんのページ全長を回収できる
+     (デザインレビューの代替案も「12〜16pxの浅いすくい」だった)。 */
+  --fuda-tip-h: 40px;
   border: 0;
   /* clip-path が左右の縦辺に1点でしか接しないため、border は
      ほぼ全長がクリップされて描画されない(ダークで札vs地が1.12:1)。
@@ -869,21 +899,37 @@ section > h2,
   filter: drop-shadow(1px 0 0 var(--fuda-card-edge)) drop-shadow(-1px 0 0 var(--fuda-card-edge))
           drop-shadow(0 1px 0 var(--fuda-card-edge)) drop-shadow(0 -1px 0 var(--fuda-card-edge));
   clip-path: polygon(
-    4% 0%, 96% 0%,
-    98.2% calc(100% - var(--fuda-tip-h)),
-    92.7% calc(100% - var(--fuda-tip-h) * 0.625),
-    80.7% calc(100% - var(--fuda-tip-h) * 0.3125),
-    64.2% calc(100% - var(--fuda-tip-h) * 0.125),
+    5.45% 0%, 94.55% 0%,
+    100% calc(100% - var(--fuda-tip-h)),
+    98.2% calc(100% - var(--fuda-tip-h) * 0.7),
+    94.1% calc(100% - var(--fuda-tip-h) * 0.5),
+    88.85% calc(100% - var(--fuda-tip-h) * 0.35),
+    78.95% calc(100% - var(--fuda-tip-h) * 0.2),
+    68.5% calc(100% - var(--fuda-tip-h) * 0.1),
     50% 100%,
-    35.8% calc(100% - var(--fuda-tip-h) * 0.125),
-    19.3% calc(100% - var(--fuda-tip-h) * 0.3125),
-    7.3% calc(100% - var(--fuda-tip-h) * 0.625),
-    1.8% calc(100% - var(--fuda-tip-h))
+    31.5% calc(100% - var(--fuda-tip-h) * 0.1),
+    21.05% calc(100% - var(--fuda-tip-h) * 0.2),
+    11.15% calc(100% - var(--fuda-tip-h) * 0.35),
+    5.9% calc(100% - var(--fuda-tip-h) * 0.5),
+    1.8% calc(100% - var(--fuda-tip-h) * 0.7),
+    0% calc(100% - var(--fuda-tip-h))
   );
-  padding: 1.4rem 1.3rem calc(var(--fuda-tip-h) + 0.8rem);
+  padding: 1.3rem 1.3rem calc(var(--fuda-tip-h) + 0.8rem);
   display: flex;
   flex-direction: column;
-  gap: 0.6rem;
+  gap: 0.55rem;
+}
+
+/* 上辺の切り落とし(5.45%)は、2列になるデスクトップのカード幅(約407px)では
+   約22pxに達し、既定の横padding 1.3rem(21px)だと先頭行の文字・ピルが角に
+   かかる。2列レイアウトになる幅でだけ横paddingを1.5remへ広げる
+   (360pxの1列ではカード幅約325px・切り落とし約18pxで1.3remのまま足りる。
+   モバイルで一律に広げると行幅が縮んで全長が約230px伸びるため)。 */
+@media (min-width: 700px) {
+  .fuda-card {
+    padding-left: 1.5rem;
+    padding-right: 1.5rem;
+  }
 }
 
 .fuda-card::before {
@@ -975,7 +1021,13 @@ section > h2,
   font-size: 0.82rem;
   font-weight: 700;
   color: var(--accent-text);
-  padding: 0.1rem 0;
+  /* タップターゲット(第5ラウンドD): 実測89×27で、圧縮後このページで
+     最も押される要素なのに44px未満だった。paddingで当たり判定を縦44px
+     以上に広げ、同量の負マージンで行送り(カードの高さ)は変えない。
+     上下の隣接要素(情景の段落・自動修正の行)は非対話要素なので、
+     当たり判定が重なっても実害はない。 */
+  padding: 10.5px 0;
+  margin: -10.5px 0;
   user-select: none;
 }
 
@@ -1032,7 +1084,7 @@ section > h2,
   background: var(--card-bg-alt);
   border: 1px solid var(--border);
   border-radius: 14px;
-  padding: 1.5rem 1.6rem;
+  padding: 1.35rem 1.45rem;
 }
 
 .fuda-performance h3 {
@@ -1050,6 +1102,35 @@ section > h2,
   border-top: 1px solid var(--border);
   padding-top: 0.85rem;
   margin-top: 0.85rem;
+}
+
+/* --- 直す力のそなえ(第5ラウンドF-4)。パフォーマンスパネルと同じ額装で、
+   Before/After予告・修正履歴・カード画像書き出しを紹介する --- */
+.fuda-atogaki {
+  margin-top: 1rem;
+}
+
+.fuda-atogaki-list {
+  list-style: none;
+  font-size: 0.9rem;
+}
+
+.fuda-atogaki-list li {
+  padding: 0.3rem 0 0.3rem 1.3rem;
+  position: relative;
+}
+
+.fuda-atogaki-list li::before {
+  content: '○';
+  position: absolute;
+  left: 0;
+  color: var(--accent-text);
+}
+
+/* --- バックアップの勧め(D-8)+不可逆操作の明示(第5ラウンドF-1) --- */
+.fuda-backup-note {
+  font-size: 0.9rem;
+  margin-top: 1rem;
 }
 
 /* =========================================================================
@@ -1134,6 +1215,7 @@ section > h2,
 .tana-zip {
   display: inline-flex;
   align-items: center;
+  justify-content: center;
   padding: 0.45rem 1rem;
   font-size: 0.85rem;
   font-weight: 700;
@@ -1141,6 +1223,9 @@ section > h2,
   border: 1px solid var(--border);
   color: var(--text-primary);
   text-decoration: none;
+  /* タップターゲット(第5ラウンドD): 360pxの積み上げ時に275×41まで
+     落ちていた(デスクトップは44)。.btn-smallと同じくmin-heightで確保。 */
+  min-height: 44px;
 }
 .tana-zip:hover {
   background: var(--card-bg-alt);
@@ -1210,8 +1295,10 @@ section > h2,
   position: absolute;
   top: 50%;
   left: 50%;
-  width: 44px;
-  height: 44px;
+  /* 44pxちょうどだと±22pxの端で当たり外れが出る(実測±20はHIT、±22で
+     一部外れ)ため、ひと回り広げて実効44px以上を確実にする。 */
+  width: 48px;
+  height: 48px;
   transform: translate(-50%, -50%);
 }
 .tana-dialog-close:hover {
@@ -1291,7 +1378,10 @@ section > h2,
   font-size: 0.92rem;
   font-weight: 700;
   color: var(--accent-text);
-  padding: 0.1rem 0;
+  /* タップターゲット(第5ラウンドD): 実測281×30 → padding+負マージンで
+     縦44px以上に(守り札のsummaryと同じ手法。レイアウトは動かさない)。 */
+  padding: 9px 0;
+  margin: -9px 0;
   user-select: none;
 }
 
@@ -1476,12 +1566,13 @@ dialog:focus-visible {
 
 @media (max-width: 640px) {
   section {
-    padding: 2.25rem 0;
+    padding: 2rem 0;
   }
   .koujou {
     /* ヒーロー圧縮(C-2): 390×844でCTAが第1画面(可視領域約700px)に
-       収まるよう、上パディングをさらに切り詰める。 */
-    padding: calc(1.25rem + var(--noren-hem-h)) 0 2.75rem;
+       収まるよう、上パディングをさらに切り詰める。1.25rem→1remは
+       360×640でCTA下端が2pxだけ届かなかったための微調整(第5ラウンド)。 */
+    padding: calc(1rem + var(--noren-hem-h)) 0 2.75rem;
   }
   /* h1を「肩書き+span」構成に変えた際、フォントサイズを子spanへ
      移したため、ここも子spanを対象にし直す(元は.koujou-title自体に

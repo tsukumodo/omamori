@@ -30,6 +30,12 @@
 <body class="washi">
   <a class="skip-link" href="#main">本文へ移動</a>
 
+  <!-- 暖簾の構造(第5ラウンドA): 実物の暖簾は帯と裾が同じ1枚の布で、屋号は布に
+       染め抜かれている。布を生成り(--noren-cloth)、布の隙間と店の中を暗い藍
+       (--noren-gap)にし、店章と屋号は布の上(=生成りの帯部分)に藍で載せる。
+       以前の「紺の布を紺の地に置き、金茶のdrop-shadow縁取りで立たせる」構造は、
+       縁が実際にはほぼ描画されず(画素実測で隙間の片側1pxのみ)、布と地が
+       1.18:1で区別できなかったため廃止した。 -->
   <header class="noren">
     <div class="noren-band">
       <div class="seigaiha noren-band-pattern" aria-hidden="true"></div>
@@ -78,7 +84,11 @@
       </div>
       <p class="noren-shopname">つくも堂<span class="noren-shopname-en">TSUKUMODO</span></p>
     </div>
-    <div class="noren-hem" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
+    <!-- 布は最大6枚。表示枚数はCSSのメディアクエリで3〜6枚に切り替え、
+         1枚あたりの幅がどの画面でも約100〜320pxに収まるようにする
+         (布の幅がビューポート比例で473pxまで太っていた回帰X-1と、
+         360/390pxで4枚目が0×0になっていた回帰X-2の同時解消)。 -->
+    <div class="noren-hem" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i></div>
   </header>
 
   <!-- tabindex="-1"（D-15）: skip-link 遷移後にフォーカスをここへ明示的に
@@ -91,43 +101,34 @@
       <div class="asanoha koujou-pattern" aria-hidden="true"></div>
       <div class="wrap">
         <div class="koujou-charm" aria-hidden="true">
-          <!-- おまもりの形は Website/omamori-thumbnail.png（ブランド資材の正）を
-               実測して作り直した(前回作は本物より幅広・寸胴だったための再修正)。
-               本体の輪郭を1440px版のPNGをピクセル走査して計測した結果:
-                 - 幅:高さ ≈ 1:1.74(実測 325:565px)
-                 - 上角の丸みは半径にして幅の約1.5%(ほぼ直角)
-                 - 側辺は高さの約77.7%まで垂直に近いまま下り、残り約22%で
-                   底の中央へ弧を描いて収束する
-                 - 盾は本体の23.7%〜58.6%の高さ(=本体高さの34.9%分)、
-                   幅は本体幅の40.9%、左右中央
-                 - 紐のアーチは本体幅の33.2%、アーチの高さは本体高さの
-                   12.2%、アーチ上の直線は本体高さの約7.6%
-               これらの比率をそのまま viewBox 100×214 の座標に落とし込んだ
-               (幅100は前版から変えていないので線幅などは相似のまま流用できる)。
-               紐は上辺中央から半円のアーチ+細い縦線+留め具の丸。
-               内枠は本体の輪郭を少し内側に縮小した同じ形の線。
-               中央は盾+チェック、下部に「改変安全」(字間広め)。
-               九十九神マスコットの顔は入れていない: マスコットは
-               ヘッダー紋章・落款の印ですでに2箇所描かれており、
-               ブランド資材の正(このthumbnail)が盾+チェックである以上、
-               ヒーローの主役画像はそちらに合わせるのが資材との一致を
-               最優先する判断として妥当なため。 -->
-          <svg class="koujou-charm-shape" viewBox="0 0 100 214" xmlns="http://www.w3.org/2000/svg">
-            <defs>
-              <path id="charm-body" d="
-                M1.5,40 L98.5,40 Q100,40 100,41.5
-                L100,175.1 C97.5,190.2 86.25,202.1 68.75,208.5 Q58.75,212.4 50,214
-                Q41.25,212.4 31.25,208.5 C13.75,202.1 2.5,190.2 0,175.1
-                L0,41.5 Q0,40 1.5,40 Z"/>
-            </defs>
-            <use href="#charm-body" fill="var(--hero-charm-fill)" stroke="var(--omamori-cream)" stroke-width="2.2" stroke-linejoin="round"/>
-            <use href="#charm-body" transform="translate(50,127) scale(0.87) translate(-50,-127)" fill="none" stroke="var(--omamori-cream)" stroke-width="1" opacity="0.55"/>
-            <path d="M33.4,40 Q33.4,18.8 50,18.8 Q66.6,18.8 66.6,40" fill="none" stroke="var(--omamori-cream)" stroke-width="2.2" stroke-linecap="round"/>
-            <line x1="50" y1="18.8" x2="50" y2="6.2" stroke="var(--omamori-cream)" stroke-width="2.2" stroke-linecap="round"/>
-            <circle cx="50" cy="3.3" r="2.9" fill="var(--omamori-cream)"/>
-            <path d="M50,81.2 L70.45,87.46 L70.45,112.39 Q70.45,131.12 50,142 Q29.55,131.12 29.55,112.39 L29.55,87.46 Z" fill="none" stroke="var(--omamori-cream)" stroke-width="2"/>
-            <path d="M37,112.4 L46.28,121.75 L66.73,96.77" fill="none" stroke="var(--omamori-cream)" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/>
-            <text x="50" y="172" text-anchor="middle" font-family="'Zen Maru Gothic','Noto Sans JP',sans-serif" font-size="8.5" font-weight="700" letter-spacing="1.5" fill="var(--omamori-cream)">改変安全</text>
+          <!-- おまもりの形(第5ラウンドB): Website/omamori-thumbnail.png(1440px版)の
+               クリーム輪郭画素を1行ずつ走査して取り直した。前回(1:1.74)は
+               「幅」の分母に上辺(最も狭い325px)を使う取り違えがあった。
+               今回の実測(分母=最大幅):
+                 - 本体 top=y317 / bottom=y882 / 高さ566px、最大幅366px(y=636、
+                   上から56.4%の位置) → 幅:高さ = 366:566 = 1:1.546
+                 - 上辺の幅は326px = 最大幅の89.1%。角の丸みはほぼ直角(≤1px)
+                 - 側辺は「垂直」ではなく、上辺89.1%→56.4%地点で100%まで
+                   ほぼ直線的に張り出し、残り43.6%の高さで底の中央へ収束する
+                   (78%:88.5% / 84%:78.7% / 90%:62.8% / 94%:46.4%)
+                 - 紐のアーチは上辺直上で幅108px = 最大幅の29.5%。アーチの高さは
+                   本体高さの13.6%、その上に高さ6.4%の直線(実物に留め具の丸は無い)
+                 - 盾の幅は本体高さの23.5%(旧実装の盾は本体高さ比で正しかったので
+                   一様スケール0.89で縮小)、上下は本体高さの23.7%〜58.6%
+               viewBox は 100×195(本体40..195=155ユニット、100:155=1:1.55)。
+               幅100は前版と同じなので線幅は相似のまま流用。
+               収束部の曲線は実測プロファイル9点を通るCatmull-Rom曲線をそのまま
+               ベジェに変換したもの。
+               内枠と「改変安全」の文字は外した(第5ラウンドB-3): この絵の表示幅は
+               72px(モバイル48px)で、文字は6.1px(モバイル4.1px)と和文の可読下限
+               (約9px)を大きく割り、内枠は0.72px×不透明度0.55で灰色のもやに
+               なっていた。読めない文字・見えない線は置かない。 -->
+          <svg class="koujou-charm-shape" viewBox="0 0 100 195" xmlns="http://www.w3.org/2000/svg">
+            <path d="M5.36,41.5 Q5.45,40 6.95,40 L93.05,40 Q94.55,40 94.64,41.5 L100,127.4 C99.68,130.9 99.33,142.4 98.1,148.5 C96.87,154.6 94.88,159.35 92.6,164 C90.33,168.65 87.68,172.8 84.45,176.4 C81.22,180 77.28,183.1 73.2,185.7 C69.12,188.3 63.82,190.35 59.95,191.9 C56.08,193.45 51.66,194.5 50,195 C48.34,194.5 43.92,193.45 40.05,191.9 C36.18,190.35 30.88,188.3 26.8,185.7 C22.72,183.1 18.78,180 15.55,176.4 C12.32,172.8 9.67,168.65 7.4,164 C5.12,159.35 3.13,154.6 1.9,148.5 C0.67,142.4 0.32,130.9 0,127.4 Z" fill="var(--hero-charm-fill)" stroke="var(--omamori-cream)" stroke-width="2.2" stroke-linejoin="round"/>
+            <path d="M35.25,40 Q35.25,18.9 50,18.9 Q64.75,18.9 64.75,40" fill="none" stroke="var(--omamori-cream)" stroke-width="2.2" stroke-linecap="round"/>
+            <line x1="50" y1="18.9" x2="50" y2="9" stroke="var(--omamori-cream)" stroke-width="2.2" stroke-linecap="round"/>
+            <path d="M50,76.7 L68.2,82.27 L68.2,104.46 Q68.2,121.13 50,130.8 Q31.8,121.13 31.8,104.46 L31.8,82.27 Z" fill="none" stroke="var(--omamori-cream)" stroke-width="2"/>
+            <path d="M38.43,104.46 L46.69,112.78 L64.89,90.55" fill="none" stroke="var(--omamori-cream)" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"/>
           </svg>
         </div>
 
@@ -138,7 +139,10 @@
              「「アバター改変おまもり」は、」を外すことで情報を増やさずに
              相殺している(削っているのは名乗りの重複だけで、説明文の
              内容は一文字も削っていない)。 -->
-        <h1 id="koujou-heading" class="koujou-title"><span class="koujou-title-name">アバター改変おまもり</span><span class="koujou-title-tagline">アバターを送り出す前に、そっとひと目。</span></h1>
+        <!-- span間の空白(第5ラウンドG-1): 2つのspanはdisplay:blockで視覚上は2行だが、
+             アクセシブル名の計算では空白なしで連結され「アバター改変おまもりアバターを
+             送り出す前に…」と読み上げられていた。区切りの空白を1つ挟む(視覚には影響しない)。 -->
+        <h1 id="koujou-heading" class="koujou-title"><span class="koujou-title-name">アバター改変おまもり</span> <span class="koujou-title-tagline">アバターを送り出す前に、そっとひと目。</span></h1>
         <p class="koujou-lead">VRChatアバターをアップロードする前に、ありがちな設定ミスをまとめて見つけてくれるUnity Editor拡張です。チェックはボタン一つで走り、見つかった問題はオブジェクトを選んで中身を確かめられます。直せるものはその場で直せるので、公開してから気づいて青ざめる場面を減らせます。</p>
 
         <div class="koujou-cta">
@@ -166,7 +170,7 @@
     <!-- ③ 守り札グリッド -->
     <section class="fuda wrap" aria-labelledby="fuda-heading">
       <h2 id="fuda-heading">おまもりが見ているもの</h2>
-      <p class="section-lead">チェックを実行すると、下記の項目を一つずつ確かめていきます。🔍 見つかった問題はオブジェクトを選んで直接確認でき、直せるものはボタン一つで直せます。</p>
+      <p class="section-lead">チェックを実行すると、下記の項目を一つずつ確かめていきます。見つかった問題はオブジェクトを選んで直接確認でき、直せるものはボタン一つで直せます。</p>
 
       <ul class="fuda-grid">
         <li class="fuda-card" data-severity="error">
@@ -175,8 +179,13 @@
             <span class="fuda-severity fuda-severity--error">エラー</span>
           </div>
           <p class="fuda-card-scene">アセットを削除したときや、他のプロジェクトからプレハブをコピーしてきたときに、参照先を失ったコンポーネントがアバターの中へ紛れ込んでしまいがちです。</p>
+          <!-- 名前の区別(第5ラウンドE): 「くわしく見る」が守り札のsummary10個(インライン
+               展開)と棚のボタン2個(モーダル起動)で計12個、同名のまま挙動が違っていた。
+               守り札側は動作が伝わる「見つけかたを読む」に改め、aria-labelに札名を
+               含めて支援技術のコントロール一覧でも12個が区別できるようにする
+               (可視文言はアクセシブル名に含まれておりWCAG 2.5.3も満たす)。 -->
           <details class="fuda-card-more">
-            <summary>くわしく見る</summary>
+            <summary aria-label="消えたスクリプトの見つけかたを読む">見つけかたを読む</summary>
             <div class="fuda-card-more-body">
               <p class="fuda-card-detail">Missing状態のコンポーネントを一つずつ見つけて教えてくれます。多くは参照が壊れているだけなので自動修正で一括削除できますが、Unityの仕様上この修正だけはUndoで戻せません。</p>
             </div>
@@ -191,7 +200,7 @@
           </div>
           <p class="fuda-card-scene">シェーダーが同梱されていないアセットを使ったときや、アップデートで参照が外れたときに、マテリアルが唐突に真っピンクへ変わってしまいます。</p>
           <details class="fuda-card-more">
-            <summary>くわしく見る</summary>
+            <summary aria-label="ピンクのマテリアルの見つけかたを読む">見つけかたを読む</summary>
             <div class="fuda-card-more-body">
               <p class="fuda-card-detail">シェーダーが見つからないマテリアルを、アバターの中から探し出します。自動修正は用意していないので、見つかった箇所は手作業でシェーダーを差し直してください。</p>
             </div>
@@ -205,7 +214,7 @@
           </div>
           <p class="fuda-card-scene">肌にテクスチャを入れただけのつもりが、気づけばアバター全体が煌々と光り輝いていた——という声から生まれたチェックです。</p>
           <details class="fuda-card-more">
-            <summary>くわしく見る</summary>
+            <summary aria-label="意図しない発光の見つけかたを読む">見つけかたを読む</summary>
             <div class="fuda-card-more-body">
               <p class="fuda-card-detail">lilToonとUnity Standard系のマテリアルを対象に、Emissionがオンで実際に光っているものを見つけます(真っ黒や極端に暗いものは除きます)。ロック済みのマテリアルや対応外のシェーダーは対象外です。</p>
               <p class="fuda-card-detail">自動修正は発光だけをオフにし、色の設定は残します。同じマテリアルの他の箇所も一緒に変わり、発光を切り替える作りのアバターでは動きが崩れることもあるので、心当たりがあれば見送ってください。うっかり押してもUndo(Ctrl+Z)で戻せます。</p>
@@ -221,7 +230,7 @@
           </div>
           <p class="fuda-card-scene">アバターを複製したときや、プレハブをコピーして作業したときに、VRC Avatar Descriptorが同じ階層に増えてしまうことも少なくありません。</p>
           <details class="fuda-card-more">
-            <summary>くわしく見る</summary>
+            <summary aria-label="Descriptorの重複の見つけかたを読む">見つけかたを読む</summary>
             <div class="fuda-card-more-body">
               <p class="fuda-card-detail">アバタールート以下にDescriptorが複数ないか見て回ります。重複が3個あっても「1件の問題」としてまとめて数え、どれを残すか選ぶだけで残りを一括整理できます。</p>
             </div>
@@ -237,9 +246,13 @@
               <span class="fuda-severity fuda-severity--error">エラー</span>
             </span>
           </div>
-          <p class="fuda-card-scene">Modular AvatarのObjectToggleでは、オン/オフの対象を設定し忘れたり、うっかり自分自身を指定してしまったりする場面が意外とよくあります。</p>
+          <!-- 頻度修辞の削減(第5ラウンドF-3): 「意外とよくあります」等の頻度の主張が
+               10枚中4枚で反復していたため、この札と「パラメータの空欄」は具体的な
+               情景描写に置き換える(頻度表現はDescriptor・装飾品の2枚に絞る)。
+               条件節(ターゲット未設定/自己参照)はMAObjectToggleCheckの実装どおり。 -->
+          <p class="fuda-card-scene">Modular AvatarのObjectToggleは、オン/オフの相手を指してはじめて働きます。ところが指し先が空のままだったり、うっかり自分自身を指していたりすると、そのまま気づかれずに残ります。</p>
           <details class="fuda-card-more">
-            <summary>くわしく見る</summary>
+            <summary aria-label="トグルの行き先の見つけかたを読む">見つけかたを読む</summary>
             <div class="fuda-card-more-body">
               <p class="fuda-card-detail">ターゲットが空のままなら警告、自分自身を参照する自己参照ならエラーとして知らせます。設定漏れは早めに見つけておくと安心です。</p>
             </div>
@@ -254,7 +267,7 @@
           </div>
           <p class="fuda-card-scene">アクセサリーを子オブジェクトとして入れたものの、Merge ArmatureやBone Proxyの設定を忘れたまま——という状態はよく起こります。</p>
           <details class="fuda-card-more">
-            <summary>くわしく見る</summary>
+            <summary aria-label="装飾品の設置忘れの見つけかたを読む">見つけかたを読む</summary>
             <div class="fuda-card-more-body">
               <p class="fuda-card-detail">Armatureを持つ子オブジェクトを調べ、Merge Armature / Bone Proxyが未設定になっていないか確かめます。ターゲット自体が未設定の場合も、あわせて拾い上げます。</p>
             </div>
@@ -267,9 +280,12 @@
             <h3 class="fuda-card-title">宙に浮いたメニュー</h3>
             <span class="fuda-severity fuda-severity--error">エラー</span>
           </div>
-          <p class="fuda-card-scene">Expression Menuの階層を組み立てている途中で、MenuInstallerを挟み忘れたMenuItemが、そのまま取り残されてしまうことも。</p>
+          <!-- 述語の復元(第5ラウンドF-2): 「〜てしまうことも。」はページで唯一の
+               述語のない文で、です/ます調から外れていた。「宙ぶらりん」は札の見出し
+               「宙に浮いたメニュー」と呼応させている。 -->
+          <p class="fuda-card-scene">Expression Menuの階層を組み立てている途中で、MenuInstallerを挟み忘れたMenuItemが、宙ぶらりんのまま取り残されてしまいます。</p>
           <details class="fuda-card-more">
-            <summary>くわしく見る</summary>
+            <summary aria-label="宙に浮いたメニューの見つけかたを読む">見つけかたを読む</summary>
             <div class="fuda-card-more-body">
               <p class="fuda-card-detail">MenuItemの祖先をたどり、MenuInstallerにつながっていないものを見つけて知らせます。つながっていないメニューは、アップロードしても実際のメニューには現れません。</p>
             </div>
@@ -282,9 +298,9 @@
             <h3 class="fuda-card-title">パラメータの空欄</h3>
             <span class="fuda-severity fuda-severity--warning">警告</span>
           </div>
-          <p class="fuda-card-scene">Expression Menuだけを組んでExpression Parametersの用意を忘れたり、パラメータ名を空のまま残してしまったりする——というのもよく見る光景です。</p>
+          <p class="fuda-card-scene">Expression Menuだけを先に組んで、Expression Parametersの用意が後回しになると、名前を入れないまま置き去りになった行が、そのまま残ってしまいます。</p>
           <details class="fuda-card-more">
-            <summary>くわしく見る</summary>
+            <summary aria-label="パラメータの空欄の見つけかたを読む">見つけかたを読む</summary>
             <div class="fuda-card-more-body">
               <p class="fuda-card-detail">Expression Menuが設定されているのにParametersが未設定の場合と、名前が空のパラメータが残っている場合の両方に気づかせてくれます。空のパラメータは同期帯域を無駄に消費するため、整理のきっかけになります。</p>
             </div>
@@ -298,7 +314,7 @@
           </div>
           <p class="fuda-card-scene">アップロードしたのに表情や着せ替えが反映されない——そんなときは、FXレイヤーのWeightが0のまま止まっている場合があります。</p>
           <details class="fuda-card-more">
-            <summary>くわしく見る</summary>
+            <summary aria-label="動かないFXレイヤーの見つけかたを読む">見つけかたを読む</summary>
             <div class="fuda-card-more-body">
               <p class="fuda-card-detail">FXレイヤーのWeightが0のままになっていないか確かめます。自動修正でWeightを1に戻すことができ、Undo(Ctrl+Z)で元の状態にも戻せます。</p>
             </div>
@@ -313,7 +329,7 @@
           </div>
           <p class="fuda-card-scene">パラメータを増やしていくうちに、気づかないまま同期の上限を超えてしまい、アップロード時にエラーの壁にぶつかってしまいます。</p>
           <details class="fuda-card-more">
-            <summary>くわしく見る</summary>
+            <summary aria-label="あふれた同期容量の見つけかたを読む">見つけかたを読む</summary>
             <div class="fuda-card-more-body">
               <p class="fuda-card-detail">Expression Parametersの同期パラメータ合計ビット数が256bitを超えていないか計算して知らせます。超えたままではアップロードに失敗するため、公開前に気づけるのが利点です。</p>
             </div>
@@ -330,11 +346,27 @@
         <p class="fuda-performance-caution">ここに表示される数値は、Modular Avatarなどの非破壊改変ツールを適用する前の状態のものです。実際にアップロードされる最終的な値は、VRChat SDKのビルドパネルでご確認ください。</p>
       </div>
 
+      <!-- 第5ラウンドF-4: 製品にあるのにページに無かった機能3つ(初回レビューM-8)。
+           記述はCHANGELOG v0.6.0 / v0.7.0 と Editor/CheckResult.cs(ValueLabel/
+           BeforeValue/AfterValue)・FixHistoryStore.cs(セッション内・上限100件)・
+           CardExporter.cs(1200×630 PNG)の実装どおりに合わせており、盛っていない。 -->
+      <div class="fuda-performance fuda-atogaki">
+        <h3>直すときも、ていねいに</h3>
+        <ul class="fuda-atogaki-list">
+          <li>「修正」を押す前に、「FX Layer / Weight: 0 → 1」のように修正前後の値を予告します(対応する3項目)。</li>
+          <li>実行した修正は「修正履歴」の欄に実際の値つきで並び、おまもりのウィンドウを閉じるまで見返せます。</li>
+          <li>チェック結果は、件数と日付をまとめた1枚のカード画像(PNG)に書き出せます。アバター名などは載せず、すべてきれいなら金色の「✓」が付きます。</li>
+        </ul>
+      </div>
+
       <!-- D-8: バックアップの勧め・免責。Undo不可の削除(消えたスクリプト)や
            アセットの書き換えを行う道具として、これまで0件だった。実装で
            「ほとんどの修正はUndoで戻せる」ことは事実なので過度に脅さず、
            いつもの作業習慣として自然に添える。 -->
-      <p class="fuda-backup-note">おまもりの自動修正は、シーンやアセットを直接書き換えます。ほとんどの操作はUndo(Ctrl+Z)で元に戻せますが、大切な作業の前には、シーンの保存やバージョン管理へのコミットといった、いつものバックアップ習慣もあわせてお使いください。</p>
+      <!-- 第5ラウンドF-1: 唯一の不可逆操作(消えたスクリプトの一括削除)が<details>の
+           中にだけあり、流し読みの読者に届いていなかった。常時見えるこの注記に
+           括弧書きで明示する(MissingScriptCheck.cs:63-72 のUndo不可と一致)。 -->
+      <p class="fuda-backup-note">おまもりの自動修正は、シーンやアセットを直接書き換えます。ほとんどの操作はUndo(Ctrl+Z)で元に戻せます(「消えたスクリプト」の修正だけは、Unityの仕様上戻せません)。大切な作業の前には、シーンの保存やバージョン管理へのコミットといった、いつものバックアップ習慣もあわせてお使いください。</p>
     </section>
 
     <!-- 動作要件（④三つの道の直前。ここで対象外だと早めに分かるように） -->
@@ -349,7 +381,10 @@
 
     <!-- ④ 三つの道（タブ） -->
     <section class="michi wrap" aria-labelledby="michi-heading">
-      <h2 id="michi-heading">三つの道</h2>
+      <!-- tabindex="-1"(第5ラウンドG-2): ヒーロー注記の「三つの道」リンクで
+           ここへ飛んだあと、フォーカスがBODYに落ちたままだった。skip-linkの
+           #main と同じ対処で、フラグメント遷移後のフォーカスをこの見出しに移す。 -->
+      <h2 id="michi-heading" tabindex="-1">三つの道</h2>
       <p class="section-lead">手に入れたら、Unityメニューの「Tools &gt; アバター改変おまもり」からウィンドウを開いてお使いいただけます。ここでは、プロジェクトへの入手方法を三つご案内します。</p>
 
       <div class="michi-tabs" role="tablist" aria-label="入手方法">
@@ -401,7 +436,7 @@
     <!-- ⑤ 棚（パッケージ一覧。Scribanループはここだけ） -->
     <section class="tana wrap" aria-labelledby="tana-heading">
       <h2 id="tana-heading">つくも堂の棚</h2>
-      <p class="section-lead">つくも堂の道具は、すべてこの棚に並んでいます。これからも少しずつ増えていく予定です。🌿</p>
+      <p class="section-lead">つくも堂の道具は、すべてこの棚に並んでいます。これからも少しずつ増えていく予定です。</p>
 
       <div class="tana-search" id="tanaSearch" hidden>
         <label for="packageSearch" class="visually-hidden">パッケージを検索</label>
@@ -423,8 +458,10 @@
                パッケージが増えた瞬間に中身が伴わない死んだ属性になっていた。
                「くわしく見る」から開くダイアログに、同じ操作のCTAをまとめて
                置く(D-9で行き止まりも解消)。 -->
+          <!-- 名前の区別(第5ラウンドE): 守り札の<summary>と同名の「くわしく見る」で
+               挙動だけが違って(こちらはモーダル起動)いたため、動作が伝わる名前にする。 -->
           <div class="tana-item-actions">
-            <button type="button" class="btn btn-ghost btn-small tana-info" data-package-id="{{ package.Name }}">くわしく見る</button>
+            <button type="button" class="btn btn-ghost btn-small tana-info" data-package-id="{{ package.Name }}" aria-label="{{ package.DisplayName }}のパッケージ情報を開く">パッケージ情報を開く</button>
             <a class="tana-zip" href="{{ package.ZipUrl }}">.zipで受け取る</a>
           </div>
         </li>
@@ -574,7 +611,7 @@
       </svg>
     </div>
     <p class="rakkan-name">つくも堂 — TSUKUMODO</p>
-    <p class="rakkan-tagline">VRChat社とは無関係の、有志による非公式ツールです。お気づきの点があれば、お気軽にXまでどうぞ。🏮</p>
+    <p class="rakkan-tagline">VRChat社とは無関係の、有志による非公式ツールです。お気づきの点があれば、お気軽にXまでどうぞ。</p>
     <ul class="rakkan-links">
       <li><a href="https://tsukumodo-lab.booth.pm/items/8132860" target="_blank" rel="noopener">BOOTH</a></li>
       <li><a href="https://x.com/tsukumodo_lab" target="_blank" rel="noopener">X (@tsukumodo_lab)</a></li>
