@@ -83,6 +83,10 @@ button, input {
 :root {
   color-scheme: light dark;
 
+  /* レイアウト寸法トークン。暖簾の切れ込み高さは .noren の被せ量(margin-bottom)と
+     .koujou の上パディング増分の両方から参照する。ここを1箇所変えれば揃って動く。 */
+  --noren-hem-h: 96px;
+
   /* ブランドカラー（固定・テーマ非依存） */
   --omamori-green: #467A56;
   --omamori-green-light: #4E8862;
@@ -287,7 +291,12 @@ section {
   padding: 3rem 0;
 }
 
-section > .wrap > h2 {
+/* section 自身が .wrap を兼ねる場合（fuda / youken / michi / tana）は
+   「section > .wrap > h2」に一致しないため、h2 が既定の 24px・
+   margin-bottom:0 のまま本文と密着していた。section 直下の h2 も
+   拾うセレクタに直す。 */
+section > h2,
+.wrap > h2 {
   font-size: 1.4rem;
   margin-bottom: 0.6rem;
 }
@@ -372,14 +381,16 @@ section > .wrap > h2 {
 .noren {
   position: relative;
   overflow: hidden;
-  /* 暖簾の切れ込み(64px)ぶんヒーローへ軽く被せることで、深い切れ込みを
-     保ちながらページ全体の縦の伸びを抑える(3-2)。z-index で暖簾を前面に
-     出し、切れ込みの隙間からヒーローの緑が覗くようにする。
-     被せる量(32px)は .koujou の上パディング(モバイル 2.5rem=40px /
-     デスクトップ 3rem=48px)より小さくし、店章・屋号や、ヒーロー側の
-     おまもり絵と衝突しないようにしている。 */
+  /* 暖簾の切れ込み(.noren-hem の高さ=96px)を丸ごとヒーローへ被せる。
+     z-index で暖簾を前面に出し、布と布の隙間からヒーローの緑が
+     覗くようにする。被せる量は切れ込みの高さと必ず一致させること
+     (--noren-hem-h で両方から参照)。ズレると、隙間の上半分に地の紙色、
+     下半分に緑が見える「二色の隙間」になる。
+     操作要素は無いので、被せた分だけクリックを奪わないよう
+     pointer-events は無効にする(旧: 実害ゼロの不可視ブロッカー)。 */
   z-index: 2;
-  margin-bottom: -32px;
+  margin-bottom: calc(-1 * var(--noren-hem-h));
+  pointer-events: none;
 }
 
 .noren-band {
@@ -427,25 +438,30 @@ section > .wrap > h2 {
 }
 
 .noren-hem {
-  /* 切れ込みが布として見えるだけの絶対高さを確保する。
-     noren.svg 側で布55%・切れ込み45%の比率にしてあるので、
-     ここでは総高さだけ決めればよい（比率は変えない）。 */
-  height: 64px;
+  /* 布そのものを4枚(モバイル3枚)のflexアイテムとして敷く。マスク画像は
+     使わない。枚数と隙間が画面幅から独立し、両端が必ず布1枚で
+     終わる(半端なタイルが出ない)。 */
+  display: flex;
+  gap: 10px;
+  height: var(--noren-hem-h);
   width: 100%;
-  background-color: var(--omamori-navy);
-  -webkit-mask-image: url('noren.svg');
-  mask-image: url('noren.svg');
-  /* mask-size を実px指定でタイル化する（3-1）。以前の 100% 100% は
-     ビューポート幅いっぱいに1枚絵を引き伸ばしていたため、幅が広い画面ほど
-     切れ込みの幅が太ってしまっていた（390px=7.8px → 1600px=32px）。
-     92px 固定タイルを repeat-x で敷き詰めることで、隙間の実寸(12px)が
-     画面幅に関わらず一定になる。 */
-  -webkit-mask-size: 92px 100%;
-  mask-size: 92px 100%;
-  -webkit-mask-repeat: repeat-x;
-  mask-repeat: repeat-x;
-  -webkit-mask-position: center;
-  mask-position: center;
+  background: none;
+}
+
+.noren-hem i {
+  flex: 1;
+  background: var(--omamori-navy);
+  /* 裾はほぼ水平に。中央だけ10px下げて「布の重み」を出す
+     （鋭いV字の切れ込みにはしない＝バンティングに見えていた原因）。 */
+  clip-path: polygon(0 0, 100% 0, 100% calc(100% - 10px), 50% 100%, 0 calc(100% - 10px));
+}
+
+@media (max-width: 520px) {
+  /* モバイルは布3枚。4枚のままだと1枚あたりの幅が狭くなりすぎ、
+     暖簾ではなく縞模様に見える。 */
+  .noren-hem i:nth-child(4) {
+    display: none;
+  }
 }
 
 /* =========================================================================
@@ -460,7 +476,9 @@ section > .wrap > h2 {
   background: var(--hero-bg);
   color: var(--hero-text);
   text-align: center;
-  padding: 3rem 0 3.5rem;
+  /* 上パディングに暖簾の被せ量(--noren-hem-h)を足し、暖簾の布と
+     ヒーローの中身(おまもり絵など)が衝突しないようにする。 */
+  padding: calc(3rem + var(--noren-hem-h)) 0 3.5rem;
   position: relative;
   overflow: hidden;
 }
@@ -552,6 +570,10 @@ section > .wrap > h2 {
   color: var(--hero-sub);
   max-width: 46ch;
   margin: 0;
+  /* .koujou-lead と同じ揃えにする。ヒーロー内の視線の流れが
+     中央(h1・チップ)→左(リード)→中央(注記)→左(URL欄)と3回
+     変わっていたのを、左揃えの2要素で揃えて整理する(D-3)。 */
+  text-align: left;
 }
 
 /* 「三つの道」への実体参照（#michi-heading）。距離が遠いため文言から
@@ -607,8 +629,11 @@ section > .wrap > h2 {
    7. 三つの道（タブ）
    ========================================================================= */
 #michi-heading {
-  font-size: 1.4rem;
-  margin-bottom: 0.6rem;
+  /* font-size / margin-bottom は「section > h2, .wrap > h2」の共通ルールで
+     揃っているので、ここではアンカー着地時の余白だけを指定する。
+     未指定だと #michi-heading へジャンプした際に見出しが画面最上端
+     (top:0)に密着する(C-2)。 */
+  scroll-margin-top: 1.5rem;
 }
 
 .michi-tabs {
@@ -741,7 +766,13 @@ section > .wrap > h2 {
 .fuda-card {
   position: relative;
   background: var(--card-bg);
-  border: 1px solid var(--border);
+  /* clip-path が左右の縦辺に1点でしか接しないため、border は
+     ほぼ全長がクリップされて描画されない(ダークで札vs地が1.12:1)。
+     drop-shadow を4方向に重ねて、クリップ後のシルエットそのものに
+     輪郭を与える(D-1)。 */
+  border: 0;
+  filter: drop-shadow(1px 0 0 var(--border)) drop-shadow(-1px 0 0 var(--border))
+          drop-shadow(0 1px 0 var(--border)) drop-shadow(0 -1px 0 var(--border));
   clip-path: polygon(6% 0%, 94% 0%, 100% calc(100% - 30px), 50% 100%, 0% calc(100% - 30px));
   padding: 1.4rem 1.3rem calc(30px + 0.8rem);
   display: flex;
@@ -1183,13 +1214,16 @@ dialog:focus-visible {
     padding: 2.25rem 0;
   }
   .koujou {
-    padding: 2.5rem 0 2.75rem;
+    padding: calc(2.5rem + var(--noren-hem-h)) 0 2.75rem;
   }
   .koujou-title {
     font-size: 1.4rem;
   }
   .koujou-lead {
     font-size: 0.92rem;
+    text-align: center;
+  }
+  .koujou-cta-note {
     text-align: center;
   }
   .koujou-url-row {
