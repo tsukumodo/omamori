@@ -7,7 +7,7 @@
 //
 // Fluent UI 撤去後にこのファイルが持つ責務は次の7つだけ（INTEGRATION_SPEC.md §4）:
 //   1. LISTING_URL / PACKAGES の受け取り（Scriban）
-//   2. VCC追加ボタン（ヒーロー + 三つの道のVCCタブ + パッケージ詳細ダイアログ。
+//   2. VCC追加ボタン（ヒーロー + 二つの道のVCCタブ + パッケージ詳細ダイアログ。
 //      VCCへの追加はリスティング単位の操作でパッケージ単位には出来ないため、
 //      棚の各行には個別の追加ボタンを置かない。D-6）
 //   3. URLコピー
@@ -104,7 +104,7 @@ function copyListingUrl(input, button) {
 }
 
 function initCopyButtons() {
-  // ヒーローの生URL欄は廃止した（D-14）。「三つの道」のURLタブにのみ残す。
+  // ヒーローの生URL欄は廃止した（D-14）。「二つの道」のURLタブにのみ残す。
   const wirings = [
     ['listingUrlPanel', 'copyListingUrlPanel'],
   ];
@@ -116,7 +116,7 @@ function initCopyButtons() {
   });
 }
 
-// ─── 3. タブ（三つの道） ─────────────────────────────────────────────
+// ─── 3. タブ（二つの道。タブ数はDOMから数えるので2つでもそのまま回る） ─
 function initTabs() {
   const tablist = document.querySelector('.michi-tabs');
   if (!tablist) return;

@@ -16,28 +16,17 @@
       },
       "License": "MIT",
       "LicensesUrl": "https://github.com/tsukumodo/omamori/blob/main/LICENSE",
-      "Keywords": ["vrchat", "avatar", "validation", "modular-avatar"],
+      "Keywords": [
+        "vrchat",
+        "avatar",
+        "validation",
+        "modular-avatar"
+      ],
       "Dependencies": [
-        { "Name": "com.vrchat.avatars", "Version": ">=3.7.0" }
-      ]
-    },
-    {
-      "Name": "com.tsukumodo.dummy-second-tool",
-      "DisplayName": "ダミー道具二号（棚レイアウト検証用）",
-      "Description": "ツールが2つ以上に増えたときの棚（一覧）レイアウト崩れを確認するための仮パッケージです",
-      "Version": "0.1.0",
-      "Type": "Package",
-      "ZipUrl": "https://tsukumodo.github.io/omamori/com.tsukumodo.dummy-second-tool-0.1.0.zip",
-      "Author": {
-        "Name": "tsukumodo",
-        "Url": "https://github.com/tsukumodo"
-      },
-      "License": "MIT",
-      "LicensesUrl": "https://github.com/tsukumodo/omamori/blob/main/LICENSE",
-      "Keywords": ["vrchat", "utility", "dummy"],
-      "Dependencies": [
-        { "Name": "com.vrchat.avatars", "Version": ">=3.7.0" },
-        { "Name": "com.tsukumodo.avatar-omamori", "Version": ">=0.9.0" }
+        {
+          "Name": "com.vrchat.avatars",
+          "Version": ">=3.7.0"
+        }
       ]
     }
   ]

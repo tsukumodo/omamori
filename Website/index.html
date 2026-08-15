@@ -163,10 +163,13 @@
 
         <div class="koujou-cta">
           <button type="button" id="addToVcc" class="btn btn-primary">おまもりを授かる</button>
-          <!-- 生のリスティングURL欄はここに置かない(D-14)。店先に生JSONのURLを
-               並べるのは最も不向きで、しかも「三つの道」のURLタブに全く同じ
+          <!-- 生のリスティングURL欄はここに置かない(D-14)。生JSONのURLを
+               目立たせるのは最も不向きで、しかも「二つの道」のURLタブに全く同じ
                入力欄がすでにある(重複)。手動登録が必要な方はそちらへ。 -->
-          <p class="koujou-cta-note">VCC(VRChat Creator Companion)でこのリスティングを開き、プロジェクトに追加します。導入済みでない方は、<a href="#michi-heading">「三つの道」</a>から他の方法もお選びいただけます。</p>
+          <!-- 第7ラウンドC: 旧文言「導入済みでない方は…他の方法も」は
+               「これから手に取る人」前提だった。読者はすでに入手済みなので、
+               ボタンが働かないときの逃げ道(URL手動登録)への案内に改める。 -->
+          <p class="koujou-cta-note">VCC(VRChat Creator Companion)でこのリスティングを開き、プロジェクトに追加します。ボタンがうまく働かないときは、<a href="#michi-heading">「二つの道」</a>の手動登録をお使いください。</p>
         </div>
 
         <!-- ヒーロー圧縮(C-2): CTAより上にあると主導線(ボタン)が
@@ -398,7 +401,7 @@
       <p class="fuda-backup-note">おまもりの自動修正は、シーンやアセットを直接書き換えます。ほとんどの操作はUndo(Ctrl+Z)で元に戻せます(「消えたスクリプト」の修正だけは、Unityの仕様上戻せません)。大切な作業の前には、シーンの保存やバージョン管理へのコミットといった、いつものバックアップ習慣もあわせてお使いください。</p>
     </section>
 
-    <!-- 動作要件（④三つの道の直前。ここで対象外だと早めに分かるように） -->
+    <!-- 動作要件（④二つの道の直前。追加へ進む前に環境の確認ができるように） -->
     <section class="youken wrap" aria-labelledby="youken-heading">
       <h2 id="youken-heading">動作環境</h2>
       <ul>
@@ -408,18 +411,22 @@
       </ul>
     </section>
 
-    <!-- ④ 三つの道（タブ） -->
+    <!-- ④ 二つの道（タブ）
+         第7ラウンドA: 「BOOTHから入手」のタブとパネルを削除した。このページは
+         BOOTHで入手した人が同梱PDFのリンクから来る前提（オーナー訂正）で、
+         BOOTHから来た読者をBOOTHへ送り返す循環動線になっていたため。
+         これに伴い「三つの道」は「二つの道」へ改名（id=michi-heading は
+         ヒーロー注記のアンカーが参照しているので変えない）。 -->
     <section class="michi wrap" aria-labelledby="michi-heading">
-      <!-- tabindex="-1"(第5ラウンドG-2): ヒーロー注記の「三つの道」リンクで
+      <!-- tabindex="-1"(第5ラウンドG-2): ヒーロー注記の「二つの道」リンクで
            ここへ飛んだあと、フォーカスがBODYに落ちたままだった。skip-linkの
            #main と同じ対処で、フラグメント遷移後のフォーカスをこの見出しに移す。 -->
-      <h2 id="michi-heading" tabindex="-1">三つの道</h2>
-      <p class="section-lead">手に入れたら、Unityメニューの「Tools &gt; アバター改変おまもり」からウィンドウを開いてお使いいただけます。ここでは、プロジェクトへの入手方法を三つご案内します。</p>
+      <h2 id="michi-heading" tabindex="-1">二つの道</h2>
+      <p class="section-lead">お手元のおまもりをプロジェクトへ迎え入れる方法を、二つご案内します。追加が済んだら、Unityメニューの「Tools &gt; アバター改変おまもり」からウィンドウを開いてお使いいただけます。</p>
 
-      <div class="michi-tabs" role="tablist" aria-label="入手方法">
+      <div class="michi-tabs" role="tablist" aria-label="プロジェクトへの追加方法">
         <button type="button" class="michi-tab" role="tab" id="tab-vcc" aria-selected="true" aria-controls="panel-vcc" tabindex="0">VCCで追加</button>
         <button type="button" class="michi-tab" role="tab" id="tab-vpm-url" aria-selected="false" aria-controls="panel-vpm-url" tabindex="-1">URLで手動登録</button>
-        <button type="button" class="michi-tab" role="tab" id="tab-booth" aria-selected="false" aria-controls="panel-booth" tabindex="-1">BOOTHから入手</button>
       </div>
 
       <!-- パネル内に操作要素があるため tabindex は付けない（APG Tabs パターン。1-7） -->
@@ -450,22 +457,20 @@
         </div>
         <p class="michi-note">URLは上のコピー ボタンから控えられます。VCCの反応がない場合は再起動をお試しください。</p>
       </div>
-
-      <div class="michi-panel" role="tabpanel" id="panel-booth" aria-labelledby="tab-booth" hidden>
-        <p class="michi-panel-summary">VCCを使わず、BOOTHから直接ダウンロードしてUnityに取り込む道です。</p>
-        <ol class="michi-steps">
-          <li><a class="michi-inline-link" href="https://tsukumodo-lab.booth.pm/items/8132860" target="_blank" rel="noopener">BOOTH商品ページ(tsukumodo-lab.booth.pm)を開く</a></li>
-          <li>配布ファイルをダウンロード</li>
-          <li>商品ページの案内にしたがってUnityプロジェクトに取り込む</li>
-        </ol>
-        <p class="michi-note">この道はVCCの自動アップデート対象外です。新しいバージョンが出たときは、同じ手順で取り直してください。</p>
-      </div>
     </section>
 
-    <!-- ⑤ 棚（パッケージ一覧。Scribanループはここだけ） -->
+    <!-- ⑤ パッケージ情報（Scribanループはここだけ）
+         第7ラウンドB: このページは「アバター改変おまもり」1つのための導入ページで、
+         他の商品をここに載せない(オーナー指示。BOOTH同梱PDFからだけ来られる
+         想定のため)。「棚に少しずつ増える」前提の見出し・リードを改めた。
+         下の for package in packages ループ自体はテンプレート契約
+         (DESIGN_SPEC.md §2)なので残す。文言だけの変更。
+         ※このコメントに波括弧のタグ表記を書いてはいけない——Scriban(と
+         プレビューの簡易エンジン)はHTMLコメント内でもタグを解釈するため、
+         実際にループが開いてしまう。 -->
     <section class="tana wrap" aria-labelledby="tana-heading">
-      <h2 id="tana-heading">つくも堂の棚</h2>
-      <p class="section-lead">つくも堂の道具は、すべてこの棚に並んでいます。これからも少しずつ増えていく予定です。</p>
+      <h2 id="tana-heading">お渡しするパッケージ</h2>
+      <p class="section-lead">このリスティングでお渡しするのは、「アバター改変おまもり」ひとつです。</p>
 
       <div class="tana-search" id="tanaSearch" hidden>
         <label for="packageSearch" class="visually-hidden">パッケージを検索</label>
@@ -640,7 +645,12 @@
       </svg>
     </div>
     <p class="rakkan-name">つくも堂 — TSUKUMODO</p>
-    <p class="rakkan-tagline">VRChat社とは無関係の、有志による非公式ツールです。お気づきの点があれば、お気軽にXまでどうぞ。🏮</p>
+    <!-- 第7ラウンドD-A: 🏮が測定した9幅すべてで単独行に落ち、赤橙の点が
+         1個浮いていた。直前の語句と white-space:nowrap で括り、灯籠が
+         必ず文と同じ行にぶら下がるようにする(絵文字→SVG置換はしない。
+         6巡目で「ページ全体で絵文字は🔍🍀🏮の3個」と決めた構成を崩し、
+         🍀だけラスタ字形で残る中途半端が生まれるため)。 -->
+    <p class="rakkan-tagline">VRChat社とは無関係の、有志による非公式ツールです。お気づきの点があれば、お気軽に<span class="no-orphan">Xまでどうぞ。🏮</span></p>
     <ul class="rakkan-links">
       <li><a href="https://tsukumodo-lab.booth.pm/items/8132860" target="_blank" rel="noopener">BOOTH</a></li>
       <li><a href="https://x.com/tsukumodo_lab" target="_blank" rel="noopener">X (@tsukumodo_lab)</a></li>
