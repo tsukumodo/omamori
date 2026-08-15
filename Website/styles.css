@@ -368,7 +368,7 @@ section > .wrap > h2 {
 .noren-band {
   background: var(--omamori-navy);
   position: relative;
-  padding: 1.6rem 1.5rem 2.2rem;
+  padding: 1.6rem 1.5rem 2.6rem;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -410,7 +410,10 @@ section > .wrap > h2 {
 }
 
 .noren-hem {
-  height: 18px;
+  /* 切れ込みが布として見えるだけの絶対高さを確保する。
+     noren.svg 側で布55%・切れ込み45%の比率にしてあるので、
+     ここでは総高さだけ決めればよい（比率は変えない）。 */
+  height: 64px;
   width: 100%;
   background-color: var(--omamori-navy);
   -webkit-mask-image: url('noren.svg');

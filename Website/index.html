@@ -155,69 +155,9 @@
       </div>
     </section>
 
-    <!-- 動作要件（③三つの道の直前。ここで対象外だと早めに分かるように） -->
-    <section class="youken wrap" aria-labelledby="youken-heading">
-      <h2 id="youken-heading">動作環境</h2>
-      <ul>
-        <li>Unity 2022.3 以降</li>
-        <li>VRChat SDK - Avatars 3.7.0 以降(パフォーマンス表示のConstraint項目が、SDK 3.7.0で追加された値を使うため)</li>
-        <li>Modular Avatar(任意 — 未インストールの場合はMA関連のチェックのみスキップされます)</li>
-      </ul>
-    </section>
-
-    <!-- ③ 三つの道（タブ） -->
-    <section class="michi wrap" aria-labelledby="michi-heading">
-      <h2 id="michi-heading">三つの道</h2>
-      <p class="section-lead">手に入れたら、Unityメニューの「Tools &gt; アバター改変おまもり」からウィンドウを開いてお使いいただけます。ここでは、プロジェクトへの入手方法を三つご案内します。</p>
-
-      <div class="michi-tabs" role="tablist" aria-label="入手方法">
-        <button type="button" class="michi-tab" role="tab" id="tab-vcc" aria-selected="true" aria-controls="panel-vcc" tabindex="0">VCCで追加</button>
-        <button type="button" class="michi-tab" role="tab" id="tab-vpm-url" aria-selected="false" aria-controls="panel-vpm-url" tabindex="-1">URLで手動登録</button>
-        <button type="button" class="michi-tab" role="tab" id="tab-booth" aria-selected="false" aria-controls="panel-booth" tabindex="-1">BOOTHから入手</button>
-      </div>
-
-      <div class="michi-panel" role="tabpanel" id="panel-vcc" aria-labelledby="tab-vcc" tabindex="0">
-        <p class="michi-panel-summary">ワンクリックでVCCにリスティングを登録する、一番早い道です。</p>
-        <div class="michi-panel-action">
-          <button type="button" class="btn btn-primary btn-small vcc-trigger">おまもりを授かる</button>
-        </div>
-        <ol class="michi-steps">
-          <li>上の「おまもりを授かる」ボタンを押す</li>
-          <li>VCCが開いたら「Add」→「I Understand」の順にクリック</li>
-          <li>プロジェクトを開いて「アバター改変おまもり」を追加</li>
-        </ol>
-        <p class="michi-note">VCCがまだ手元にない場合は、先にVRChat公式のVCCを導入してからお試しください。</p>
-      </div>
-
-      <div class="michi-panel" role="tabpanel" id="panel-vpm-url" aria-labelledby="tab-vpm-url" tabindex="0" hidden>
-        <p class="michi-panel-summary">VCCの「Add Repository」にリスティングURLを直接貼り付けて登録する道です。</p>
-        <ol class="michi-steps">
-          <li>VCCを開いて Settings → 「Packages」タブへ</li>
-          <li>「Add Repository」をクリックし、リスティングURLを貼り付け</li>
-          <li>「Add」→「I Understand」をクリックしてプロジェクトに追加</li>
-        </ol>
-        <div class="michi-url-row">
-          <label for="listingUrlPanel" class="visually-hidden">VPMリスティングURL</label>
-          <input type="text" readonly id="listingUrlPanel" value="{{ listingInfo.Url }}">
-          <button type="button" id="copyListingUrlPanel" class="btn btn-ghost btn-small">コピー</button>
-        </div>
-        <p class="michi-note">URLは上のコピー ボタンから控えられます。VCCの反応がない場合は再起動をお試しください。</p>
-      </div>
-
-      <div class="michi-panel" role="tabpanel" id="panel-booth" aria-labelledby="tab-booth" tabindex="0" hidden>
-        <p class="michi-panel-summary">VCCを使わず、BOOTHから直接ダウンロードしてUnityに取り込む道です。</p>
-        <ol class="michi-steps">
-          <li><a class="michi-inline-link" href="https://tsukumodo-lab.booth.pm/items/8132860" target="_blank" rel="noopener">BOOTH商品ページ(tsukumodo-lab.booth.pm)を開く</a></li>
-          <li>配布ファイルをダウンロード</li>
-          <li>商品ページの案内にしたがってUnityプロジェクトに取り込む</li>
-        </ol>
-        <p class="michi-note">この道はVCCの自動アップデート対象外です。新しいバージョンが出たときは、同じ手順で取り直してください。</p>
-      </div>
-    </section>
-
     <hr class="sumi-rule">
 
-    <!-- ④ 守り札グリッド -->
+    <!-- ③ 守り札グリッド -->
     <section class="fuda wrap" aria-labelledby="fuda-heading">
       <h2 id="fuda-heading">おまもりが見ているもの</h2>
       <p class="section-lead">チェックを実行すると、下記の項目を一つずつ確かめていきます。🔍 見つかった問題はオブジェクトを選んで直接確認でき、直せるものはボタン一つで直せます。</p>
@@ -332,6 +272,66 @@
     </section>
 
     <hr class="sumi-rule">
+
+    <!-- 動作要件（④三つの道の直前。ここで対象外だと早めに分かるように） -->
+    <section class="youken wrap" aria-labelledby="youken-heading">
+      <h2 id="youken-heading">動作環境</h2>
+      <ul>
+        <li>Unity 2022.3 以降</li>
+        <li>VRChat SDK - Avatars 3.7.0 以降(パフォーマンス表示のConstraint項目が、SDK 3.7.0で追加された値を使うため)</li>
+        <li>Modular Avatar(任意 — 未インストールの場合はMA関連のチェックのみスキップされます)</li>
+      </ul>
+    </section>
+
+    <!-- ④ 三つの道（タブ） -->
+    <section class="michi wrap" aria-labelledby="michi-heading">
+      <h2 id="michi-heading">三つの道</h2>
+      <p class="section-lead">手に入れたら、Unityメニューの「Tools &gt; アバター改変おまもり」からウィンドウを開いてお使いいただけます。ここでは、プロジェクトへの入手方法を三つご案内します。</p>
+
+      <div class="michi-tabs" role="tablist" aria-label="入手方法">
+        <button type="button" class="michi-tab" role="tab" id="tab-vcc" aria-selected="true" aria-controls="panel-vcc" tabindex="0">VCCで追加</button>
+        <button type="button" class="michi-tab" role="tab" id="tab-vpm-url" aria-selected="false" aria-controls="panel-vpm-url" tabindex="-1">URLで手動登録</button>
+        <button type="button" class="michi-tab" role="tab" id="tab-booth" aria-selected="false" aria-controls="panel-booth" tabindex="-1">BOOTHから入手</button>
+      </div>
+
+      <div class="michi-panel" role="tabpanel" id="panel-vcc" aria-labelledby="tab-vcc" tabindex="0">
+        <p class="michi-panel-summary">ワンクリックでVCCにリスティングを登録する、一番早い道です。</p>
+        <div class="michi-panel-action">
+          <button type="button" class="btn btn-primary btn-small vcc-trigger">おまもりを授かる</button>
+        </div>
+        <ol class="michi-steps">
+          <li>上の「おまもりを授かる」ボタンを押す</li>
+          <li>VCCが開いたら「Add」→「I Understand」の順にクリック</li>
+          <li>プロジェクトを開いて「アバター改変おまもり」を追加</li>
+        </ol>
+        <p class="michi-note">VCCがまだ手元にない場合は、先にVRChat公式のVCCを導入してからお試しください。</p>
+      </div>
+
+      <div class="michi-panel" role="tabpanel" id="panel-vpm-url" aria-labelledby="tab-vpm-url" tabindex="0" hidden>
+        <p class="michi-panel-summary">VCCの「Add Repository」にリスティングURLを直接貼り付けて登録する道です。</p>
+        <ol class="michi-steps">
+          <li>VCCを開いて Settings → 「Packages」タブへ</li>
+          <li>「Add Repository」をクリックし、リスティングURLを貼り付け</li>
+          <li>「Add」→「I Understand」をクリックしてプロジェクトに追加</li>
+        </ol>
+        <div class="michi-url-row">
+          <label for="listingUrlPanel" class="visually-hidden">VPMリスティングURL</label>
+          <input type="text" readonly id="listingUrlPanel" value="{{ listingInfo.Url }}">
+          <button type="button" id="copyListingUrlPanel" class="btn btn-ghost btn-small">コピー</button>
+        </div>
+        <p class="michi-note">URLは上のコピー ボタンから控えられます。VCCの反応がない場合は再起動をお試しください。</p>
+      </div>
+
+      <div class="michi-panel" role="tabpanel" id="panel-booth" aria-labelledby="tab-booth" tabindex="0" hidden>
+        <p class="michi-panel-summary">VCCを使わず、BOOTHから直接ダウンロードしてUnityに取り込む道です。</p>
+        <ol class="michi-steps">
+          <li><a class="michi-inline-link" href="https://tsukumodo-lab.booth.pm/items/8132860" target="_blank" rel="noopener">BOOTH商品ページ(tsukumodo-lab.booth.pm)を開く</a></li>
+          <li>配布ファイルをダウンロード</li>
+          <li>商品ページの案内にしたがってUnityプロジェクトに取り込む</li>
+        </ol>
+        <p class="michi-note">この道はVCCの自動アップデート対象外です。新しいバージョンが出たときは、同じ手順で取り直してください。</p>
+      </div>
+    </section>
 
     <!-- ⑤ 棚（パッケージ一覧。Scribanループはここだけ） -->
     <section class="tana wrap" aria-labelledby="tana-heading">
