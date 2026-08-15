@@ -388,11 +388,12 @@ section > h2,
 .noren {
   position: relative;
   overflow: hidden;
-  /* 暖簾の切れ込み(.noren-hem の高さ=96px)を丸ごとヒーローへ被せる。
-     z-index で暖簾を前面に出し、布と布の隙間からヒーローの緑が
-     覗くようにする。被せる量は切れ込みの高さと必ず一致させること
-     (--noren-hem-h で両方から参照)。ズレると、隙間の上半分に地の紙色、
-     下半分に緑が見える「二色の隙間」になる。
+  /* 暖簾の切れ込み(.noren-hem の高さ=96px)を丸ごとヒーローへ被せ、
+     ヒーロー側の上パディング(.koujou 側で同じ --noren-hem-h を加算)と
+     打ち消し合わせることで、暖簾の下にヒーローの中身がそのまま続く
+     見た目にする。.noren-hem は不透明な自前の地(布の隙間・裾から
+     覗く色)を持つので、この被せはヒーローの色を透かして見せるためではなく、
+     単に縦方向の余白を詰めるためのもの。z-index で暖簾を前面に出す。
      操作要素は無いので、被せた分だけクリックを奪わないよう
      pointer-events は無効にする(旧: 実害ゼロの不可視ブロッカー)。 */
   z-index: 2;
@@ -447,12 +448,18 @@ section > h2,
 .noren-hem {
   /* 布そのものを4枚(モバイル3枚)のflexアイテムとして敷く。マスク画像は
      使わない。枚数と隙間が画面幅から独立し、両端が必ず布1枚で
-     終わる(半端なタイルが出ない)。 */
+     終わる(半端なタイルが出ない)。
+     地(布と布の隙間・裾の切れ込みから覗く色)は、.noren-hem 自身に
+     持たせる。以前は透過にしてヒーロー(.koujou)の背景を透かして
+     見せていたが、その色が変わるたびに「布に見えるか」が変わって
+     しまう不安定な結合だった(紺ヒーロー化で隙間が生成りの帯に
+     化けて暖簾が壊れた回帰の原因)。地の色をここで自己完結させ、
+     ヒーロー側が何色でも暖簾の見え方が変わらないようにする。 */
   display: flex;
   gap: 10px;
   height: var(--noren-hem-h);
   width: 100%;
-  background: none;
+  background: color-mix(in srgb, var(--omamori-navy) 72%, black);
 }
 
 .noren-hem i {
@@ -461,6 +468,14 @@ section > h2,
   /* 裾はほぼ水平に。中央だけ10px下げて「布の重み」を出す
      （鋭いV字の切れ込みにはしない＝バンティングに見えていた原因）。 */
   clip-path: polygon(0 0, 100% 0, 100% calc(100% - 10px), 50% 100%, 0 calc(100% - 10px));
+  /* 布と地が同じ紺系統だと、切れ込み(clip-pathの裾の波)が沈んで
+     見えなくなる。金茶の細い縁取りをclip-path後のシルエットそのものに
+     drop-shadowで与え(§8 .fuda-cardと同じ手法)、地の色に関わらず
+     「1枚1枚の布の輪郭」が見えるようにする。両隣の布と接する左右の
+     縁にも入るため、布が4枚(モバイルは3枚)に分かれていることも
+     縫い目のように読める。 */
+  filter: drop-shadow(0 1px 0 var(--omamori-gold)) drop-shadow(0 -1px 0 var(--omamori-gold))
+          drop-shadow(1px 0 0 var(--omamori-gold)) drop-shadow(-1px 0 0 var(--omamori-gold));
 }
 
 @media (max-width: 520px) {
@@ -481,17 +496,13 @@ section > h2,
      テーマ非依存の固定色になったため、ライト/ダークで値は共通）。 */
   --focus-ring: var(--omamori-cream);
   /* 配色体系の見直し: ヒーロー全面を緑で塗るのをやめ、店の紺(--hero-bg)を
-     地にする。ただし暖簾の切れ込み(.noren-hem の隙間)から素通しで
-     この背景が見えるため、切れ込みの高さぶんだけ生成りの帯を重ね、
-     「紺の暖簾の向こうに、明るい店内が覗く」という見え方を保つ
-     (紺のみだと帯と地が同色になり、切れ込みが見えなくなってしまう)。 */
-  background: linear-gradient(
-    to bottom,
-    var(--omamori-cream) 0,
-    var(--omamori-cream) var(--noren-hem-h),
-    var(--hero-bg) var(--noren-hem-h),
-    var(--hero-bg) 100%
-  );
+     地にする。暖簾の切れ込み(.noren-hem の隙間)の地色は .noren-hem 自身が
+     持つため(上記参照)、ここは単純な紺一色でよい。以前はここに生成りの
+     帯を重ねて隙間から覗かせていたが、地紺と全く同じ紺のヒーローの
+     組み合わせで「生成りの横帯が中央へ垂れ下がり、そこから細い縦棒が
+     3本伸びる」という描画バグにしか見えない状態になっていた
+     (暖簾ではなく布の裾に見えることを最優先する)。 */
+  background: var(--hero-bg);
   color: var(--hero-text);
   text-align: center;
   /* 上パディングに暖簾の被せ量(--noren-hem-h)を足し、暖簾の布と
@@ -783,10 +794,13 @@ section > h2,
   position: relative;
   background: var(--card-bg);
   /* おまもりの形（本体シルエット）から導いたクリップ。ブランド資材
-     (omamori-thumbnail.png)の「上辺は水平、左右はほぼ垂直に下り、
-     下半分でゆるやかに内側へカーブして底の中央でやわらかく尖る」
-     という輪郭を、11点のpolygonで近似する。紐・内枠・盾+チェック・
-     文字は情報カードには不要なので持ち込まず、シルエットだけを共有する。
+     (omamori-thumbnail.png)を実測(1440px版をピクセル走査)して得た輪郭を
+     11点のpolygonで近似する。カードは横長で縦横比まで一致させる必要は
+     ないため、実測の絶対比率ではなく「上辺はほぼ全幅(角の丸みはごく
+     わずか＝ほぼ直角)・側辺は長く垂直に近い・裾でやわらかく尖る」という
+     シルエットの特徴だけを、本体の中心(50%)からの距離を実測と同じ比率
+     (×1.095)でスケールして引き継ぐ。紐・内枠・盾+チェック・文字は
+     情報カードには不要なので持ち込まず、シルエットだけを共有する。
      カードは本文62〜228字で高さが大きく変わる可変高カードなので、
      先端の「やわらかい尖り」は %ではなく固定px(--fuda-tip-h)の帯に
      収める。こうすると背の低い札でも高い札でも、尖り方の見た目が
@@ -801,16 +815,16 @@ section > h2,
   filter: drop-shadow(1px 0 0 var(--border)) drop-shadow(-1px 0 0 var(--border))
           drop-shadow(0 1px 0 var(--border)) drop-shadow(0 -1px 0 var(--border));
   clip-path: polygon(
-    8% 0%, 92% 0%,
-    94% calc(100% - var(--fuda-tip-h)),
-    89% calc(100% - var(--fuda-tip-h) * 0.625),
-    78% calc(100% - var(--fuda-tip-h) * 0.3125),
-    63% calc(100% - var(--fuda-tip-h) * 0.125),
+    4% 0%, 96% 0%,
+    98.2% calc(100% - var(--fuda-tip-h)),
+    92.7% calc(100% - var(--fuda-tip-h) * 0.625),
+    80.7% calc(100% - var(--fuda-tip-h) * 0.3125),
+    64.2% calc(100% - var(--fuda-tip-h) * 0.125),
     50% 100%,
-    37% calc(100% - var(--fuda-tip-h) * 0.125),
-    22% calc(100% - var(--fuda-tip-h) * 0.3125),
-    11% calc(100% - var(--fuda-tip-h) * 0.625),
-    6% calc(100% - var(--fuda-tip-h))
+    35.8% calc(100% - var(--fuda-tip-h) * 0.125),
+    19.3% calc(100% - var(--fuda-tip-h) * 0.3125),
+    7.3% calc(100% - var(--fuda-tip-h) * 0.625),
+    1.8% calc(100% - var(--fuda-tip-h))
   );
   padding: 1.4rem 1.3rem calc(var(--fuda-tip-h) + 0.8rem);
   display: flex;

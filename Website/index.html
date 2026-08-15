@@ -82,10 +82,19 @@
       <div class="asanoha koujou-pattern" aria-hidden="true"></div>
       <div class="wrap">
         <div class="koujou-charm" aria-hidden="true">
-          <!-- おまもりの形は Website/omamori-thumbnail.png（ブランド資材の正）に
-               忠実な線画で作り直した。輪郭線(生成り)+抹茶の地(=商品の色)、
-               上辺は水平、左右はほぼ垂直に下って下半分でゆるやかに内側へ
-               カーブし、底の中央でやわらかく尖る「縦長のU字」。
+          <!-- おまもりの形は Website/omamori-thumbnail.png（ブランド資材の正）を
+               実測して作り直した(前回作は本物より幅広・寸胴だったための再修正)。
+               本体の輪郭を1440px版のPNGをピクセル走査して計測した結果:
+                 - 幅:高さ ≈ 1:1.74(実測 325:565px)
+                 - 上角の丸みは半径にして幅の約1.5%(ほぼ直角)
+                 - 側辺は高さの約77.7%まで垂直に近いまま下り、残り約22%で
+                   底の中央へ弧を描いて収束する
+                 - 盾は本体の23.7%〜58.6%の高さ(=本体高さの34.9%分)、
+                   幅は本体幅の40.9%、左右中央
+                 - 紐のアーチは本体幅の33.2%、アーチの高さは本体高さの
+                   12.2%、アーチ上の直線は本体高さの約7.6%
+               これらの比率をそのまま viewBox 100×214 の座標に落とし込んだ
+               (幅100は前版から変えていないので線幅などは相似のまま流用できる)。
                紐は上辺中央から半円のアーチ+細い縦線+留め具の丸。
                内枠は本体の輪郭を少し内側に縮小した同じ形の線。
                中央は盾+チェック、下部に「改変安全」(字間広め)。
@@ -94,22 +103,22 @@
                ブランド資材の正(このthumbnail)が盾+チェックである以上、
                ヒーローの主役画像はそちらに合わせるのが資材との一致を
                最優先する判断として妥当なため。 -->
-          <svg class="koujou-charm-shape" viewBox="0 0 100 148" xmlns="http://www.w3.org/2000/svg">
+          <svg class="koujou-charm-shape" viewBox="0 0 100 214" xmlns="http://www.w3.org/2000/svg">
             <defs>
               <path id="charm-body" d="
-                M14,34 L86,34 Q90,34 90,38
-                L89,92 C88,111 79,126 65,134 Q57,139 50,141
-                Q43,139 35,134 C21,126 12,111 11,92
-                L10,38 Q10,34 14,34 Z"/>
+                M1.5,40 L98.5,40 Q100,40 100,41.5
+                L100,175.1 C97.5,190.2 86.25,202.1 68.75,208.5 Q58.75,212.4 50,214
+                Q41.25,212.4 31.25,208.5 C13.75,202.1 2.5,190.2 0,175.1
+                L0,41.5 Q0,40 1.5,40 Z"/>
             </defs>
             <use href="#charm-body" fill="var(--hero-charm-fill)" stroke="var(--omamori-cream)" stroke-width="2.2" stroke-linejoin="round"/>
-            <use href="#charm-body" transform="translate(50,85) scale(0.87) translate(-50,-85)" fill="none" stroke="var(--omamori-cream)" stroke-width="1" opacity="0.55"/>
-            <path d="M40,34 Q40,14 50,14 Q60,14 60,34" fill="none" stroke="var(--omamori-cream)" stroke-width="2.2" stroke-linecap="round"/>
-            <line x1="50" y1="14" x2="50" y2="4" stroke="var(--omamori-cream)" stroke-width="2.2" stroke-linecap="round"/>
-            <circle cx="50" cy="3" r="2.6" fill="var(--omamori-cream)"/>
-            <path d="M50,66 L61,70 L61,86 Q61,98 50,105 Q39,98 39,86 L39,70 Z" fill="none" stroke="var(--omamori-cream)" stroke-width="2"/>
-            <path d="M43,86 L48,92 L59,76" fill="none" stroke="var(--omamori-cream)" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/>
-            <text x="50" y="115" text-anchor="middle" font-family="'Zen Maru Gothic','Noto Sans JP',sans-serif" font-size="8.5" font-weight="700" letter-spacing="1.5" fill="var(--omamori-cream)">改変安全</text>
+            <use href="#charm-body" transform="translate(50,127) scale(0.87) translate(-50,-127)" fill="none" stroke="var(--omamori-cream)" stroke-width="1" opacity="0.55"/>
+            <path d="M33.4,40 Q33.4,18.8 50,18.8 Q66.6,18.8 66.6,40" fill="none" stroke="var(--omamori-cream)" stroke-width="2.2" stroke-linecap="round"/>
+            <line x1="50" y1="18.8" x2="50" y2="6.2" stroke="var(--omamori-cream)" stroke-width="2.2" stroke-linecap="round"/>
+            <circle cx="50" cy="3.3" r="2.9" fill="var(--omamori-cream)"/>
+            <path d="M50,81.2 L70.45,87.46 L70.45,112.39 Q70.45,131.12 50,142 Q29.55,131.12 29.55,112.39 L29.55,87.46 Z" fill="none" stroke="var(--omamori-cream)" stroke-width="2"/>
+            <path d="M37,112.4 L46.28,121.75 L66.73,96.77" fill="none" stroke="var(--omamori-cream)" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/>
+            <text x="50" y="172" text-anchor="middle" font-family="'Zen Maru Gothic','Noto Sans JP',sans-serif" font-size="8.5" font-weight="700" letter-spacing="1.5" fill="var(--omamori-cream)">改変安全</text>
           </svg>
         </div>
 
