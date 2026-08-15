@@ -927,6 +927,13 @@ section > h2,
   gap: 0.5rem;
 }
 
+/* 作者スタイルの display: flex はオリジンの優先順位で
+   UA既定の [hidden]{display:none} に勝ってしまうため、
+   [hidden] 状態を明示的に上書きする（検索フィルタで必須）。 */
+.tana-item[hidden] {
+  display: none;
+}
+
 .tana-item-name {
   font-size: 1.15rem;
   font-weight: 700;
