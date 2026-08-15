@@ -5,16 +5,17 @@
 // ビルド時に package-list-action が実データへ置き換える。書式を変えたり
 // 削除したりしないこと。
 //
-// Fluent UI 撤去後にこのファイルが持つ責務は次の7つだけ（INTEGRATION_SPEC.md §4）:
+// Fluent UI 撤去後にこのファイルが持つ責務は次の6つだけ（INTEGRATION_SPEC.md §4。
+// 「二つの道」のタブUIは第8ラウンドAで廃止し、両方の道を常時表示にしたため
+// タブ制御の責務は無くなった）:
 //   1. LISTING_URL / PACKAGES の受け取り（Scriban）
-//   2. VCC追加ボタン（ヒーロー + 二つの道のVCCタブ + パッケージ詳細ダイアログ。
+//   2. VCC追加ボタン（ヒーロー + 二つの道のVCC欄 + パッケージ詳細ダイアログ。
 //      VCCへの追加はリスティング単位の操作でパッケージ単位には出来ないため、
 //      棚の各行には個別の追加ボタンを置かない。D-6）
 //   3. URLコピー
-//   4. タブ（矢印キー対応）
-//   5. パッケージ詳細 <dialog> の開閉と内容差し込み
-//   6. 検索（2件以上のときだけ有効化）
-//   7. マスコットの目線追従・瞬き
+//   4. パッケージ詳細 <dialog> の開閉と内容差し込み
+//   5. 検索（2件以上のときだけ有効化）
+//   6. マスコットの目線追従・瞬き
 
 const LISTING_URL = "{{ listingInfo.Url }}";
 
@@ -41,7 +42,6 @@ const PACKAGES = {
     ],
     license: "{{ package.License }}",
     licensesUrl: "{{ package.LicensesUrl }}",
-    zipUrl: "{{ package.ZipUrl }}",
   },
 {{~ end ~}}
 };
@@ -116,42 +116,7 @@ function initCopyButtons() {
   });
 }
 
-// ─── 3. タブ（二つの道。タブ数はDOMから数えるので2つでもそのまま回る） ─
-function initTabs() {
-  const tablist = document.querySelector('.michi-tabs');
-  if (!tablist) return;
-
-  const tabs = Array.from(tablist.querySelectorAll('[role="tab"]'));
-  const panels = tabs.map((tab) => document.getElementById(tab.getAttribute('aria-controls')));
-
-  function selectTab(index, { focus = true } = {}) {
-    tabs.forEach((tab, i) => {
-      const selected = i === index;
-      tab.setAttribute('aria-selected', String(selected));
-      tab.tabIndex = selected ? 0 : -1;
-      if (panels[i]) panels[i].hidden = !selected;
-    });
-    if (focus) tabs[index].focus();
-  }
-
-  tabs.forEach((tab, i) => {
-    tab.addEventListener('click', () => selectTab(i, { focus: false }));
-    tab.addEventListener('keydown', (event) => {
-      let nextIndex = null;
-      if (event.key === 'ArrowRight') nextIndex = (i + 1) % tabs.length;
-      else if (event.key === 'ArrowLeft') nextIndex = (i - 1 + tabs.length) % tabs.length;
-      else if (event.key === 'Home') nextIndex = 0;
-      else if (event.key === 'End') nextIndex = tabs.length - 1;
-
-      if (nextIndex !== null) {
-        event.preventDefault();
-        selectTab(nextIndex);
-      }
-    });
-  });
-}
-
-// ─── 4. パッケージ詳細ダイアログ ─────────────────────────────────────
+// ─── 3. パッケージ詳細ダイアログ ─────────────────────────────────────
 function initPackageDialog() {
   const dialog = document.getElementById('packageInfoDialog');
   if (!dialog) return;
@@ -167,7 +132,6 @@ function initPackageDialog() {
     keywords: document.getElementById('packageInfoKeywords'),
     licenseWrap: document.getElementById('packageInfoLicenseWrap'),
     license: document.getElementById('packageInfoLicense'),
-    zip: document.getElementById('packageInfoZip'),
   };
   const closeButton = document.getElementById('packageInfoDialogClose');
 
@@ -213,11 +177,8 @@ function initPackageDialog() {
       els.license.href = info.licensesUrl || '#';
     }
 
-    // D-9: メタデータだけで行き止まりだったダイアログに .zip への
-    // 直リンクを差し込む（「おまもりを授かる」ボタンは initVccButtons が
-    // .vcc-trigger として共通で配線する）。
-    if (els.zip) els.zip.href = info.zipUrl || '#';
-
+    // ダイアログのCTA「おまもりを授かる」は initVccButtons が
+    // .vcc-trigger として共通で配線する（.zip直リンクは第8ラウンドCで削除）。
     dialog.showModal();
   }
 
@@ -234,7 +195,7 @@ function initPackageDialog() {
   });
 }
 
-// ─── 5. 検索（2件以上のときだけ） ────────────────────────────────────
+// ─── 4. 検索（2件以上のときだけ） ────────────────────────────────────
 function initSearch() {
   const list = document.getElementById('tanaList');
   const searchBlock = document.getElementById('tanaSearch');
@@ -263,7 +224,7 @@ function initSearch() {
   });
 }
 
-// ─── 6. マスコットの目線追従・瞬き ───────────────────────────────────
+// ─── 5. マスコットの目線追従・瞬き ───────────────────────────────────
 let blinkMascotOnce = () => {};
 
 function initMascot() {
@@ -328,7 +289,6 @@ function initMascot() {
 // ─── 起動 ────────────────────────────────────────────────────────────
 initVccButtons();
 initCopyButtons();
-initTabs();
 initPackageDialog();
 initSearch();
 initMascot();

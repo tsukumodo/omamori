@@ -189,12 +189,12 @@
     <!-- ③ 守り札グリッド -->
     <section class="fuda wrap" aria-labelledby="fuda-heading">
       <h2 id="fuda-heading">おまもりが見ているもの</h2>
-      <!-- 絵文字(第6ラウンド7): 4巡目でクローバー以外を削ったが、「1投稿2〜3個」は
-           Xの1投稿に対する基準で、6画面のWebページに機械的に当てるのは過剰な
-           圧縮だった(5巡目内容§3)。原因究明の虫めがね(この位置)と読後感の
-           提灯(footer)を戻し、ページ全体でクローバーと合わせて計3個とする
-           (若葉は戻さない)。 -->
-      <p class="section-lead">チェックを実行すると、下記の項目を一つずつ確かめていきます。🔍 見つかった問題はオブジェクトを選んで直接確認でき、直せるものはボタン一つで直せます。</p>
+      <!-- 絵文字(第8ラウンドB): 第6ラウンドで戻した虫めがね🔍はここから外した。
+           「確かめていきます。🔍 見つかった…」と句点の直後に挟まり、文を
+           分断していた(オーナー指摘)。文末へ移しても「。🔍」の並びが残る
+           ことに変わりはないため、移動ではなく削除を選んだ。ページ全体の
+           絵文字は🍀(利用統計)と🏮(footer)の2個構成になる。 -->
+      <p class="section-lead">チェックを実行すると、下記の項目を一つずつ確かめていきます。見つかった問題はオブジェクトを選んで直接確認でき、直せるものはボタン一つで直せます。</p>
 
       <ul class="fuda-grid">
         <li class="fuda-card" data-severity="error">
@@ -411,12 +411,15 @@
       </ul>
     </section>
 
-    <!-- ④ 二つの道（タブ）
-         第7ラウンドA: 「BOOTHから入手」のタブとパネルを削除した。このページは
-         BOOTHで入手した人が同梱PDFのリンクから来る前提（オーナー訂正）で、
-         BOOTHから来た読者をBOOTHへ送り返す循環動線になっていたため。
-         これに伴い「三つの道」は「二つの道」へ改名（id=michi-heading は
-         ヒーロー注記のアンカーが参照しているので変えない）。 -->
+    <!-- ④ 二つの道
+         第7ラウンドA: 「BOOTHから入手」のタブとパネルを削除し「三つの道」を
+         「二つの道」へ改名（id=michi-heading はヒーロー注記のアンカーが
+         参照しているので変えない）。
+         第8ラウンドA: タブという仕組み自体を廃止し、両方の道を最初から
+         縦に並べた。オーナーが実機で「タブをタップしても何も起きない」
+         体験をしたため（機能は正常だったが、選択済みタブを押しても何も
+         起きない構造自体が問題）。道が2つだけなら片方を隠す価値はない。
+         VCCが主・URL手動登録が副（ボタンが働かないときの逃げ道）。 -->
     <section class="michi wrap" aria-labelledby="michi-heading">
       <!-- tabindex="-1"(第5ラウンドG-2): ヒーロー注記の「二つの道」リンクで
            ここへ飛んだあと、フォーカスがBODYに落ちたままだった。skip-linkの
@@ -424,13 +427,8 @@
       <h2 id="michi-heading" tabindex="-1">二つの道</h2>
       <p class="section-lead">お手元のおまもりをプロジェクトへ迎え入れる方法を、二つご案内します。追加が済んだら、Unityメニューの「Tools &gt; アバター改変おまもり」からウィンドウを開いてお使いいただけます。</p>
 
-      <div class="michi-tabs" role="tablist" aria-label="プロジェクトへの追加方法">
-        <button type="button" class="michi-tab" role="tab" id="tab-vcc" aria-selected="true" aria-controls="panel-vcc" tabindex="0">VCCで追加</button>
-        <button type="button" class="michi-tab" role="tab" id="tab-vpm-url" aria-selected="false" aria-controls="panel-vpm-url" tabindex="-1">URLで手動登録</button>
-      </div>
-
-      <!-- パネル内に操作要素があるため tabindex は付けない（APG Tabs パターン。1-7） -->
-      <div class="michi-panel" role="tabpanel" id="panel-vcc" aria-labelledby="tab-vcc">
+      <div class="michi-panel michi-panel--vcc">
+        <h3 class="michi-panel-title">VCCで追加</h3>
         <p class="michi-panel-summary">ワンクリックでVCCにリスティングを登録する、一番早い道です。</p>
         <div class="michi-panel-action">
           <button type="button" class="btn btn-primary btn-small vcc-trigger">おまもりを授かる</button>
@@ -443,8 +441,9 @@
         <p class="michi-note">VCCがまだ手元にない場合は、先にVRChat公式のVCCを導入してからお試しください。</p>
       </div>
 
-      <div class="michi-panel" role="tabpanel" id="panel-vpm-url" aria-labelledby="tab-vpm-url" hidden>
-        <p class="michi-panel-summary">VCCの「Add Repository」にリスティングURLを直接貼り付けて登録する道です。</p>
+      <div class="michi-panel">
+        <h3 class="michi-panel-title">URLで手動登録</h3>
+        <p class="michi-panel-summary">上のボタンがうまく働かないときは、リスティングURLをVCCの「Add Repository」に直接貼り付けて登録できます。</p>
         <ol class="michi-steps">
           <li>VCCを開いて Settings → 「Packages」タブへ</li>
           <li>「Add Repository」をクリックし、リスティングURLを貼り付け</li>
@@ -494,9 +493,11 @@
                置く(D-9で行き止まりも解消)。 -->
           <!-- 名前の区別(第5ラウンドE): 守り札の<summary>と同名の「くわしく見る」で
                挙動だけが違って(こちらはモーダル起動)いたため、動作が伝わる名前にする。 -->
+          <!-- .zip直リンクは置かない(第8ラウンドC): BOOTH→同梱PDF→このページ→VCC
+               という一本道から外れる4つ目の出口で、zipで導入した人はVPMの更新を
+               受け取れずサポートしづらくなるため、オーナー確認のうえ削除した。 -->
           <div class="tana-item-actions">
             <button type="button" class="btn btn-ghost btn-small tana-info" data-package-id="{{ package.Name }}" aria-label="{{ package.DisplayName }}のパッケージ情報を開く">パッケージ情報を開く</button>
-            <a class="tana-zip" href="{{ package.ZipUrl }}">.zipで受け取る</a>
           </div>
         </li>
         {{~ end ~}}
@@ -544,11 +545,11 @@
         </div>
 
         <!-- D-9: メタデータだけで行き止まりだったダイアログに、実際に手に入れる
-             ための2つの道を添える。「おまもりを授かる」は他のVCC追加ボタンと
-             同じ操作(class="vcc-trigger"でapp.jsが自動配線)。 -->
+             ためのCTAを添える。「おまもりを授かる」は他のVCC追加ボタンと
+             同じ操作(class="vcc-trigger"でapp.jsが自動配線)。
+             第8ラウンドC: ここにあった.zip直リンクは削除した(棚と同じ理由)。 -->
         <div class="tana-dialog-actions">
           <button type="button" class="btn btn-primary btn-small vcc-trigger">おまもりを授かる</button>
-          <a class="tana-zip" id="packageInfoZip" href="#">.zipで受け取る</a>
         </div>
       </div>
     </dialog>
@@ -648,8 +649,8 @@
     <!-- 第7ラウンドD-A: 🏮が測定した9幅すべてで単独行に落ち、赤橙の点が
          1個浮いていた。直前の語句と white-space:nowrap で括り、灯籠が
          必ず文と同じ行にぶら下がるようにする(絵文字→SVG置換はしない。
-         6巡目で「ページ全体で絵文字は🔍🍀🏮の3個」と決めた構成を崩し、
-         🍀だけラスタ字形で残る中途半端が生まれるため)。 -->
+         🍀だけラスタ字形で残る中途半端が生まれるため)。
+         ※ページ全体の絵文字は第8ラウンドBで🍀🏮の2個構成になった。 -->
     <p class="rakkan-tagline">VRChat社とは無関係の、有志による非公式ツールです。お気づきの点があれば、お気軽に<span class="no-orphan">Xまでどうぞ。🏮</span></p>
     <ul class="rakkan-links">
       <li><a href="https://tsukumodo-lab.booth.pm/items/8132860" target="_blank" rel="noopener">BOOTH</a></li>

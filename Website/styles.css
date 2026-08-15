@@ -826,7 +826,7 @@ section > h2,
    がここに .btn-ghost として存在していたが、その用途自体が無くなった)。 */
 
 /* =========================================================================
-   7. 二つの道（タブ）
+   7. 二つの道
    ========================================================================= */
 #michi-heading {
   /* font-size / margin-bottom は「section > h2, .wrap > h2」の共通ルールで
@@ -836,39 +836,31 @@ section > h2,
   scroll-margin-top: 1.5rem;
 }
 
-.michi-tabs {
-  display: flex;
-  gap: 0.5rem;
-  flex-wrap: wrap;
-  border-bottom: 1px solid var(--border);
-  margin-bottom: 1.5rem;
-}
-
-.michi-tab {
-  appearance: none;
-  border: none;
-  background: transparent;
-  cursor: pointer;
-  padding: 0.75rem 1rem;
-  font-family: 'Zen Maru Gothic', 'Noto Sans JP', sans-serif;
-  font-weight: 700;
-  font-size: 0.95rem;
-  color: var(--text-secondary);
-  border-bottom: 3px solid transparent;
-  margin-bottom: -1px;
-  word-break: auto-phrase; /* タブラベルは見出し相当。本文には当てない */
-}
-
-.michi-tab[aria-selected="true"] {
-  color: var(--accent-text);
-  border-bottom-color: var(--accent-text);
-}
-
+/* タブUI(.michi-tabs / .michi-tab)は第8ラウンドAで廃止した。実機で
+   「タップしても何も起きない」と受け取られたため、2つの道は隠さず
+   両方を縦に並べて常時表示する。VCC(主)は緑の縁で立たせ、URL手動
+   登録(副)は通常の枠のままにして主従を示す。 */
 .michi-panel {
   background: var(--card-bg);
   border: 1px solid var(--border);
   border-radius: 12px;
   padding: 1.5rem;
+}
+
+.michi-panel--vcc {
+  border-color: var(--omamori-green);
+  border-width: 2px;
+}
+
+.michi-panel + .michi-panel {
+  margin-top: 1.25rem;
+}
+
+.michi-panel-title {
+  font-size: 1.05rem;
+  font-weight: 700;
+  margin-bottom: 0.6rem;
+  word-break: auto-phrase; /* 見出し相当。本文には当てない */
 }
 
 .michi-panel-summary {
@@ -1307,24 +1299,9 @@ section > h2,
   margin-top: 0.5rem;
 }
 
-.tana-zip {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  padding: 0.45rem 1rem;
-  font-size: 0.85rem;
-  font-weight: 700;
-  border-radius: 999px;
-  border: 1px solid var(--border);
-  color: var(--text-primary);
-  text-decoration: none;
-  /* タップターゲット(第5ラウンドD): 360pxの積み上げ時に275×41まで
-     落ちていた(デスクトップは44)。.btn-smallと同じくmin-heightで確保。 */
-  min-height: 44px;
-}
-.tana-zip:hover {
-  background: var(--card-bg-alt);
-}
+/* 棚とダイアログにあった.zip直リンク(とその錠剤形スタイル)は第8ラウンドCで
+   撤去した。BOOTH→同梱PDF→このページ→VCCの一本道から外れる出口で、
+   zip導入者はVPMの更新を受け取れないため。 */
 
 /* --- パッケージ詳細ダイアログ --- */
 #packageInfoDialog {
@@ -1699,19 +1676,23 @@ dialog:focus-visible {
   .michi-url-row {
     flex-direction: column;
   }
-  .michi-tabs {
-    gap: 0.25rem;
+  /* タブ廃止(第8ラウンドA)で2つの道が常時表示になり、360pxの全長が
+     8195→8351pxに伸びた。モバイルではパネルの内余白と手順の行間を
+     少し詰めて増分の一部を相殺する(内容は削らない)。 */
+  .michi-panel {
+    padding: 1.1rem;
   }
-  .michi-tab {
-    padding: 0.6rem 0.7rem;
-    font-size: 0.88rem;
+  .michi-panel + .michi-panel {
+    margin-top: 1rem;
+  }
+  .michi-steps li {
+    margin-bottom: 0.6rem;
   }
   .tana-item-actions {
     flex-direction: column;
     align-items: stretch;
   }
-  .tana-item-actions .btn,
-  .tana-item-actions .tana-zip {
+  .tana-item-actions .btn {
     justify-content: center;
   }
 }
