@@ -122,15 +122,15 @@
           </svg>
         </div>
 
-        <h1 id="koujou-heading" class="koujou-title">アバターを送り出す前に、そっとひと目。</h1>
-        <p class="koujou-lead">「アバター改変おまもり」は、VRChatアバターをアップロードする前に、ありがちな設定ミスをまとめて見つけてくれるUnity Editor拡張です。チェックはボタン一つで走り、見つかった問題はオブジェクトを選んで中身を確かめられます。直せるものはその場で直せるので、公開してから気づいて青ざめる場面を減らせます。</p>
-
-        <ul class="koujou-badges">
-          <li class="chip">無料</li>
-          <li class="chip">MIT License</li>
-          <li class="chip">MA対応(任意)</li>
-          <li class="chip">Unity 2022.3〜</li>
-        </ul>
+        <!-- h1に製品名を入れる(C-2連動): これまでh1はキャッチコピーのみで、
+             ページの第1画面(特に360px)に製品名が一度も現れていなかった。
+             h1自体は1つのまま、肩書き(製品名)+キャッチコピーの2行構成にする。
+             肩書きが増えたぶんは、直後のリードから重複する名乗り
+             「「アバター改変おまもり」は、」を外すことで情報を増やさずに
+             相殺している(削っているのは名乗りの重複だけで、説明文の
+             内容は一文字も削っていない)。 -->
+        <h1 id="koujou-heading" class="koujou-title"><span class="koujou-title-name">アバター改変おまもり</span><span class="koujou-title-tagline">アバターを送り出す前に、そっとひと目。</span></h1>
+        <p class="koujou-lead">VRChatアバターをアップロードする前に、ありがちな設定ミスをまとめて見つけてくれるUnity Editor拡張です。チェックはボタン一つで走り、見つかった問題はオブジェクトを選んで中身を確かめられます。直せるものはその場で直せるので、公開してから気づいて青ざめる場面を減らせます。</p>
 
         <div class="koujou-cta">
           <button type="button" id="addToVcc" class="btn btn-primary">おまもりを授かる</button>
@@ -141,6 +141,16 @@
             <button type="button" id="copyListingUrl" class="btn btn-ghost btn-small">コピー</button>
           </div>
         </div>
+
+        <!-- ヒーロー圧縮(C-2): CTAより上にあると主導線(ボタン)が
+             第1画面から押し出されるため、CTAの下へ移動した。情報は
+             削っていない(4項目とも従来のまま)。 -->
+        <ul class="koujou-badges">
+          <li class="chip">無料</li>
+          <li class="chip">MIT License</li>
+          <li class="chip">MA対応(任意)</li>
+          <li class="chip">Unity 2022.3〜</li>
+        </ul>
       </div>
     </section>
 
@@ -158,7 +168,12 @@
             <span class="fuda-severity fuda-severity--error">エラー</span>
           </div>
           <p class="fuda-card-scene">アセットを削除したり、他のプロジェクトからプレハブをコピーしてきたりすると、参照先を失ったコンポーネントがアバターの中に紛れ込むことがあります。</p>
-          <p class="fuda-card-detail">Missing状態のコンポーネントを一つずつ見つけて教えてくれます。多くは参照が壊れているだけなので自動修正で一括削除できますが、Unityの仕様上この修正だけはUndoで戻せません。</p>
+          <details class="fuda-card-more">
+            <summary>くわしく見る</summary>
+            <div class="fuda-card-more-body">
+              <p class="fuda-card-detail">Missing状態のコンポーネントを一つずつ見つけて教えてくれます。多くは参照が壊れているだけなので自動修正で一括削除できますが、Unityの仕様上この修正だけはUndoで戻せません。</p>
+            </div>
+          </details>
           <p class="fuda-card-fix">✓ 自動修正あり</p>
         </li>
 
@@ -168,7 +183,12 @@
             <span class="fuda-severity fuda-severity--warning">警告</span>
           </div>
           <p class="fuda-card-scene">シェーダーが同梱されていないアセットを使ったり、アップデートで参照が外れたりすると、マテリアルが唐突に真っピンクになることがあります。</p>
-          <p class="fuda-card-detail">シェーダーが見つからないマテリアルを、アバターの中から探し出します。自動修正は用意していないので、見つかった箇所は手作業でシェーダーを差し直してください。</p>
+          <details class="fuda-card-more">
+            <summary>くわしく見る</summary>
+            <div class="fuda-card-more-body">
+              <p class="fuda-card-detail">シェーダーが見つからないマテリアルを、アバターの中から探し出します。自動修正は用意していないので、見つかった箇所は手作業でシェーダーを差し直してください。</p>
+            </div>
+          </details>
         </li>
 
         <li class="fuda-card" data-severity="warning">
@@ -177,8 +197,13 @@
             <span class="fuda-severity fuda-severity--warning">警告</span>
           </div>
           <p class="fuda-card-scene">肌にテクスチャを入れただけのつもりが、気づけばアバター全体が煌々と光り輝いていた——という声から生まれたチェックです。</p>
-          <p class="fuda-card-detail">lilToonとUnity Standard系のマテリアルを対象に、Emissionがオンで実際に光っているものを見つけます(真っ黒や極端に暗いものは除きます)。ロック済みのマテリアルや対応外のシェーダーは対象外です。</p>
-          <p class="fuda-card-detail">自動修正は発光だけをオフにし、色の設定は残します。同じマテリアルの他の箇所も一緒に変わり、発光を切り替える作りのアバターでは動きが崩れることもあるので、心当たりがあれば見送ってください。うっかり押してもUndo(Ctrl+Z)で戻せます。</p>
+          <details class="fuda-card-more">
+            <summary>くわしく見る</summary>
+            <div class="fuda-card-more-body">
+              <p class="fuda-card-detail">lilToonとUnity Standard系のマテリアルを対象に、Emissionがオンで実際に光っているものを見つけます(真っ黒や極端に暗いものは除きます)。ロック済みのマテリアルや対応外のシェーダーは対象外です。</p>
+              <p class="fuda-card-detail">自動修正は発光だけをオフにし、色の設定は残します。同じマテリアルの他の箇所も一緒に変わり、発光を切り替える作りのアバターでは動きが崩れることもあるので、心当たりがあれば見送ってください。うっかり押してもUndo(Ctrl+Z)で戻せます。</p>
+            </div>
+          </details>
           <p class="fuda-card-fix">✓ 自動修正あり</p>
         </li>
 
@@ -188,7 +213,12 @@
             <span class="fuda-severity fuda-severity--error">エラー</span>
           </div>
           <p class="fuda-card-scene">アバターを複製したり、プレハブをコピーして作業したりすると、VRC Avatar Descriptorが同じ階層に増えてしまうことがあります。</p>
-          <p class="fuda-card-detail">アバタールート以下にDescriptorが複数ないか見て回ります。重複が3個あっても「1件の問題」としてまとめて数え、どれを残すか選ぶだけで残りを一括整理できます。</p>
+          <details class="fuda-card-more">
+            <summary>くわしく見る</summary>
+            <div class="fuda-card-more-body">
+              <p class="fuda-card-detail">アバタールート以下にDescriptorが複数ないか見て回ります。重複が3個あっても「1件の問題」としてまとめて数え、どれを残すか選ぶだけで残りを一括整理できます。</p>
+            </div>
+          </details>
           <p class="fuda-card-fix">✓ 自動修正あり</p>
         </li>
 
@@ -201,7 +231,12 @@
             </span>
           </div>
           <p class="fuda-card-scene">Modular AvatarのObjectToggleでオン/オフの対象を設定し忘れたり、うっかり自分自身を指定してしまったりすることがあります。</p>
-          <p class="fuda-card-detail">ターゲットが空のままなら警告、自分自身を参照する自己参照ならエラーとして知らせます。設定漏れは早めに見つけておくと安心です。</p>
+          <details class="fuda-card-more">
+            <summary>くわしく見る</summary>
+            <div class="fuda-card-more-body">
+              <p class="fuda-card-detail">ターゲットが空のままなら警告、自分自身を参照する自己参照ならエラーとして知らせます。設定漏れは早めに見つけておくと安心です。</p>
+            </div>
+          </details>
           <p class="fuda-card-ma">Modular Avatar が必要</p>
         </li>
 
@@ -211,7 +246,12 @@
             <span class="fuda-severity fuda-severity--warning">警告</span>
           </div>
           <p class="fuda-card-scene">アクセサリーを子オブジェクトとして入れたものの、Merge ArmatureやBone Proxyの設定を忘れたまま——という状態はよく起こります。</p>
-          <p class="fuda-card-detail">Armatureを持つ子オブジェクトを調べ、Merge Armature / Bone Proxyが未設定になっていないか確かめます。ターゲット自体が未設定の場合も、あわせて拾い上げます。</p>
+          <details class="fuda-card-more">
+            <summary>くわしく見る</summary>
+            <div class="fuda-card-more-body">
+              <p class="fuda-card-detail">Armatureを持つ子オブジェクトを調べ、Merge Armature / Bone Proxyが未設定になっていないか確かめます。ターゲット自体が未設定の場合も、あわせて拾い上げます。</p>
+            </div>
+          </details>
           <p class="fuda-card-ma">Modular Avatar が必要</p>
         </li>
 
@@ -221,7 +261,12 @@
             <span class="fuda-severity fuda-severity--error">エラー</span>
           </div>
           <p class="fuda-card-scene">Expression Menuの階層を組み立てている途中で、MenuInstallerを挟み忘れたMenuItemが残ってしまうことがあります。</p>
-          <p class="fuda-card-detail">MenuItemの祖先をたどり、MenuInstallerにつながっていないものを見つけて知らせます。つながっていないメニューは、アップロードしても実際のメニューには現れません。</p>
+          <details class="fuda-card-more">
+            <summary>くわしく見る</summary>
+            <div class="fuda-card-more-body">
+              <p class="fuda-card-detail">MenuItemの祖先をたどり、MenuInstallerにつながっていないものを見つけて知らせます。つながっていないメニューは、アップロードしても実際のメニューには現れません。</p>
+            </div>
+          </details>
           <p class="fuda-card-ma">Modular Avatar が必要</p>
         </li>
 
@@ -231,7 +276,12 @@
             <span class="fuda-severity fuda-severity--warning">警告</span>
           </div>
           <p class="fuda-card-scene">Expression Menuだけ組んでExpression Parametersの用意を忘れたり、パラメータ名を空のまま残してしまったりすることがあります。</p>
-          <p class="fuda-card-detail">Expression Menuが設定されているのにParametersが未設定の場合と、名前が空のパラメータが残っている場合の両方に気づかせてくれます。空のパラメータは同期帯域を無駄に消費するため、整理のきっかけになります。</p>
+          <details class="fuda-card-more">
+            <summary>くわしく見る</summary>
+            <div class="fuda-card-more-body">
+              <p class="fuda-card-detail">Expression Menuが設定されているのにParametersが未設定の場合と、名前が空のパラメータが残っている場合の両方に気づかせてくれます。空のパラメータは同期帯域を無駄に消費するため、整理のきっかけになります。</p>
+            </div>
+          </details>
         </li>
 
         <li class="fuda-card" data-severity="warning">
@@ -240,7 +290,12 @@
             <span class="fuda-severity fuda-severity--warning">警告</span>
           </div>
           <p class="fuda-card-scene">アップロードしたのに表情や着せ替えが反映されない——というときは、FXレイヤーのWeightが0になっていることがあります。</p>
-          <p class="fuda-card-detail">FXレイヤーのWeightが0のままになっていないか確かめます。自動修正でWeightを1に戻すことができ、Undo(Ctrl+Z)で元の状態にも戻せます。</p>
+          <details class="fuda-card-more">
+            <summary>くわしく見る</summary>
+            <div class="fuda-card-more-body">
+              <p class="fuda-card-detail">FXレイヤーのWeightが0のままになっていないか確かめます。自動修正でWeightを1に戻すことができ、Undo(Ctrl+Z)で元の状態にも戻せます。</p>
+            </div>
+          </details>
           <p class="fuda-card-fix">✓ 自動修正あり</p>
         </li>
 
@@ -250,7 +305,12 @@
             <span class="fuda-severity fuda-severity--error">エラー</span>
           </div>
           <p class="fuda-card-scene">パラメータを増やしていくうちに、気づかないまま同期の上限を超えてしまい、アップロード時にエラーで止まることがあります。</p>
-          <p class="fuda-card-detail">Expression Parametersの同期パラメータ合計ビット数が256bitを超えていないか計算して知らせます。超えたままではアップロードに失敗するため、公開前に気づけるのが利点です。</p>
+          <details class="fuda-card-more">
+            <summary>くわしく見る</summary>
+            <div class="fuda-card-more-body">
+              <p class="fuda-card-detail">Expression Parametersの同期パラメータ合計ビット数が256bitを超えていないか計算して知らせます。超えたままではアップロードに失敗するため、公開前に気づけるのが利点です。</p>
+            </div>
+          </details>
         </li>
       </ul>
 

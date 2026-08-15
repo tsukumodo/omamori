@@ -93,6 +93,13 @@ button, input {
   --omamori-cream: #F0E8D0;
   --omamori-gold: #C8A87C;
   --omamori-navy: #162244;
+  /* 暖簾の布地色。--omamori-navy(店の地・ヒーロー背景)と同系統の藍だが、
+     明確に暗くする(色相はほぼ同じ約230°、彩度を上げつつ明度を落とした
+     "藍染めの濃い布"の色)。ヒーローが紺一色になったことで、暖簾の布と
+     地(隙間)が同じ紺では布が地に対して立たなくなった問題(D-noren)の
+     修正に使う。単純な相対輝度比（L(navy)=0.0173 / L(cloth)=0.0068）で
+     約2.55:1。要件(1.6:1以上)に対し十分な余裕を持たせてある。 */
+  --noren-cloth: #0C1325;
 
   /* 地紋トークン（patterns.css と共用。ライト既定値） */
   --tsukumo-paper: #F7F5F0;
@@ -454,28 +461,38 @@ section > h2,
      見せていたが、その色が変わるたびに「布に見えるか」が変わって
      しまう不安定な結合だった(紺ヒーロー化で隙間が生成りの帯に
      化けて暖簾が壊れた回帰の原因)。地の色をここで自己完結させ、
-     ヒーロー側が何色でも暖簾の見え方が変わらないようにする。 */
+     ヒーロー側が何色でも暖簾の見え方が変わらないようにする。
+     配色体系の見直しでヒーロー(.koujou)が紺一色になったのに合わせ、
+     地(隙間)はヒーローと同じ --omamori-navy にする。ヒーローに
+     このまま連続して見える(=隙間からヒーローの紺が覗いている)よう
+     になる。布そのもの(.noren-hem i)は --noren-cloth という
+     明確に暗い藍にし、地との明度差で布を布として立たせる。 */
   display: flex;
   gap: 10px;
   height: var(--noren-hem-h);
   width: 100%;
-  background: color-mix(in srgb, var(--omamori-navy) 72%, black);
+  background: var(--omamori-navy);
 }
 
 .noren-hem i {
   flex: 1;
-  background: var(--omamori-navy);
+  background: var(--noren-cloth);
   /* 裾はほぼ水平に。中央だけ10px下げて「布の重み」を出す
      （鋭いV字の切れ込みにはしない＝バンティングに見えていた原因）。 */
   clip-path: polygon(0 0, 100% 0, 100% calc(100% - 10px), 50% 100%, 0 calc(100% - 10px));
-  /* 布と地が同じ紺系統だと、切れ込み(clip-pathの裾の波)が沈んで
-     見えなくなる。金茶の細い縁取りをclip-path後のシルエットそのものに
-     drop-shadowで与え(§8 .fuda-cardと同じ手法)、地の色に関わらず
-     「1枚1枚の布の輪郭」が見えるようにする。両隣の布と接する左右の
-     縁にも入るため、布が4枚(モバイルは3枚)に分かれていることも
-     縫い目のように読める。 */
-  filter: drop-shadow(0 1px 0 var(--omamori-gold)) drop-shadow(0 -1px 0 var(--omamori-gold))
-          drop-shadow(1px 0 0 var(--omamori-gold)) drop-shadow(-1px 0 0 var(--omamori-gold));
+  /* 布(--noren-cloth)と地(--omamori-navy)の明度差だけでも布として
+     読めるが、裾の輪郭をさらに立たせるため金茶の細い縁取りを
+     clip-path後のシルエットそのものに drop-shadow で与える
+     (§8 .fuda-card と同じ手法)。金茶は布・地のどちらに対しても
+     実測 6.9:1 / 7.9:1 とコントラストが高く、明度差だけに頼らない
+     二重の手がかりになる。両隣の布と接する左右の縁にも入るため、
+     布が4枚(モバイルは3枚)に分かれていることも縫い目のように読める。
+     オフセットを0.75pxずつ2重に重ね、1px単位の丸めで縁が消える
+     ブラウザ・拡大率があっても輪郭が残るようにする。 */
+  filter: drop-shadow(0 0.75px 0 var(--omamori-gold)) drop-shadow(0 -0.75px 0 var(--omamori-gold))
+          drop-shadow(0.75px 0 0 var(--omamori-gold)) drop-shadow(-0.75px 0 0 var(--omamori-gold))
+          drop-shadow(0 1.5px 0 var(--omamori-gold)) drop-shadow(0 -1.5px 0 var(--omamori-gold))
+          drop-shadow(1.5px 0 0 var(--omamori-gold)) drop-shadow(-1.5px 0 0 var(--omamori-gold));
 }
 
 @media (max-width: 520px) {
@@ -506,8 +523,10 @@ section > h2,
   color: var(--hero-text);
   text-align: center;
   /* 上パディングに暖簾の被せ量(--noren-hem-h)を足し、暖簾の布と
-     ヒーローの中身(おまもり絵など)が衝突しないようにする。 */
-  padding: calc(3rem + var(--noren-hem-h)) 0 3.5rem;
+     ヒーローの中身(おまもり絵など)が衝突しないようにする。
+     ヒーロー圧縮(C-2)で3rem→1rem(-32px)。--noren-hem-h(暖簾の被せ量)
+     自体は減らしていない(それは「借金」であって削減ではないため触らない)。 */
+  padding: calc(1rem + var(--noren-hem-h)) 0 3.5rem;
   position: relative;
   overflow: hidden;
 }
@@ -527,8 +546,14 @@ section > h2,
 }
 
 .koujou-charm {
-  width: 118px;
-  margin-bottom: 1.4rem;
+  /* ヒーロー圧縮(C-2): レビュアー提示の削減候補(118→80px)を土台に、
+     1366×768でのCTA充足に必要な余裕を実測しながら72pxまで詰めた。
+     おまもりの形(比率・輪郭)はWebsite/omamori-thumbnail.pngを実測した
+     ものをそのまま使っており変更していない。ここは表示サイズの一様
+     スケールのみ(SVGのviewBoxは不変)なので、実測比率(1:1.76・側辺の
+     垂直区間77.6%)には影響しない。 */
+  width: 72px;
+  margin-bottom: 0.75rem;
   filter: drop-shadow(0 6px 14px rgba(0, 0, 0, 0.22));
 }
 
@@ -537,28 +562,55 @@ section > h2,
 }
 
 .koujou-title {
-  font-size: 1.7rem;
+  margin-bottom: 0.75rem;
+  max-width: 30ch;
+}
+
+/* h1に製品名を入れる(C-2連動): これまでh1はキャッチコピーのみで、
+   製品名(アバター改変おまもり)がページのどこにも第1画面に現れて
+   いなかった。h1の中に「製品名(小さめの肩書き)+キャッチコピー」の
+   2行構成を持たせ、h1自体は1つのまま製品名を含める。肩書きぶんの
+   増分は、.koujou-lead から「「アバター改変おまもり」は、」という
+   重複した名乗りを削れる分でおおむね相殺する。 */
+.koujou-title-name {
+  display: block;
+  font-size: 0.85rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  color: var(--omamori-gold);
+  margin-bottom: 0.35rem;
+}
+
+.koujou-title-tagline {
+  display: block;
+  font-size: 1.6rem;
   font-weight: 700;
   letter-spacing: 0.03em;
-  margin-bottom: 1rem;
-  max-width: 22ch;
 }
 
 .koujou-lead {
   font-size: 0.98rem;
   color: var(--hero-sub);
-  max-width: 46ch;
-  margin: 0 auto 1.5rem;
+  /* ヒーロー圧縮(C-2): 6行→3行相当。ch単位ではCJKグリフの実測幅と
+     ずれが大きく、当初56chでは実測5行止まりだったため、実測しながら
+     .wrap の残り幅(880px - 左右パディング ≈832px)いっぱいまで広げて
+     3行に収めた(1366px実測: 820pxで3行)。全文はそのまま、文言は
+     1文字も削っていない(削ったのは §製品名重複のみ)。 */
+  max-width: 820px;
+  margin: 0 auto 0.75rem;
   text-align: left;
 }
 
 .koujou-badges {
+  /* ヒーロー圧縮(C-2): CTAの下へ移動したため、CTAとの間の余白だけを
+     持たせればよい(以前のように後続コンテンツとの間隔を確保する
+     margin-bottomは不要)。 */
   display: flex;
   flex-wrap: wrap;
   justify-content: center;
   gap: 0.5rem;
   list-style: none;
-  margin-bottom: 2rem;
+  margin: 1.5rem 0 0;
 }
 
 .koujou-badges .chip {
@@ -898,6 +950,57 @@ section > h2,
 
 .fuda-card-detail {
   font-size: 0.88rem;
+}
+
+/* --- 守り札の圧縮(C-1): 詳しい説明を<details>で折りたたむ ---
+   情報は削らず、常に見える範囲(見出し・状況の一文・severity・自動修正/MA
+   バッジ)と、開くと読める詳細(仕組み・注意点)に分けるだけ。<details>は
+   ネイティブでキーボード操作(Tab→Enter/Space)可能、role/aria-expanded等の
+   自作も不要。開閉にアニメーションは付けていないので
+   prefers-reduced-motionで打ち消す対象も無い(要約の▸アイコンの回転のみ
+   transitionを使っており、それは §12 のグローバルな reduced-motion 規則で
+   0.001msに短縮される)。 */
+.fuda-card-more {
+  margin: 0;
+}
+
+.fuda-card-more summary {
+  cursor: pointer;
+  list-style: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: var(--accent-text);
+  padding: 0.1rem 0;
+  user-select: none;
+}
+
+.fuda-card-more summary::-webkit-details-marker {
+  display: none;
+}
+
+.fuda-card-more summary::before {
+  content: '▸';
+  display: inline-block;
+  font-size: 0.7em;
+  transition: transform 0.15s ease;
+}
+
+.fuda-card-more[open] summary::before {
+  transform: rotate(90deg);
+}
+
+.fuda-card-more summary:hover {
+  text-decoration: underline;
+}
+
+.fuda-card-more-body {
+  margin-top: 0.6rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
 }
 
 .fuda-card-fix {
@@ -1273,14 +1376,31 @@ dialog:focus-visible {
     padding: 2.25rem 0;
   }
   .koujou {
-    padding: calc(2.5rem + var(--noren-hem-h)) 0 2.75rem;
+    /* ヒーロー圧縮(C-2): 390×844でCTAが第1画面(可視領域約700px)に
+       収まるよう、上パディングをさらに切り詰める。 */
+    padding: calc(1.25rem + var(--noren-hem-h)) 0 2.75rem;
+  }
+  /* h1を「肩書き+span」構成に変えた際、フォントサイズを子spanへ
+     移したため、ここも子spanを対象にし直す(元は.koujou-title自体に
+     直接文字が入っていたため.koujou-titleだけで足りていた)。 */
+  .koujou-charm {
+    width: 48px;
+    margin-bottom: 0.6rem;
   }
   .koujou-title {
-    font-size: 1.4rem;
+    margin-bottom: 0.6rem;
+  }
+  .koujou-title-name {
+    font-size: 0.72rem;
+    margin-bottom: 0.25rem;
+  }
+  .koujou-title-tagline {
+    font-size: 1.25rem;
   }
   .koujou-lead {
     font-size: 0.92rem;
     text-align: center;
+    margin-bottom: 0.85rem;
   }
   .koujou-cta-note {
     text-align: center;
