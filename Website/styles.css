@@ -95,14 +95,15 @@ button, input {
   --omamori-cream: #F0E8D0;
   --omamori-gold: #C8A87C;
   --omamori-navy: #162244;
-  /* 暖簾の布地(第5ラウンドA-1): 布は生成り、隙間は店の中の暗がり(暗い藍)。
-     藍地に生成りの暖簾という和の実物の配色に合わせる。以前の「暗い藍の布
-     +紺の地」は、WCAG式 (L1+0.05)/(L2+0.05) での実測が 1.18:1 しかなく
-     (2.55:1 という判断は +0.05 項を落とした生の輝度比だった)、布が布として
-     読めていなかった。生成り#F0E8D0(L=0.808) vs #080C18(L=0.0038)は
-     WCAG式で約15.9:1。ダークは布をひとつ沈めた生成りにする(それでも12:1超)。 */
+  /* 暖簾の布地(第5ラウンドA-1): 布は生成り、隙間は「向こうに透ける店先」。
+     第6ラウンド3: 隙間を独自の暗色#080C18にしていたところ、ヒーロー
+     (#162244)より暗いために切れ込みが「穴」ではなく「布に描かれた黒い棒」
+     として終端していた(5巡目D-1a)。隙間はヒーローの地そのもの
+     (--hero-bg)にし、切れ込みとヒーローがひと続きの紺になるようにする。
+     布 vs 隙間はライト #F0E8D0 vs #162244 = 12.7:1 / ダークも7:1超で、
+     布が布として立つコントラストは維持される。 */
   --noren-cloth: var(--omamori-cream);
-  --noren-gap: #080C18;
+  --noren-gap: var(--hero-bg);
 
   /* 地紋トークン（patterns.css と共用。ライト既定値） */
   --tsukumo-paper: #F7F5F0;
@@ -181,10 +182,14 @@ button, input {
     /* 夜のつくも堂(第5ラウンドH): 店先も昼夜に参加させる。
        - ヒーローの紺を一段沈める(#162244 → #0F1830)。文字は生成り系なので
          コントラストは全て向上する方向(実測でNGゼロを確認)
-       - 暖簾の布(生成り)も月明かりにひとつ沈める。隙間#080C18とのWCAG比は
-         12:1超のまま、布であることは崩れない */
+       - 暖簾の布(生成り)も沈める(具体値は下の第6ラウンド5コメント参照) */
     --hero-bg: #0F1830;
-    --noren-cloth: #DCCFA8;
+    /* 第6ラウンド5: #DCCFA8はダークのページ地に対して11.4:1で、夜のページで
+       最も明るい面が全幅×約150pxのヘッダーになっていた(5巡目D-4)。
+       月明かりの布までもう2〜3段沈める(レビューの例示値#B9AC86)。
+       布 vs 隙間(--hero-bg=#0F1830)は8.5:1、屋号の藍 vs 布は7.5:1で、
+       布であることも文字の可読性も崩れない(実測は監査スクリプトで確認)。 */
+    --noren-cloth: #B9AC86;
 
     --page-bg: var(--tsukumo-paper);
     --text-primary: var(--tsukumo-ink);
@@ -231,6 +236,14 @@ button, input {
      明るい布に金茶のにじみを重ねると濁るだけになり、対象から外した。 */
   .rakkan-mascot svg {
     filter: drop-shadow(0 0 6px rgba(222, 189, 140, 0.4));
+  }
+  /* 第6ラウンド5連動: 布を#B9AC86へ沈めたことで、TSUKUMODO(10.4px)の
+     藍 opacity 0.75 合成は4.6:1まで落ち、AA(4.5)に対して余裕がない。
+     ダークだけ淡めを弱めて5.7:1を確保する(ライトは従来の0.75のまま6.2:1)。
+     セレクタを.noren-band付きにしているのは、単独クラスだと後方(§5)の
+     基底ルールと同特異度で書順に負けるため。 */
+  .noren-band .noren-shopname-en {
+    opacity: 0.85;
   }
   .koujou-charm {
     filter: drop-shadow(0 6px 14px rgba(0, 0, 0, 0.3)) drop-shadow(0 0 10px rgba(222, 189, 140, 0.3));
@@ -463,12 +476,10 @@ section > h2,
   align-items: center;
   justify-content: center;
   gap: 0.75rem;
-  /* 店章を「生成りの布に藍で染め抜いた紋」にする。金茶の歯車のままだと
-     生成り地に対して1.6:1程度で埋もれるため、布の上では藍1色に落とす。 */
-  --tsukumo-gear: var(--omamori-navy);
-  --tsukumo-navy: var(--noren-cloth);
-  --tsukumo-eye-white: var(--noren-cloth);
-  --tsukumo-pupil: var(--omamori-navy);
+  /* 竿(第6ラウンド3): 暖簾は竿から下がっているもの。布が画面最上端から
+     いきなり始まると「ページの上部背景」に見えるため、帯の最上部に
+     紺の竿を1本渡す(5巡目D-1c)。 */
+  border-top: 4px solid var(--omamori-navy);
 }
 
 .noren-band-pattern {
@@ -482,6 +493,14 @@ section > h2,
   width: 46px;
   height: 46px;
   flex-shrink: 0;
+  /* 店章の配色(第6ラウンド4): ブランド資材(tsukumodo-logo.png)は
+     紺地・金茶の歯車。これまで布の上では藍1色に落としており、落款側
+     (金茶)と1ページに2配色が併存していた(5巡目D-2)。布に紺の丸座を
+     敷き、その上に資材と同じ「紺地に金茶の店章」を置く(染め抜き紋)。
+     マスコット配色トークンは:rootの既定(金茶の歯車・紺の顔)のまま使う。
+     金茶 vs 紺の座はライト6.95:1 / ダーク8.7:1、座 vs 布も7:1超。 */
+  background: var(--omamori-navy);
+  border-radius: 50%;
 }
 
 .noren-shopname {
@@ -517,7 +536,10 @@ section > h2,
      描画されておらず、隙間の片側に1pxの線がランダムに出る描画バグに
      見えていた)。 */
   display: flex;
-  gap: 6px;
+  /* 切れ込み幅(第6ラウンド3): 6pxは布1枚(103〜317px)に対して細すぎ、
+     「隙間」として読めなかった(5巡目D-1b)。12pxに広げ、隙間から
+     ヒーローの紺(--noren-gap = --hero-bg)が覗く量を確保する。 */
+  gap: 12px;
   height: var(--noren-hem-h);
   width: 100%;
   background: var(--noren-gap);
@@ -613,6 +635,57 @@ section > h2,
 
 .koujou-charm-shape {
   width: 100%;
+}
+
+/* 内枠と「改変安全」(第6ラウンド2-b): 72px(モバイル48px)の表示では文字が
+   6.1px/4.1pxと和文の可読下限(約9px)を割るため、狭い画面では描かない。
+   広い画面(下の900pxメディアクエリ)でだけ、おまもりを190pxに拡大した
+   うえで表示する(その時の文字サイズは実測15.5px)。 */
+.koujou-charm-detail {
+  display: none;
+}
+
+/* おまもりの大型化(第6ラウンド2-b): 5巡目D-3「365pxで描かれた絵を72pxで
+   使い、入らない要素を削るのは順番が逆」を受け、広い画面では190pxへ拡大し
+   「改変安全」と内枠を戻す。ただし縦積みのまま拡大すると高さが+226px増え、
+   1366×768(可視約660px)でCTAが第1画面から確実に落ちるため、拡大する幅では
+   おまもりを本文の左隣に置く2カラムにする。おまもりの縦寸(約364px)は
+   タイトル+リード+CTAの縦寸とほぼ同じで、ヒーローの高さをほとんど
+   消費しない(実測でCTA下端はむしろ上がる)。900px未満は従来どおり
+   中央の小さなおまもり(文字なし)のまま。 */
+@media (min-width: 900px) {
+  .koujou .wrap {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    column-gap: 2.75rem;
+    align-items: center;
+    justify-items: center;
+  }
+  .koujou-charm {
+    grid-column: 1;
+    grid-row: 1 / 4;
+    width: 190px;
+    margin-bottom: 0;
+  }
+  .koujou-title {
+    grid-column: 2;
+    grid-row: 1;
+  }
+  .koujou-lead {
+    grid-column: 2;
+    grid-row: 2;
+  }
+  .koujou-cta {
+    grid-column: 2;
+    grid-row: 3;
+  }
+  .koujou-badges {
+    grid-column: 1 / -1;
+    grid-row: 4;
+  }
+  .koujou-charm-detail {
+    display: inline;
+  }
 }
 
 .koujou-title {
@@ -914,30 +987,29 @@ section > h2,
     1.8% calc(100% - var(--fuda-tip-h) * 0.7),
     0% calc(100% - var(--fuda-tip-h))
   );
-  padding: 1.3rem 1.3rem calc(var(--fuda-tip-h) + 0.8rem);
+  /* 横padding(第6ラウンド1・致命K-1の修正): 上辺の切り落としは札幅の5.45%に
+     比例するのに、横paddingを固定値+700pxメディアクエリで追いかけていた。
+     1段組は710px直前まで続くため、480〜709pxでは札幅が381pxを超えた時点で
+     切り落としがpaddingを追い越し、全10枚の見出し先頭文字とバッジが
+     clip-pathに欠けていた(699px実測で食い込み−9.8px)。
+     %paddingは札自身(グリッドエリア)の幅で解決されるので、
+     calc(5.45% + 0.5rem)にすれば切り落としと連動し、どの札幅でも必ず
+     8px内側に収まる。メディアクエリの上書きは丸ごと不要になり削除した。 */
+  padding: 1.3rem calc(5.45% + 0.5rem) calc(var(--fuda-tip-h) + 0.8rem);
   display: flex;
   flex-direction: column;
   gap: 0.55rem;
-}
-
-/* 上辺の切り落とし(5.45%)は、2列になるデスクトップのカード幅(約407px)では
-   約22pxに達し、既定の横padding 1.3rem(21px)だと先頭行の文字・ピルが角に
-   かかる。2列レイアウトになる幅でだけ横paddingを1.5remへ広げる
-   (360pxの1列ではカード幅約325px・切り落とし約18pxで1.3remのまま足りる。
-   モバイルで一律に広げると行幅が縮んで全長が約230px伸びるため)。 */
-@media (min-width: 700px) {
-  .fuda-card {
-    padding-left: 1.5rem;
-    padding-right: 1.5rem;
-  }
 }
 
 .fuda-card::before {
   content: '';
   position: absolute;
   top: 0;
-  left: 8%;
-  right: 8%;
+  /* 第6ラウンド(5巡目C-4): 8%のままだとclipの切り落とし(5.45%)との差
+     2.55%が白い隙間になり、色帯が札の角に届かず途中で切れて見えていた。
+     切り落とし量と同じ5.45%に揃えて、帯を角から角まで渡す。 */
+  left: 5.45%;
+  right: 5.45%;
   height: 4px;
   background: var(--severity-error-border);
   border-radius: 0 0 3px 3px;
@@ -1104,10 +1176,14 @@ section > h2,
   margin-top: 0.85rem;
 }
 
-/* --- 直す力のそなえ(第5ラウンドF-4)。パフォーマンスパネルと同じ額装で、
-   Before/After予告・修正履歴・カード画像書き出しを紹介する --- */
-.fuda-atogaki {
-  margin-top: 1rem;
+/* --- 直すときも、ていねいに(第5ラウンドF-4で追加、第6ラウンド6で
+   .fuda から独立した節(.naoshi)へ移動)。額装パネルはやめ、動作環境(.youken)と
+   同じ素のリストにする(h2を得たぶん、パネルの縁とh3は不要になった)。 --- */
+.naoshi {
+  /* 内容は守り札の続き(直したあとの話)なので、前節との間隔は通常の
+     半分に詰める。独立セクション化(+h2)で増えるページ全長を、この詰めで
+     予算(360pxで8251px)内へ相殺する役割も兼ねる。 */
+  padding-top: 1rem;
 }
 
 .fuda-atogaki-list {

@@ -119,16 +119,32 @@
                幅100は前版と同じなので線幅は相似のまま流用。
                収束部の曲線は実測プロファイル9点を通るCatmull-Rom曲線をそのまま
                ベジェに変換したもの。
-               内枠と「改変安全」の文字は外した(第5ラウンドB-3): この絵の表示幅は
-               72px(モバイル48px)で、文字は6.1px(モバイル4.1px)と和文の可読下限
-               (約9px)を大きく割り、内枠は0.72px×不透明度0.55で灰色のもやに
-               なっていた。読めない文字・見えない線は置かない。 -->
-          <svg class="koujou-charm-shape" viewBox="0 0 100 195" xmlns="http://www.w3.org/2000/svg">
-            <path d="M5.36,41.5 Q5.45,40 6.95,40 L93.05,40 Q94.55,40 94.64,41.5 L100,127.4 C99.68,130.9 99.33,142.4 98.1,148.5 C96.87,154.6 94.88,159.35 92.6,164 C90.33,168.65 87.68,172.8 84.45,176.4 C81.22,180 77.28,183.1 73.2,185.7 C69.12,188.3 63.82,190.35 59.95,191.9 C56.08,193.45 51.66,194.5 50,195 C48.34,194.5 43.92,193.45 40.05,191.9 C36.18,190.35 30.88,188.3 26.8,185.7 C22.72,183.1 18.78,180 15.55,176.4 C12.32,172.8 9.67,168.65 7.4,164 C5.12,159.35 3.13,154.6 1.9,148.5 C0.67,142.4 0.32,130.9 0,127.4 Z" fill="var(--hero-charm-fill)" stroke="var(--omamori-cream)" stroke-width="2.2" stroke-linejoin="round"/>
+               第6ラウンド2-a: viewBoxを「-2 -2 104 199」に広げた。0 0 100 195の
+               ままだと、最大幅の位置(x=0/100)でstroke-width2.2の外側半分が
+               viewBoxに切り落とされ、底の先端(y=195)も約6px幅で水平に切断
+               されていた(5巡目D-3c)。座標は一切変えず、余白2ユニットを
+               四辺に足しただけ。
+               第6ラウンド2-b: 内枠と「改変安全」を戻した(.koujou-charm-detail)。
+               900px以上では絵が190pxになり文字は実測15.5pxで読める。
+               900px未満は72px/48px表示のままなのでCSSで非表示にする
+               (6.1px/4.1pxの文字は読めない、という第5ラウンドB-3の判断は
+               維持し、「絵を大きくできる幅でだけ描く」に改める)。
+               文字位置は資材の実測(文字中心=本体高さの81.5%地点)に合わせた
+               y=168(本体40..195)。内枠は本体輪郭の中心相似縮小0.9倍で、
+               資材の「輪郭の少し内側を回る同じ形の線」を再現する。 -->
+          <svg class="koujou-charm-shape" viewBox="-2 -2 104 199" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+              <path id="charm-body" d="M5.36,41.5 Q5.45,40 6.95,40 L93.05,40 Q94.55,40 94.64,41.5 L100,127.4 C99.68,130.9 99.33,142.4 98.1,148.5 C96.87,154.6 94.88,159.35 92.6,164 C90.33,168.65 87.68,172.8 84.45,176.4 C81.22,180 77.28,183.1 73.2,185.7 C69.12,188.3 63.82,190.35 59.95,191.9 C56.08,193.45 51.66,194.5 50,195 C48.34,194.5 43.92,193.45 40.05,191.9 C36.18,190.35 30.88,188.3 26.8,185.7 C22.72,183.1 18.78,180 15.55,176.4 C12.32,172.8 9.67,168.65 7.4,164 C5.12,159.35 3.13,154.6 1.9,148.5 C0.67,142.4 0.32,130.9 0,127.4 Z"/>
+            </defs>
+            <use href="#charm-body" fill="var(--hero-charm-fill)" stroke="var(--omamori-cream)" stroke-width="2.2" stroke-linejoin="round"/>
             <path d="M35.25,40 Q35.25,18.9 50,18.9 Q64.75,18.9 64.75,40" fill="none" stroke="var(--omamori-cream)" stroke-width="2.2" stroke-linecap="round"/>
             <line x1="50" y1="18.9" x2="50" y2="9" stroke="var(--omamori-cream)" stroke-width="2.2" stroke-linecap="round"/>
             <path d="M50,76.7 L68.2,82.27 L68.2,104.46 Q68.2,121.13 50,130.8 Q31.8,121.13 31.8,104.46 L31.8,82.27 Z" fill="none" stroke="var(--omamori-cream)" stroke-width="2"/>
             <path d="M38.43,104.46 L46.69,112.78 L64.89,90.55" fill="none" stroke="var(--omamori-cream)" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"/>
+            <g class="koujou-charm-detail">
+              <use href="#charm-body" transform="translate(50,117.5) scale(0.9) translate(-50,-117.5)" fill="none" stroke="var(--omamori-cream)" stroke-width="1.1" opacity="0.6"/>
+              <text x="50" y="168" text-anchor="middle" font-family="'Zen Maru Gothic','Noto Sans JP',sans-serif" font-size="8.5" font-weight="700" letter-spacing="1.5" fill="var(--omamori-cream)">改変安全</text>
+            </g>
           </svg>
         </div>
 
@@ -170,7 +186,12 @@
     <!-- ③ 守り札グリッド -->
     <section class="fuda wrap" aria-labelledby="fuda-heading">
       <h2 id="fuda-heading">おまもりが見ているもの</h2>
-      <p class="section-lead">チェックを実行すると、下記の項目を一つずつ確かめていきます。見つかった問題はオブジェクトを選んで直接確認でき、直せるものはボタン一つで直せます。</p>
+      <!-- 絵文字(第6ラウンド7): 4巡目でクローバー以外を削ったが、「1投稿2〜3個」は
+           Xの1投稿に対する基準で、6画面のWebページに機械的に当てるのは過剰な
+           圧縮だった(5巡目内容§3)。原因究明の虫めがね(この位置)と読後感の
+           提灯(footer)を戻し、ページ全体でクローバーと合わせて計3個とする
+           (若葉は戻さない)。 -->
+      <p class="section-lead">チェックを実行すると、下記の項目を一つずつ確かめていきます。🔍 見つかった問題はオブジェクトを選んで直接確認でき、直せるものはボタン一つで直せます。</p>
 
       <ul class="fuda-grid">
         <li class="fuda-card" data-severity="error">
@@ -346,18 +367,26 @@
         <p class="fuda-performance-caution">ここに表示される数値は、Modular Avatarなどの非破壊改変ツールを適用する前の状態のものです。実際にアップロードされる最終的な値は、VRChat SDKのビルドパネルでご確認ください。</p>
       </div>
 
-      <!-- 第5ラウンドF-4: 製品にあるのにページに無かった機能3つ(初回レビューM-8)。
-           記述はCHANGELOG v0.6.0 / v0.7.0 と Editor/CheckResult.cs(ValueLabel/
-           BeforeValue/AfterValue)・FixHistoryStore.cs(セッション内・上限100件)・
-           CardExporter.cs(1200×630 PNG)の実装どおりに合わせており、盛っていない。 -->
-      <div class="fuda-performance fuda-atogaki">
-        <h3>直すときも、ていねいに</h3>
-        <ul class="fuda-atogaki-list">
-          <li>「修正」を押す前に、「FX Layer / Weight: 0 → 1」のように修正前後の値を予告します。自動修正のある札は、すべて予告付きです。</li>
-          <li>実行した修正は「修正履歴」の欄に実際の値つきで並び、Unityを終了するまで見返せます。</li>
-          <li>チェック結果は、件数と日付をまとめた1枚のカード画像(PNG)に書き出せます。アバター名などは載せず、すべてきれいなら金色の「✓」が付きます。</li>
-        </ul>
-      </div>
+    </section>
+
+    <!-- 直すときも、ていねいに(第6ラウンド6): この内容はバックアップ・Undo・
+         修正履歴という「直したあと」の話で、「おまもりが見ているもの」
+         (=チェック項目)の中身ではない。h2→h3の階層としては正しくても
+         意味として誤っており、見出しを頼りに走査する読者がバックアップの
+         注意書きに到達できなかった(5巡目レイアウト§3-B)。独自のh2を持つ
+         節として独立させる。
+         記述内容は第5ラウンドF-4のまま: CHANGELOG v0.6.0 / v0.7.0 で当たりを
+         付け、Editor/CheckResult.cs(ValueLabel/BeforeValue/AfterValue)・
+         EmissionCheck.cs:102(4項目めの予告)・FixHistoryStore.cs(static List、
+         クリアはボタンのみ=Unity終了まで残る)・CardExporter.cs(1200×630 PNG)
+         の現在の実装に合わせてある。 -->
+    <section class="naoshi wrap" aria-labelledby="naoshi-heading">
+      <h2 id="naoshi-heading">直すときも、ていねいに</h2>
+      <ul class="fuda-atogaki-list">
+        <li>「修正」を押す前に、「FX Layer / Weight: 0 → 1」のように修正前後の値を予告します。自動修正のある札は、すべて予告付きです。</li>
+        <li>実行した修正は「修正履歴」の欄に実際の値つきで並び、Unityを終了するまで見返せます。</li>
+        <li>チェック結果は、件数と日付をまとめた1枚のカード画像(PNG)に書き出せます。アバター名などは載せず、すべてきれいなら金色の「✓」が付きます。</li>
+      </ul>
 
       <!-- D-8: バックアップの勧め・免責。Undo不可の削除(消えたスクリプト)や
            アセットの書き換えを行う道具として、これまで0件だった。実装で
@@ -611,7 +640,7 @@
       </svg>
     </div>
     <p class="rakkan-name">つくも堂 — TSUKUMODO</p>
-    <p class="rakkan-tagline">VRChat社とは無関係の、有志による非公式ツールです。お気づきの点があれば、お気軽にXまでどうぞ。</p>
+    <p class="rakkan-tagline">VRChat社とは無関係の、有志による非公式ツールです。お気づきの点があれば、お気軽にXまでどうぞ。🏮</p>
     <ul class="rakkan-links">
       <li><a href="https://tsukumodo-lab.booth.pm/items/8132860" target="_blank" rel="noopener">BOOTH</a></li>
       <li><a href="https://x.com/tsukumodo_lab" target="_blank" rel="noopener">X (@tsukumodo_lab)</a></li>
