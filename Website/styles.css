@@ -152,7 +152,9 @@ button, input {
     --card-bg: #242220;
     --card-bg-alt: #1F1D1A;
     --border: #3A3632;
-    --footer-text: #7A7568;
+    /* ライトのみ 3.37→5.82 に直っていた(1-4)。ダークは #7A7568 のまま
+       page-bg比 3.83:1 で AA未達だったため、こちらも明るくする。 */
+    --footer-text: #9C9587;
 
     --hero-bg: #2E4E3B;
     --hero-text: var(--omamori-cream);
@@ -247,7 +249,11 @@ button, input {
 .wrap {
   max-width: 880px;
   margin: 0 auto;
-  padding: 0 1.5rem;
+  /* 横だけを指定する。縦を明示すると、section 自身が .wrap を兼ねる
+     4セクション（fuda / youken / michi / tana）で section { padding: 3rem 0 }
+     を上書きしてしまい、セクション間の縦余白が消える（1-1 の回帰）。 */
+  padding-left: 1.5rem;
+  padding-right: 1.5rem;
 }
 
 .visually-hidden {
@@ -334,8 +340,11 @@ section > .wrap > h2 {
   background: var(--card-bg-alt);
 }
 .btn-ghost.is-copied {
-  border-color: var(--omamori-green);
-  color: var(--omamori-green);
+  /* --omamori-green はテーマ非依存の固定リテラルで、ダークでは
+     page-bg/card-bg 比 3.35:1 まで落ちる(1-5)。--accent-text に
+     差し替える(ダーク実測 6.6:1 相当)。 */
+  border-color: var(--accent-text);
+  color: var(--accent-text);
 }
 
 .btn-small {
@@ -363,6 +372,14 @@ section > .wrap > h2 {
 .noren {
   position: relative;
   overflow: hidden;
+  /* 暖簾の切れ込み(64px)ぶんヒーローへ軽く被せることで、深い切れ込みを
+     保ちながらページ全体の縦の伸びを抑える(3-2)。z-index で暖簾を前面に
+     出し、切れ込みの隙間からヒーローの緑が覗くようにする。
+     被せる量(32px)は .koujou の上パディング(モバイル 2.5rem=40px /
+     デスクトップ 3rem=48px)より小さくし、店章・屋号や、ヒーロー側の
+     おまもり絵と衝突しないようにしている。 */
+  z-index: 2;
+  margin-bottom: -32px;
 }
 
 .noren-band {
@@ -418,10 +435,17 @@ section > .wrap > h2 {
   background-color: var(--omamori-navy);
   -webkit-mask-image: url('noren.svg');
   mask-image: url('noren.svg');
-  -webkit-mask-size: 100% 100%;
-  mask-size: 100% 100%;
-  -webkit-mask-repeat: no-repeat;
-  mask-repeat: no-repeat;
+  /* mask-size を実px指定でタイル化する（3-1）。以前の 100% 100% は
+     ビューポート幅いっぱいに1枚絵を引き伸ばしていたため、幅が広い画面ほど
+     切れ込みの幅が太ってしまっていた（390px=7.8px → 1600px=32px）。
+     92px 固定タイルを repeat-x で敷き詰めることで、隙間の実寸(12px)が
+     画面幅に関わらず一定になる。 */
+  -webkit-mask-size: 92px 100%;
+  mask-size: 92px 100%;
+  -webkit-mask-repeat: repeat-x;
+  mask-repeat: repeat-x;
+  -webkit-mask-position: center;
+  mask-position: center;
 }
 
 /* =========================================================================
@@ -530,6 +554,17 @@ section > .wrap > h2 {
   margin: 0;
 }
 
+/* 「三つの道」への実体参照（#michi-heading）。距離が遠いため文言から
+   「下の」を外し、リンクで直接飛べるようにした(4-1)。 */
+.koujou-cta-note a {
+  color: inherit;
+  font-weight: 700;
+  text-decoration: underline;
+}
+.koujou-cta-note a:hover {
+  text-decoration: none;
+}
+
 .koujou-url-row {
   display: flex;
   gap: 0.5rem;
@@ -555,7 +590,9 @@ section > .wrap > h2 {
 .koujou .btn-ghost {
   background: rgba(0, 0, 0, 0.18);
   color: var(--hero-text);
-  border: 1px solid rgba(240, 232, 208, 0.5);
+  /* 半透明の枠線は地の緑に対して 2.18:1 まで落ちる(1-6)。ゴーストボタンは
+     枠線がボタンであることを示す唯一の形なので不透明にする(3:1以上を確保)。 */
+  border: 1px solid var(--hero-text);
 }
 .koujou .btn-ghost:hover {
   background: rgba(0, 0, 0, 0.28);
@@ -696,7 +733,7 @@ section > .wrap > h2 {
   /* 260px だと .wrap(880px) の中で3列×4段になり、最終段に孤児が1枚残る上、
      カード内1行が15字程度しかなく複合語(「アップロード」「Merge Armature」等)の
      折り返しを量産していた(E-2)。下限を320pxに上げ、2列×5段に固定する。 */
-  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(min(320px, 100%), 1fr));
   gap: 1.1rem;
   margin-bottom: 2rem;
 }
@@ -1035,7 +1072,9 @@ section > .wrap > h2 {
   content: '○';
   position: absolute;
   left: 0;
-  color: var(--omamori-green);
+  /* --omamori-green はテーマ非依存でダーク page-bg 比 3.15:1(1-5)。
+     --accent-text に差し替えて他のアクセント緑と揃える。 */
+  color: var(--accent-text);
 }
 
 .kiroku-dont li::before {
@@ -1178,7 +1217,8 @@ dialog:focus-visible {
 
 @media (max-width: 400px) {
   .wrap {
-    padding: 0 1.1rem;
+    padding-left: 1.1rem;
+    padding-right: 1.1rem;
   }
   .noren-shopname {
     font-size: 1.1rem;

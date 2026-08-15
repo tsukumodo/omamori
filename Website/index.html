@@ -100,6 +100,10 @@
             <defs>
               <path id="tooth-hero" d="M44.5 6 h11 a2.2 2.2 0 0 1 2.13 2.73 L55.2 20 h-10.4 l-2.43 -11.27 A2.2 2.2 0 0 1 44.5 6 Z"/>
             </defs>
+            <!-- 札の地(--omamori-gold)と歯車(--tsukumo-gear、ライトでは同じ金茶)が
+                 同色で歯車が消える(1-3)ため、ロゴと同じ入れ子構造で紺の丸座を敷く。
+                 配色トークンは変更しない。 -->
+            <circle cx="50" cy="50" r="40" fill="var(--tsukumo-navy)"/>
             <g fill="var(--tsukumo-gear)">
               <use href="#tooth-hero" transform="rotate(0 50 50)"/>
               <use href="#tooth-hero" transform="rotate(45 50 50)"/>
@@ -145,7 +149,7 @@
 
         <div class="koujou-cta">
           <button type="button" id="addToVcc" class="btn btn-primary">おまもりを授かる</button>
-          <p class="koujou-cta-note">VCC(VRChat Creator Companion)でこのリスティングを開き、プロジェクトに追加します。導入済みでない方は、下の「三つの道」から他の方法もお選びいただけます。</p>
+          <p class="koujou-cta-note">VCC(VRChat Creator Companion)でこのリスティングを開き、プロジェクトに追加します。導入済みでない方は、<a href="#michi-heading">「三つの道」</a>から他の方法もお選びいただけます。</p>
           <div class="koujou-url-row">
             <label for="listingUrl" class="visually-hidden">VPMリスティングURL</label>
             <input type="text" readonly id="listingUrl" value="{{ listingInfo.Url }}">
@@ -188,7 +192,7 @@
             <span class="fuda-severity fuda-severity--warning">警告</span>
           </div>
           <p class="fuda-card-scene">肌にテクスチャを入れただけのつもりが、気づけばアバター全体が煌々と光り輝いていた——という声から生まれたチェックです。</p>
-          <p class="fuda-card-detail">lilToonとUnity Standard系のマテリアルを対象に、Emissionがオンのまま残っていないか確かめます(ロック済みマテリアルや対応外のシェーダーは値を推測できないため対象外です)。自動修正で発光だけをオフにでき、色の設定はそのまま残せます。ただし同じマテリアルを他の箇所でも使っている場合はそちらにも反映されるほか、メニューなどで発光の有無を切り替える設計になっていると、オフにしたことで動きが崩れることがあります。</p>
+          <p class="fuda-card-detail">lilToonとUnity Standard系のマテリアルを対象に、Emissionがオンで、かつ実際に光っている(色が真っ黒や極端に暗いものは除きます)マテリアルを見つけます(ロック済みマテリアルや対応外のシェーダーは値を推測できないため対象外です)。自動修正で発光だけをオフにでき、色の設定はそのまま残せます。ただし、同じマテリアルを他の箇所でも使っていれば、そちらの見た目も一緒に変わります。メニューなどで発光を切り替える作りのアバターでは、オフにしたことで動きが崩れることもありますが、そうした場合もUndo(Ctrl+Z)で元に戻せますので、迷ったらひとまず試してみてください。</p>
           <p class="fuda-card-fix">✓ 自動修正あり</p>
         </li>
 
@@ -294,7 +298,8 @@
         <button type="button" class="michi-tab" role="tab" id="tab-booth" aria-selected="false" aria-controls="panel-booth" tabindex="-1">BOOTHから入手</button>
       </div>
 
-      <div class="michi-panel" role="tabpanel" id="panel-vcc" aria-labelledby="tab-vcc" tabindex="0">
+      <!-- パネル内に操作要素があるため tabindex は付けない（APG Tabs パターン。1-7） -->
+      <div class="michi-panel" role="tabpanel" id="panel-vcc" aria-labelledby="tab-vcc">
         <p class="michi-panel-summary">ワンクリックでVCCにリスティングを登録する、一番早い道です。</p>
         <div class="michi-panel-action">
           <button type="button" class="btn btn-primary btn-small vcc-trigger">おまもりを授かる</button>
@@ -307,7 +312,7 @@
         <p class="michi-note">VCCがまだ手元にない場合は、先にVRChat公式のVCCを導入してからお試しください。</p>
       </div>
 
-      <div class="michi-panel" role="tabpanel" id="panel-vpm-url" aria-labelledby="tab-vpm-url" tabindex="0" hidden>
+      <div class="michi-panel" role="tabpanel" id="panel-vpm-url" aria-labelledby="tab-vpm-url" hidden>
         <p class="michi-panel-summary">VCCの「Add Repository」にリスティングURLを直接貼り付けて登録する道です。</p>
         <ol class="michi-steps">
           <li>VCCを開いて Settings → 「Packages」タブへ</li>
@@ -322,7 +327,7 @@
         <p class="michi-note">URLは上のコピー ボタンから控えられます。VCCの反応がない場合は再起動をお試しください。</p>
       </div>
 
-      <div class="michi-panel" role="tabpanel" id="panel-booth" aria-labelledby="tab-booth" tabindex="0" hidden>
+      <div class="michi-panel" role="tabpanel" id="panel-booth" aria-labelledby="tab-booth" hidden>
         <p class="michi-panel-summary">VCCを使わず、BOOTHから直接ダウンロードしてUnityに取り込む道です。</p>
         <ol class="michi-steps">
           <li><a class="michi-inline-link" href="https://tsukumodo-lab.booth.pm/items/8132860" target="_blank" rel="noopener">BOOTH商品ページ(tsukumodo-lab.booth.pm)を開く</a></li>
@@ -401,8 +406,8 @@
       <div class="asanoha kiroku-pattern" aria-hidden="true"></div>
       <div class="wrap">
         <h2 id="kiroku-heading">利用統計のお約束</h2>
-        <p>おまもりは改善のため、ごく簡単な利用統計を、あなたのPC内——プロジェクトの Library/ フォルダの中にだけ記録します。データが自動で送信されることは一切ありません。</p>
-        <p>保存先は &lt;プロジェクト&gt;/Library/com.tsukumodo.avatar-omamori/usage-stats.json です。プロジェクトやLibraryフォルダを削除すれば、記録も一緒になくなります。</p>
+        <p>おまもりは改善のため、ごく簡単な利用統計を、あなたのPC内——プロジェクトの Library/ フォルダの中に記録します。データが自動で送信されることは一切ありません。</p>
+        <p>保存先は &lt;プロジェクト&gt;/Library/com.tsukumodo.avatar-omamori/usage-stats.json です。プロジェクトやLibraryフォルダを削除すれば、統計は一緒になくなります(このほか「初回のご案内を表示したか」だけを覚えておくため、Unityの設定領域に真偽値を1つ置いています。統計そのものはここには含まれません)。</p>
 
         <div class="kiroku-lists">
           <div>
