@@ -120,6 +120,12 @@ button, input {
   --border: #E0DCD4;
   --footer-text: #645F55;
 
+  /* 守り札の輪郭専用トークン(D-1)。ライトは通常の --border で足りるが、
+     ダークは card-bg(#242220)に対して --border(#3A3632)が 1.32:1 しか
+     無く、UI非文字のAA基準(3:1)を割る。専用トークンにして
+     ダーク側だけ明るい値に差し替える。 */
+  --fuda-card-edge: var(--border);
+
   /* 配色体系の見直し（監督の仕様ミス修正）: 店の色は紺+金茶、抹茶は
      「おまもり」という商品1つの色。ヒーローは店の紺地に統一し、緑は
      おまもり札の絵の中だけに残す。紺は暖簾の帯と同じ固定ブランド色
@@ -174,6 +180,9 @@ button, input {
     --card-bg: #242220;
     --card-bg-alt: #1F1D1A;
     --border: #3A3632;
+    /* 実測: card-bg(#242220)比 3.46:1 / page-bg(#1A1915)比 3.84:1。
+       AA非文字基準(3:1)を満たす暖色寄りのグレー(D-1)。 */
+    --fuda-card-edge: #7A756B;
     /* ライトのみ 3.37→5.82 に直っていた(1-4)。ダークは #7A7568 のまま
        page-bg比 3.83:1 で AA未達だったため、こちらも明るくする。 */
     --footer-text: #9C9587;
@@ -201,6 +210,19 @@ button, input {
     --focus-ring: var(--omamori-gold);
 
     --glow: 0 0 10px rgba(222, 189, 140, 0.35);
+  }
+
+  /* 「夜のつくも堂」(D-13): 店章・落款の印・ヒーローのおまもりに、
+     提灯のような柔らかい金茶の光暈を添える。紺の地はライト/ダークで
+     同じ固定色のため、この控えめな灯りだけが「夜になった」ことを
+     語る。やりすぎないよう、ぼかしは小さく・アニメーションは付けない
+     （--glow の主CTAボタンと同じ強さ）。 */
+  .noren-crest svg,
+  .rakkan-mascot svg {
+    filter: drop-shadow(0 0 6px rgba(222, 189, 140, 0.4));
+  }
+  .koujou-charm {
+    filter: drop-shadow(0 6px 14px rgba(0, 0, 0, 0.3)) drop-shadow(0 0 10px rgba(222, 189, 140, 0.3));
   }
 }
 
@@ -373,6 +395,9 @@ section > h2,
 .btn-small {
   padding: 0.45rem 1rem;
   font-size: 0.85rem;
+  /* タップターゲット(D-3): 実測39〜41pxはWCAG目安の44px未満。
+     横幅・見た目はそのまま、縦だけ44pxを確保する。 */
+  min-height: 44px;
 }
 
 /* --- 汎用チップ / バッジ --- */
@@ -661,48 +686,22 @@ section > h2,
   color: inherit;
   font-weight: 700;
   text-decoration: underline;
+  /* タップターゲット(D-16): 文中リンクで実測78×15px。padding+同量の
+     負マージンで見た目・行間は変えずに当たり判定だけ44px近くまで広げる。 */
+  display: inline-block;
+  padding: 15px 3px;
+  margin: -15px -3px;
 }
 .koujou-cta-note a:hover {
   text-decoration: none;
 }
 
-.koujou-url-row {
-  display: flex;
-  gap: 0.5rem;
-  width: 100%;
-  max-width: 480px;
-  margin-top: 0.5rem;
-}
-
-#listingUrl {
-  flex: 1;
-  min-width: 0;
-  border: 1px solid rgba(200, 168, 124, 0.45);
-  background: rgba(0, 0, 0, 0.15);
-  color: var(--hero-text);
-  border-radius: 8px;
-  padding: 0.55rem 0.75rem;
-  font-size: 0.82rem;
-}
-
-/* コピーボタンは通常 .btn-ghost（明るいカード用に text-primary の暗い墨文字）
-   だが、これをそのまま紺のヒーローに置くと文字が地に沈む。
-   紺地は元々暗いので、緑ヒーロー時代のような黒いオーバーレイの重ね塗りは
-   不要になった。透明地+クリーム枠の「紙の荷札」の質感に戻す。
-   実測(文字 vs 紺地) 12.74:1（通常/hover/is-copied とも同色文字なので同値）。 */
-.koujou .btn-ghost {
-  background: transparent;
-  color: var(--hero-text);
-  border: 1px solid var(--hero-sub);
-}
-.koujou .btn-ghost:hover {
-  background: rgba(240, 232, 208, 0.12);
-}
-.koujou .btn-ghost.is-copied {
-  background: rgba(240, 232, 208, 0.12);
-  border-color: var(--hero-text);
-  color: var(--hero-text);
-}
+/* ヒーローの生URL欄(.koujou-url-row / #listingUrl)は撤去した(D-14)。
+   「三つの道」のURLタブに同じ入力欄がすでにあり、店先に生JSONのURLを
+   並べるのは最も不向きという指摘のため。ここに紺地専用の .btn-ghost
+   上書きが必要だったのもそのコピーボタンのためだけだったので、
+   あわせて不要になった(以前は #listingUrl の隣にあった #copyListingUrl
+   がここに .btn-ghost として存在していたが、その用途自体が無くなった)。 */
 
 /* =========================================================================
    7. 三つの道（タブ）
@@ -817,6 +816,8 @@ section > h2,
   border-radius: 8px;
   padding: 0.55rem 0.75rem;
   font-size: 0.82rem;
+  /* タップターゲット(D-3): 実測43px。あと一歩の44pxへ。 */
+  min-height: 44px;
 }
 
 .michi-inline-link {
@@ -863,9 +864,10 @@ section > h2,
   /* clip-path が左右の縦辺に1点でしか接しないため、border は
      ほぼ全長がクリップされて描画されない(ダークで札vs地が1.12:1)。
      drop-shadow を4方向に重ねて、クリップ後のシルエットそのものに
-     輪郭を与える(D-1)。 */
-  filter: drop-shadow(1px 0 0 var(--border)) drop-shadow(-1px 0 0 var(--border))
-          drop-shadow(0 1px 0 var(--border)) drop-shadow(0 -1px 0 var(--border));
+     輪郭を与える。色は --border ではなく専用トークン --fuda-card-edge
+     を使う(D-1: ダークの --border だと 1.32:1 でAAの3:1を割るため)。 */
+  filter: drop-shadow(1px 0 0 var(--fuda-card-edge)) drop-shadow(-1px 0 0 var(--fuda-card-edge))
+          drop-shadow(0 1px 0 var(--fuda-card-edge)) drop-shadow(0 -1px 0 var(--fuda-card-edge));
   clip-path: polygon(
     4% 0%, 96% 0%,
     98.2% calc(100% - var(--fuda-tip-h)),
@@ -1072,6 +1074,16 @@ section > h2,
   gap: 1rem;
 }
 
+/* --- 検索0件時の案内(D-2) --- */
+.tana-empty {
+  color: var(--text-secondary);
+  text-align: center;
+  border: 1px dashed var(--border);
+  border-radius: 12px;
+  padding: 1.5rem 1rem;
+  margin-top: 1rem;
+}
+
 .tana-item {
   background: var(--card-bg);
   border: 1px solid var(--border);
@@ -1147,7 +1159,10 @@ section > h2,
 }
 
 #packageInfoDialog::backdrop {
-  background: rgba(22, 34, 68, 0.55);
+  /* 紺(#162244)は暖色でまとめたページ全体の中で唯一の青みで、幕を
+     下ろすたびにページ全体が青く濁って見えていた(D-10)。墨(--tsukumo-ink
+     のライト値 #2C2A25)寄りの暖色系スクリムに差し替える。 */
+  background: rgba(44, 42, 37, 0.6);
 }
 
 .tana-dialog-inner {
@@ -1186,6 +1201,18 @@ section > h2,
   font-size: 1.1rem;
   line-height: 1;
   flex-shrink: 0;
+  /* タップターゲット(D-3): 見た目は32×32のまま、当たり判定だけ
+     ::after で44×44に広げる（visual size unchanged, hit-area expanded）。 */
+  position: relative;
+}
+.tana-dialog-close::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 44px;
+  height: 44px;
+  transform: translate(-50%, -50%);
 }
 .tana-dialog-close:hover {
   background: var(--border);
@@ -1198,6 +1225,16 @@ section > h2,
 }
 .tana-dialog-inner h4:first-of-type {
   margin-top: 0;
+}
+
+/* --- ダイアログのCTA(D-9: 行き止まり解消) --- */
+.tana-dialog-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+  margin-top: 1.4rem;
+  padding-top: 1.1rem;
+  border-top: 1px solid var(--border);
 }
 
 #packageInfoDependencies {
@@ -1238,14 +1275,66 @@ section > h2,
   position: relative;
 }
 
+/* --- 詳細の折りたたみ(D-19): 守り札(§8)と同じ<details>手法。
+   常に見えるのは核心の約束の1文だけにし、保存場所・内訳・管理方法は
+   開くと読める。利用統計の占有面積が「三つの道」の約2倍だったのを縮める。 --- */
+.kiroku-more {
+  margin-top: 1rem;
+}
+
+.kiroku-more summary {
+  cursor: pointer;
+  list-style: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.92rem;
+  font-weight: 700;
+  color: var(--accent-text);
+  padding: 0.1rem 0;
+  user-select: none;
+}
+
+.kiroku-more summary::-webkit-details-marker {
+  display: none;
+}
+
+.kiroku-more summary::before {
+  content: '▸';
+  display: inline-block;
+  font-size: 0.7em;
+  transition: transform 0.15s ease;
+}
+
+.kiroku-more[open] summary::before {
+  transform: rotate(90deg);
+}
+
+.kiroku-more summary:hover {
+  text-decoration: underline;
+}
+
+.kiroku-more-body {
+  margin-top: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1em;
+}
+.kiroku-more-body > p {
+  /* gapで間隔を統一するため、pの既定下マージンと二重にならないよう消す */
+  margin: 0;
+}
+
 .kiroku-lists {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
   gap: 1.5rem;
-  margin: 1.25rem 0 1.5rem;
+  margin: 0;
 }
 
-.kiroku-lists h4 {
+/* 記録する/記録しない の見出しはh3(D-5): 以前はh4で、h2(利用統計のお約束)
+   から直接h4に飛んでおり見出し階層がスキップしていた。 */
+.kiroku-lists h3 {
   font-size: 0.85rem;
   margin: 0 0 0.5rem;
 }
@@ -1314,6 +1403,14 @@ section > h2,
   width: 40px;
   margin: 0 auto 0.75rem;
   opacity: 0.85;
+  /* 落款(D-11): クラス名どおり「印」らしくするため、角を少し落とした
+     正方形の金茶の細枠+ごく薄い地色を添える。石に彫った印を紙に
+     捺したような、控えめな縁取り。 */
+  box-sizing: content-box;
+  padding: 7px;
+  border: 1.5px solid var(--omamori-gold);
+  border-radius: 8px;
+  background: rgba(200, 168, 124, 0.08);
 }
 
 .rakkan-name {
@@ -1344,6 +1441,12 @@ section > h2,
   text-decoration: none;
   color: var(--accent-text);
   font-weight: 500;
+  /* タップターゲット(D-3): 実測15px高。行間だけの当たり判定だった文字
+     リンクに縦のpaddingを足して44pxへ。横幅はもともと44px以上ある。 */
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  padding: 4px 2px;
 }
 .rakkan-links a:hover {
   text-decoration: underline;
@@ -1399,14 +1502,13 @@ dialog:focus-visible {
   }
   .koujou-lead {
     font-size: 0.92rem;
-    text-align: center;
+    /* D-17: モバイルだけ中央揃えに戻っていた。複数行の本文は左揃えの方が
+       読みやすく、デスクトップと同じ判断で揃える。 */
+    text-align: left;
     margin-bottom: 0.85rem;
   }
   .koujou-cta-note {
     text-align: center;
-  }
-  .koujou-url-row {
-    flex-direction: column;
   }
   .michi-url-row {
     flex-direction: column;

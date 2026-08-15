@@ -7,7 +7,9 @@
 //
 // Fluent UI 撤去後にこのファイルが持つ責務は次の7つだけ（INTEGRATION_SPEC.md §4）:
 //   1. LISTING_URL / PACKAGES の受け取り（Scriban）
-//   2. VCC追加ボタン（ヒーロー + 棚の各行）
+//   2. VCC追加ボタン（ヒーロー + 三つの道のVCCタブ + パッケージ詳細ダイアログ。
+//      VCCへの追加はリスティング単位の操作でパッケージ単位には出来ないため、
+//      棚の各行には個別の追加ボタンを置かない。D-6）
 //   3. URLコピー
 //   4. タブ（矢印キー対応）
 //   5. パッケージ詳細 <dialog> の開閉と内容差し込み
@@ -39,6 +41,7 @@ const PACKAGES = {
     ],
     license: "{{ package.License }}",
     licensesUrl: "{{ package.LicensesUrl }}",
+    zipUrl: "{{ package.ZipUrl }}",
   },
 {{~ end ~}}
 };
@@ -48,12 +51,31 @@ function initVccButtons() {
   const goToVcc = () => {
     window.location.assign(`vcc://vpm/addRepo?url=${encodeURIComponent(LISTING_URL)}`);
   };
-  document.querySelectorAll('#addToVcc, .tana-add, .vcc-trigger').forEach((button) => {
+  // 棚の各行には .tana-add を置かない（D-6）。VCCへの追加はリスティング
+  // （リポジトリ）単位の操作で、VPMにはパッケージ単体を狙い撃ちで追加する
+  // 手段が無いため、行ごとに data-package-id を持たせても機能しない
+  // 死んだ属性になっていた。
+  document.querySelectorAll('#addToVcc, .vcc-trigger').forEach((button) => {
     button.addEventListener('click', goToVcc);
   });
 }
 
 // ─── 2. URLコピー ────────────────────────────────────────────────────
+// D-4: コピー成功はこれまでボタン自身のラベル変更（「写しました」）だけで
+// 伝えていたが、見た目の変化なのでスクリーンリーダー利用者には届かない。
+// 共有の role="status" 領域（#a11yStatus）にも同じ内容を流す。
+// 同文言が連続しても再アナウンスされるよう、一度空にしてから次のフレームで
+// 差し込む（同一テキストへの上書きだけだと変化なしと判断され黙殺する
+// 実装があるため）。
+function announce(message) {
+  const status = document.getElementById('a11yStatus');
+  if (!status) return;
+  status.textContent = '';
+  window.requestAnimationFrame(() => {
+    status.textContent = message;
+  });
+}
+
 function copyListingUrl(input, button) {
   const text = input.value;
   const showCopied = () => {
@@ -66,6 +88,7 @@ function copyListingUrl(input, button) {
       button.textContent = original;
       button.classList.remove('is-copied');
     }, 1800);
+    announce('リスティングURLをコピーしました');
     blinkMascotOnce();
   };
 
@@ -81,8 +104,8 @@ function copyListingUrl(input, button) {
 }
 
 function initCopyButtons() {
+  // ヒーローの生URL欄は廃止した（D-14）。「三つの道」のURLタブにのみ残す。
   const wirings = [
-    ['listingUrl', 'copyListingUrl'],
     ['listingUrlPanel', 'copyListingUrlPanel'],
   ];
   wirings.forEach(([inputId, buttonId]) => {
@@ -144,6 +167,7 @@ function initPackageDialog() {
     keywords: document.getElementById('packageInfoKeywords'),
     licenseWrap: document.getElementById('packageInfoLicenseWrap'),
     license: document.getElementById('packageInfoLicense'),
+    zip: document.getElementById('packageInfoZip'),
   };
   const closeButton = document.getElementById('packageInfoDialogClose');
 
@@ -189,6 +213,11 @@ function initPackageDialog() {
       els.license.href = info.licensesUrl || '#';
     }
 
+    // D-9: メタデータだけで行き止まりだったダイアログに .zip への
+    // 直リンクを差し込む（「おまもりを授かる」ボタンは initVccButtons が
+    // .vcc-trigger として共通で配線する）。
+    if (els.zip) els.zip.href = info.zipUrl || '#';
+
     dialog.showModal();
   }
 
@@ -209,6 +238,7 @@ function initPackageDialog() {
 function initSearch() {
   const list = document.getElementById('tanaList');
   const searchBlock = document.getElementById('tanaSearch');
+  const emptyMessage = document.getElementById('tanaEmpty');
   if (!list || !searchBlock) return;
 
   const items = Array.from(list.querySelectorAll('.tana-item'));
@@ -218,12 +248,18 @@ function initSearch() {
   const input = document.getElementById('packageSearch');
   input.addEventListener('input', () => {
     const query = input.value.trim().toLowerCase();
+    let visibleCount = 0;
     items.forEach((item) => {
       const name = (item.dataset.packageName || '').toLowerCase();
       const id = (item.dataset.packageId || '').toLowerCase();
       const matches = query === '' || name.includes(query) || id.includes(query);
       item.hidden = !matches;
+      if (matches) visibleCount += 1;
     });
+    // D-2: 0件のとき棚が唐突に空白にならないよう案内を出す。
+    // #tanaEmpty は role="status" aria-live="polite" なので、非表示から
+    // 表示に切り替わったこと自体がスクリーンリーダーにも伝わる。
+    if (emptyMessage) emptyMessage.hidden = visibleCount > 0;
   });
 }
 
