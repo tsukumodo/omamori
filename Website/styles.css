@@ -44,6 +44,11 @@ h1, h2, h3, h4 {
   font-family: 'Zen Maru Gothic', 'Noto Sans JP', sans-serif;
   line-height: 1.5;
   margin: 0;
+  /* 和文の禁則・文節区切りを尊重した改行位置。読点始まり・複合語の
+     途中折り返しを避けるため見出しにのみ適用する（本文には当てない）。
+     未対応ブラウザでは通常の改行にフォールバックするだけなので無害。 */
+  word-break: auto-phrase;
+  text-wrap: balance;
 }
 
 p {
@@ -537,6 +542,7 @@ section > .wrap > h2 {
   color: var(--text-secondary);
   border-bottom: 3px solid transparent;
   margin-bottom: -1px;
+  word-break: auto-phrase; /* タブラベルは見出し相当。本文には当てない */
 }
 
 .michi-tab[aria-selected="true"] {
