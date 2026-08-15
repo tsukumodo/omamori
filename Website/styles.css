@@ -107,15 +107,25 @@ button, input {
   --card-bg: #FFFFFF;
   --card-bg-alt: #FBF9F4;
   --border: #E0DCD4;
-  --footer-text: #8A857C;
+  --footer-text: #645F55;
 
   --hero-bg: var(--omamori-green);
   --hero-text: var(--omamori-cream);
-  --hero-sub: #DCE8D6;
+  --hero-sub: #F0F6EB;
 
   --chip-bg: rgba(70, 122, 86, 0.1);
   --chip-border: rgba(70, 122, 86, 0.3);
   --chip-text: var(--omamori-green);
+
+  /* 小さめのアクセント文字色。ライトはブランドの抹茶そのままで十分な
+     コントラストがあるが、ダークは暗い抹茶のままだと読みにくくなるため
+     ダーク側だけ明るい抹茶に差し替える（B-1）。 */
+  --accent-text: var(--omamori-green);
+
+  /* MA(Modular Avatar)必須の札に付ける印の配色 */
+  --ma-badge-bg: rgba(200, 168, 124, 0.18);
+  --ma-badge-border: rgba(200, 168, 124, 0.5);
+  --ma-badge-text: var(--omamori-navy);
 
   --severity-error-bg: #FBE3DD;
   --severity-error-border: #CE6B4F;
@@ -151,6 +161,15 @@ button, input {
     --chip-bg: rgba(222, 189, 140, 0.12);
     --chip-border: rgba(222, 189, 140, 0.35);
     --chip-text: #E4CFA4;
+
+    /* 暗い抹茶(--omamori-green)のままだとページ背景・カード背景の
+       どちらでもAA(4.5:1)を割るため、明るい抹茶に差し替える（B-1）。
+       実測: page-bg比 7.36:1 / card-bg比 6.63:1 */
+    --accent-text: #90AF9A;
+
+    --ma-badge-bg: rgba(222, 189, 140, 0.16);
+    --ma-badge-border: rgba(222, 189, 140, 0.45);
+    --ma-badge-text: #DEBD8C;
 
     --severity-error-bg: rgba(206, 107, 79, 0.16);
     --severity-error-border: rgba(206, 107, 79, 0.6);
@@ -342,12 +361,12 @@ section > .wrap > h2 {
    5. 暖簾ヘッダー
    ========================================================================= */
 .noren {
-  background: var(--omamori-navy);
   position: relative;
   overflow: hidden;
 }
 
 .noren-band {
+  background: var(--omamori-navy);
   position: relative;
   padding: 1.6rem 1.5rem 2.2rem;
   display: flex;
@@ -406,6 +425,11 @@ section > .wrap > h2 {
    6. 口上（ヒーロー）
    ========================================================================= */
 .koujou {
+  /* ヒーローの既定フォーカスリング色は --hero-bg と同色で不可視になるため
+     (A-2)、ヒーロー内だけ地の緑と十分なコントラストを持つクリームに
+     上書きする。ライト実測 4.11:1 / ダーク実測 7.56:1（いずれもUI非文字の
+     3:1基準を満たす）。 */
+  --focus-ring: var(--omamori-cream);
   background: var(--hero-bg);
   color: var(--hero-text);
   text-align: center;
@@ -470,8 +494,11 @@ section > .wrap > h2 {
 }
 
 .koujou-badges .chip {
-  background: rgba(240, 232, 208, 0.15);
-  border-color: rgba(240, 232, 208, 0.4);
+  /* クリームの縁取り(明るいオーバーレイ)は地の緑を明るくしてしまい、
+     クリーム文字とのコントラストを落とすため(B-2実測 3.20:1)、
+     暗いオーバーレイに変える(実測 5.40:1 / ダーク 8.98:1)。 */
+  background: rgba(0, 0, 0, 0.16);
+  border-color: rgba(0, 0, 0, 0.35);
   color: var(--hero-text);
 }
 
@@ -519,9 +546,31 @@ section > .wrap > h2 {
   font-size: 0.82rem;
 }
 
+/* コピーボタンは通常 .btn-ghost（明るいカード用に text-primary の暗い墨文字）
+   だが、これを緑のヒーローに置くと 2.85:1 まで落ちる(B-2)。
+   ヒーロー内だけ専用の配色にする。実測 5.56:1(通常)/6.60:1(hover・写しました時)。 */
+.koujou .btn-ghost {
+  background: rgba(0, 0, 0, 0.18);
+  color: var(--hero-text);
+  border: 1px solid rgba(240, 232, 208, 0.5);
+}
+.koujou .btn-ghost:hover {
+  background: rgba(0, 0, 0, 0.28);
+}
+.koujou .btn-ghost.is-copied {
+  background: rgba(0, 0, 0, 0.28);
+  border-color: var(--hero-text);
+  color: var(--hero-text);
+}
+
 /* =========================================================================
    7. 三つの道（タブ）
    ========================================================================= */
+#michi-heading {
+  font-size: 1.4rem;
+  margin-bottom: 0.6rem;
+}
+
 .michi-tabs {
   display: flex;
   gap: 0.5rem;
@@ -546,8 +595,8 @@ section > .wrap > h2 {
 }
 
 .michi-tab[aria-selected="true"] {
-  color: var(--omamori-green);
-  border-bottom-color: var(--omamori-green);
+  color: var(--accent-text);
+  border-bottom-color: var(--accent-text);
 }
 
 .michi-panel {
@@ -604,13 +653,47 @@ section > .wrap > h2 {
   margin: 0;
 }
 
+/* --- 各タブ内の実行手段（C-1/C-3: 参照ではなく、その場で完結させる） --- */
+.michi-panel-action {
+  margin-bottom: 1.25rem;
+}
+
+.michi-url-row {
+  display: flex;
+  gap: 0.5rem;
+  margin: 1.25rem 0;
+}
+
+.michi-url-row input {
+  flex: 1;
+  min-width: 0;
+  border: 1px solid var(--border);
+  background: var(--card-bg-alt);
+  color: var(--text-primary);
+  border-radius: 8px;
+  padding: 0.55rem 0.75rem;
+  font-size: 0.82rem;
+}
+
+.michi-inline-link {
+  color: var(--accent-text);
+  font-weight: 700;
+  text-decoration: underline;
+}
+.michi-inline-link:hover {
+  text-decoration: none;
+}
+
 /* =========================================================================
    8. 守り札グリッド
    ========================================================================= */
 .fuda-grid {
   list-style: none;
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  /* 260px だと .wrap(880px) の中で3列×4段になり、最終段に孤児が1枚残る上、
+     カード内1行が15字程度しかなく複合語(「アップロード」「Merge Armature」等)の
+     折り返しを量産していた(E-2)。下限を320pxに上げ、2列×5段に固定する。 */
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
   gap: 1.1rem;
   margin-bottom: 2rem;
 }
@@ -697,7 +780,22 @@ section > .wrap > h2 {
 .fuda-card-fix {
   font-size: 0.82rem;
   font-weight: 700;
-  color: var(--omamori-green);
+  color: var(--accent-text);
+  margin-top: auto;
+}
+
+/* --- MA(Modular Avatar)が無いとスキップされる札の印(D-4) --- */
+.fuda-card-ma {
+  display: inline-flex;
+  align-self: flex-start;
+  align-items: center;
+  border-radius: 999px;
+  padding: 0.2rem 0.7rem;
+  font-size: 0.78rem;
+  font-weight: 700;
+  background: var(--ma-badge-bg);
+  border: 1px solid var(--ma-badge-border);
+  color: var(--ma-badge-text);
   margin-top: auto;
 }
 
@@ -778,7 +876,7 @@ section > .wrap > h2 {
 
 .tana-item-version {
   font-weight: 700;
-  color: var(--omamori-green);
+  color: var(--accent-text);
 }
 
 .tana-item-actions {
@@ -1009,7 +1107,7 @@ section > .wrap > h2 {
 .rakkan-links a {
   font-size: 0.85rem;
   text-decoration: none;
-  color: var(--omamori-green);
+  color: var(--accent-text);
   font-weight: 500;
 }
 .rakkan-links a:hover {
@@ -1053,6 +1151,9 @@ dialog:focus-visible {
     text-align: center;
   }
   .koujou-url-row {
+    flex-direction: column;
+  }
+  .michi-url-row {
     flex-direction: column;
   }
   .michi-tabs {

@@ -100,7 +100,7 @@
             <defs>
               <path id="tooth-hero" d="M44.5 6 h11 a2.2 2.2 0 0 1 2.13 2.73 L55.2 20 h-10.4 l-2.43 -11.27 A2.2 2.2 0 0 1 44.5 6 Z"/>
             </defs>
-            <g fill="var(--omamori-navy)">
+            <g fill="var(--tsukumo-gear)">
               <use href="#tooth-hero" transform="rotate(0 50 50)"/>
               <use href="#tooth-hero" transform="rotate(45 50 50)"/>
               <use href="#tooth-hero" transform="rotate(90 50 50)"/>
@@ -110,16 +110,16 @@
               <use href="#tooth-hero" transform="rotate(270 50 50)"/>
               <use href="#tooth-hero" transform="rotate(315 50 50)"/>
             </g>
-            <circle cx="50" cy="50" r="30" fill="var(--omamori-navy)"/>
-            <circle cx="50" cy="50" r="25.5" fill="var(--omamori-gold)"/>
-            <circle cx="50" cy="50" r="20.5" fill="none" stroke="var(--omamori-navy)" stroke-width="1" stroke-dasharray="2.6 2.6" opacity="0.6"/>
+            <circle cx="50" cy="50" r="30" fill="var(--tsukumo-gear)"/>
+            <circle cx="50" cy="50" r="25.5" fill="var(--tsukumo-navy)"/>
+            <circle cx="50" cy="50" r="20.5" fill="none" stroke="var(--tsukumo-gear)" stroke-width="1" stroke-dasharray="2.6 2.6" opacity="0.6"/>
             <g class="mascot-eye">
               <ellipse cx="41.5" cy="48" rx="6.4" ry="6.8" fill="var(--tsukumo-eye-white)"/>
               <g class="mascot-pupil" transform="translate(0,0)">
                 <circle cx="41.5" cy="49" r="4.2" fill="var(--tsukumo-pupil)"/>
                 <circle cx="39.7" cy="47.2" r="1.35" fill="var(--tsukumo-eye-white)"/>
               </g>
-              <path class="mascot-lid" d="M35.1 48 a6.4 6.4 0 0 1 12.8 0 Z" fill="var(--omamori-gold)" opacity="0"/>
+              <path class="mascot-lid" d="M35.1 48 a6.4 6.4 0 0 1 12.8 0 Z" fill="var(--tsukumo-navy)" opacity="0"/>
             </g>
             <g class="mascot-eye">
               <ellipse cx="58.5" cy="48" rx="6.4" ry="6.8" fill="var(--tsukumo-eye-white)"/>
@@ -127,9 +127,9 @@
                 <circle cx="58.5" cy="49" r="4.2" fill="var(--tsukumo-pupil)"/>
                 <circle cx="56.7" cy="47.2" r="1.35" fill="var(--tsukumo-eye-white)"/>
               </g>
-              <path class="mascot-lid" d="M52.1 48 a6.4 6.4 0 0 1 12.8 0 Z" fill="var(--omamori-gold)" opacity="0"/>
+              <path class="mascot-lid" d="M52.1 48 a6.4 6.4 0 0 1 12.8 0 Z" fill="var(--tsukumo-navy)" opacity="0"/>
             </g>
-            <path d="M43.5 58.5 Q50 63.5 56.5 58.5" fill="none" stroke="var(--omamori-navy)" stroke-width="1.8" stroke-linecap="round"/>
+            <path d="M43.5 58.5 Q50 63.5 56.5 58.5" fill="none" stroke="var(--tsukumo-gear)" stroke-width="1.8" stroke-linecap="round"/>
           </svg>
         </div>
 
@@ -155,9 +155,20 @@
       </div>
     </section>
 
+    <!-- 動作要件（③三つの道の直前。ここで対象外だと早めに分かるように） -->
+    <section class="youken wrap" aria-labelledby="youken-heading">
+      <h2 id="youken-heading">動作環境</h2>
+      <ul>
+        <li>Unity 2022.3 以降</li>
+        <li>VRChat SDK - Avatars 3.7.0 以降(パフォーマンス表示のConstraint項目が、SDK 3.7.0で追加された値を使うため)</li>
+        <li>Modular Avatar(任意 — 未インストールの場合はMA関連のチェックのみスキップされます)</li>
+      </ul>
+    </section>
+
     <!-- ③ 三つの道（タブ） -->
     <section class="michi wrap" aria-labelledby="michi-heading">
-      <h2 id="michi-heading" class="visually-hidden">三つの道</h2>
+      <h2 id="michi-heading">三つの道</h2>
+      <p class="section-lead">手に入れたら、Unityメニューの「Tools &gt; アバター改変おまもり」からウィンドウを開いてお使いいただけます。ここでは、プロジェクトへの入手方法を三つご案内します。</p>
 
       <div class="michi-tabs" role="tablist" aria-label="入手方法">
         <button type="button" class="michi-tab" role="tab" id="tab-vcc" aria-selected="true" aria-controls="panel-vcc" tabindex="0">VCCで追加</button>
@@ -167,6 +178,9 @@
 
       <div class="michi-panel" role="tabpanel" id="panel-vcc" aria-labelledby="tab-vcc" tabindex="0">
         <p class="michi-panel-summary">ワンクリックでVCCにリスティングを登録する、一番早い道です。</p>
+        <div class="michi-panel-action">
+          <button type="button" class="btn btn-primary btn-small vcc-trigger">おまもりを授かる</button>
+        </div>
         <ol class="michi-steps">
           <li>上の「おまもりを授かる」ボタンを押す</li>
           <li>VCCが開いたら「Add」→「I Understand」の順にクリック</li>
@@ -182,13 +196,18 @@
           <li>「Add Repository」をクリックし、リスティングURLを貼り付け</li>
           <li>「Add」→「I Understand」をクリックしてプロジェクトに追加</li>
         </ol>
+        <div class="michi-url-row">
+          <label for="listingUrlPanel" class="visually-hidden">VPMリスティングURL</label>
+          <input type="text" readonly id="listingUrlPanel" value="{{ listingInfo.Url }}">
+          <button type="button" id="copyListingUrlPanel" class="btn btn-ghost btn-small">コピー</button>
+        </div>
         <p class="michi-note">URLは上のコピー ボタンから控えられます。VCCの反応がない場合は再起動をお試しください。</p>
       </div>
 
       <div class="michi-panel" role="tabpanel" id="panel-booth" aria-labelledby="tab-booth" tabindex="0" hidden>
         <p class="michi-panel-summary">VCCを使わず、BOOTHから直接ダウンロードしてUnityに取り込む道です。</p>
         <ol class="michi-steps">
-          <li>BOOTH商品ページ(tsukumodo-lab.booth.pm)を開く</li>
+          <li><a class="michi-inline-link" href="https://tsukumodo-lab.booth.pm/items/8132860" target="_blank" rel="noopener">BOOTH商品ページ(tsukumodo-lab.booth.pm)を開く</a></li>
           <li>配布ファイルをダウンロード</li>
           <li>商品ページの案内にしたがってUnityプロジェクトに取り込む</li>
         </ol>
@@ -229,7 +248,7 @@
             <span class="fuda-severity fuda-severity--warning">警告</span>
           </div>
           <p class="fuda-card-scene">肌にテクスチャを入れただけのつもりが、気づけばアバター全体が煌々と光り輝いていた——という声から生まれたチェックです。</p>
-          <p class="fuda-card-detail">lilToonとUnity Standard系のマテリアルを対象に、Emissionがオンのまま残っていないか確かめます(ロック済みマテリアルや対応外のシェーダーは値を推測できないため対象外です)。自動修正で発光だけをオフにでき、色の設定はそのまま残せます。</p>
+          <p class="fuda-card-detail">lilToonとUnity Standard系のマテリアルを対象に、Emissionがオンのまま残っていないか確かめます(ロック済みマテリアルや対応外のシェーダーは値を推測できないため対象外です)。自動修正で発光だけをオフにでき、色の設定はそのまま残せます。ただし同じマテリアルを他の箇所でも使っている場合はそちらにも反映されるほか、メニューなどで発光の有無を切り替える設計になっていると、オフにしたことで動きが崩れることがあります。</p>
           <p class="fuda-card-fix">✓ 自動修正あり</p>
         </li>
 
@@ -253,6 +272,7 @@
           </div>
           <p class="fuda-card-scene">Modular AvatarのObjectToggleでオン/オフの対象を設定し忘れたり、うっかり自分自身を指定してしまったりすることがあります。</p>
           <p class="fuda-card-detail">ターゲットが空のままなら警告、自分自身を参照する自己参照ならエラーとして知らせます。設定漏れは早めに見つけておくと安心です。</p>
+          <p class="fuda-card-ma">Modular Avatar が必要</p>
         </li>
 
         <li class="fuda-card" data-severity="warning">
@@ -262,6 +282,7 @@
           </div>
           <p class="fuda-card-scene">アクセサリーを子オブジェクトとして入れたものの、Merge ArmatureやBone Proxyの設定を忘れたまま——という状態はよく起こります。</p>
           <p class="fuda-card-detail">Armatureを持つ子オブジェクトを調べ、Merge Armature / Bone Proxyが未設定になっていないか確かめます。ターゲット自体が未設定の場合も、あわせて拾い上げます。</p>
+          <p class="fuda-card-ma">Modular Avatar が必要</p>
         </li>
 
         <li class="fuda-card" data-severity="error">
@@ -271,6 +292,7 @@
           </div>
           <p class="fuda-card-scene">Expression Menuの階層を組み立てている途中で、MenuInstallerを挟み忘れたMenuItemが残ってしまうことがあります。</p>
           <p class="fuda-card-detail">MenuItemの祖先をたどり、MenuInstallerにつながっていないものを見つけて知らせます。つながっていないメニューは、アップロードしても実際のメニューには現れません。</p>
+          <p class="fuda-card-ma">Modular Avatar が必要</p>
         </li>
 
         <li class="fuda-card" data-severity="warning">
@@ -314,7 +336,7 @@
     <!-- ⑤ 棚（パッケージ一覧。Scribanループはここだけ） -->
     <section class="tana wrap" aria-labelledby="tana-heading">
       <h2 id="tana-heading">つくも堂の棚</h2>
-      <p class="section-lead">今はここに一つだけですが、これから道具が増えるたびに、この棚に並べていきます。🌿</p>
+      <p class="section-lead">つくも堂の道具は、すべてこの棚に並んでいます。これからも少しずつ増えていく予定です。🌿</p>
 
       <div class="tana-search" id="tanaSearch" hidden>
         <label for="packageSearch" class="visually-hidden">パッケージを検索</label>
@@ -391,6 +413,9 @@
               <li>チェックの実行回数</li>
               <li>日付(年月日のみ)</li>
               <li>おまもりのバージョン</li>
+              <li>フィードバックとしてコピーした日(年月日のみ。まだコピーしていなければ記録されません)</li>
+              <li>利用統計の収集を無効にしているかどうか</li>
+              <li>記録データの形式のバージョン</li>
             </ul>
           </div>
           <div>
@@ -406,16 +431,6 @@
 
         <p class="kiroku-manage">Unityの Tools &gt; つくも堂 &gt; 使用統計を見る から、記録内容の確認や「フィードバックとしてコピー」、統計のクリア、収集の無効化・再開ができます。よろしければ、コピーした内容をつくも堂のX(@tsukumodo_lab)のDMで送っていただけると、今後のチェック項目を考える参考にさせていただきます(任意です)。🍀</p>
       </div>
-    </section>
-
-    <!-- 動作要件 -->
-    <section class="youken wrap" aria-labelledby="youken-heading">
-      <h2 id="youken-heading">動作環境</h2>
-      <ul>
-        <li>Unity 2022.3 以降</li>
-        <li>VRChat SDK - Avatars 3.7.0 以降(パフォーマンス表示のConstraint項目が、SDK 3.7.0で追加された値を使うため)</li>
-        <li>Modular Avatar(任意 — 未インストールの場合はMA関連のチェックのみスキップされます)</li>
-      </ul>
     </section>
 
   </main>

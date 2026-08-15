@@ -48,7 +48,7 @@ function initVccButtons() {
   const goToVcc = () => {
     window.location.assign(`vcc://vpm/addRepo?url=${encodeURIComponent(LISTING_URL)}`);
   };
-  document.querySelectorAll('#addToVcc, .tana-add').forEach((button) => {
+  document.querySelectorAll('#addToVcc, .tana-add, .vcc-trigger').forEach((button) => {
     button.addEventListener('click', goToVcc);
   });
 }
@@ -81,7 +81,10 @@ function copyListingUrl(input, button) {
 }
 
 function initCopyButtons() {
-  const wirings = [['listingUrl', 'copyListingUrl']];
+  const wirings = [
+    ['listingUrl', 'copyListingUrl'],
+    ['listingUrlPanel', 'copyListingUrlPanel'],
+  ];
   wirings.forEach(([inputId, buttonId]) => {
     const input = document.getElementById(inputId);
     const button = document.getElementById(buttonId);
