@@ -74,6 +74,31 @@ p, li {
   word-break: auto-phrase;
 }
 
+/* 第12ラウンドC(レイアウトN-16×デザインA-3の統合。構成4案+追試4案を
+   10幅で実測して決定):
+   - auto-phraseの適用範囲は全体のまま維持する。短文限定案(N-16)を実測
+     したところ、孤児が可視要素だけで @320 1→4件 / @1280 0→2件へ逆戻り
+     (280〜1920の10幅合計 2→28件)し、回収できる全長も+306pxのうち
+     129px(@320。@1280は52px)に留まった。孤児ゼロの成果と引き換えに
+     できる差ではない。
+   - 代わりに、文節折り返しの代償(段落途中の深いノッチ)は text-wrap:
+     balance を「実測でノッチが出た本文」へ広げて取る。balanceは行数を
+     変えずに行幅を均すため全長は1pxも増えず(10幅で実測一致)、
+     Chromiumの行数上限により7行以上になる狭い幅では自動で効力を失う
+     (=モバイルの組版はauto-phraseのまま変わらない)。
+     実測(@1280、段落内最長行比70%未満の途中行): 3本→0本、最深41%→70%。
+     N-16の実例「ピンクのマテリアル」の41%ノッチもこれで消えた。
+   - .michi-steps li と .tana-item-desc のbalanceは孤児対策を兼ねる
+     (@480の「を追加」「控える」「ツール」が0件になる。「ツール」は
+     Scriban出力でspanを入れられないが、これで一緒に片付く)。
+   未対応ブラウザでは無視されるだけで、レイアウトは壊れない。 */
+.fuda-card-scene, .fuda-card-detail, .fuda-performance p, .fuda-backup-note,
+.kiroku .wrap > p, .kiroku-more-body > p, .kiroku-manage, .michi-alcom-body p,
+.michi-steps li, .tana-item-desc, .section-lead,
+.michi-panel-summary, .koujou-cta-note {
+  text-wrap: balance;
+}
+
 ul, ol {
   margin: 0;
   padding: 0;
@@ -203,7 +228,12 @@ button, input {
 
   --focus-ring: var(--omamori-green);
 
-  --glow: none;
+  /* 第12ラウンドA-1: 旧値 none は box-shadow の連結先として不正
+     (box-shadow: <shadow>, none は宣言ごと破棄され、ライトの主CTAは
+     一度も影を持っていなかった)。「影なし」は透明な影 0 0 #0000 で表す。
+     これで .btn-primary の 0 3px 10px rgba(173,139,87,.35) がライトでも
+     描画される。ダークは従来どおり金茶のglowで上書き。 */
+  --glow: 0 0 #0000;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -220,20 +250,31 @@ button, input {
     --hero-bg: #0F1830;
     /* 第6ラウンド5: #DCCFA8はダークのページ地に対して11.4:1で、夜のページで
        最も明るい面が全幅×約150pxのヘッダーになっていた(5巡目D-4)。
-       月明かりの布までもう2〜3段沈める(レビューの例示値#B9AC86)。
-       布 vs 隙間(--hero-bg=#0F1830)は8.5:1、屋号の藍 vs 布は7.5:1で、
-       布であることも文字の可読性も崩れない(実測は監査スクリプトで確認)。 */
-    --noren-cloth: #B9AC86;
+       月明かりの布までもう2〜3段沈める。
+       第12ラウンドD-2(R-2): 旧#B9AC86(hsl 45,27%,63%)は金茶CTA #AD8B57
+       (hsl 36,34%,51%)と同族の枯草色で、ページ最大の装飾面と主CTAが同色に
+       見えていた。レビューの例示値#8C8468は机上検算で成立しない
+       (CTAとの輝度比は2.0どころか1.18へ悪化し、屋号のTSUKUMODO 10.4pxが
+       4.5:1を割る)ため、輝度ではなく彩度で分離する: 彩度27%→11%へ落とした
+       灰味の生成り#A5A18Eにする。CTAとの分離は色相/彩度差で取り
+       (deutan込みの実測はレポート参照)、布 vs 隙間(--hero-bg=#0F1830)は
+       6.8:1、屋号の藍 vs 布は6.0:1(EN屋号 opacity0.85合成でも4.69:1)で
+       布の可読性は崩れない。ページ地比も7.8→6.8へ沈み「夜の布」に一歩寄る。 */
+    --noren-cloth: #A5A18E;
 
     --page-bg: var(--tsukumo-paper);
     --text-primary: var(--tsukumo-ink);
     --text-secondary: #B0A99C;
     --card-bg: #242220;
     --card-bg-alt: #1F1D1A;
-    --border: #3A3632;
-    /* 実測: card-bg(#242220)比 3.46:1 / page-bg(#1A1915)比 3.84:1。
-       AA非文字基準(3:1)を満たす暖色寄りのグレー(D-1)。 */
-    --fuda-card-edge: #7A756B;
+    /* 第12ラウンドD-3(R-4): 旧#3A3632のままだと、縁のトークンがダークだけ
+       2系統(.michi-panel 3.84:1 / .tana-item等 1.47:1)に分岐し、夜だけ
+       カードが2種類に見えていた。ライトと同じく--borderと--fuda-card-edgeを
+       同値にする(card-bg比 3.46:1 / page-bg比 3.84:1)。.tana-search input の
+       1.47:1もこれで同時に3:1を満たす。 */
+    --border: #7A756B;
+    /* --fuda-card-edge はライト定義の var(--border) がそのまま効く
+       (ダーク個別の上書きはD-3で不要になった)。 */
     --control-edge: var(--fuda-card-edge);
     /* ライトのみ 3.37→5.82 に直っていた(1-4)。ダークは #7A7568 のまま
        page-bg比 3.83:1 で AA未達だったため、こちらも明るくする。 */
@@ -581,6 +622,11 @@ section > h2,
   display: flex;
   align-items: baseline;
   gap: 0.6rem;
+  /* 第12ラウンド: 280px(Galaxy Fold級)ではflexの nowrap が「つくも堂」の
+     文字列自体を縦に割っていた(実測で「つくも/堂」)。折り返しを許し、
+     入り切らない幅ではTSUKUMODOが丸ごと2行目に落ちるようにする
+     (320px以上は従来どおり1行のまま)。 */
+  flex-wrap: wrap;
 }
 
 .noren-shopname-en {
@@ -882,6 +928,28 @@ section > h2,
   text-decoration: none;
 }
 
+/* 第12ラウンドB-1(デザインG-2): 480〜859pxのヒーローが上から
+   中央(絵)/中央(h1)/左(リード)/中央(CTA)/左(注記)/中央(バッジ)と
+   揃えを5回替えていた。1カラムになる900px未満の帯は丸ごと左揃えに寄せ、
+   2カラム(900px以上)の「左端1本」(第10ラウンドA-7)と同じ思想で揃える。
+   ※900px未満の .koujou .wrap はflex(縦積み)なので、レビュー例示の
+   justify-items(grid用)ではなく align-items で寄せる。
+   注記の中央揃え(旧640px以下)もこの統一で廃止した。 */
+@media (max-width: 899.98px) {
+  .koujou {
+    text-align: left;
+  }
+  .koujou .wrap {
+    align-items: flex-start;
+  }
+  .koujou .koujou-cta {
+    align-items: flex-start;
+  }
+  .koujou-badges {
+    justify-content: flex-start;
+  }
+}
+
 /* ヒーローの生URL欄(.koujou-url-row / #listingUrl)は撤去した(D-14)。
    「二つの道」のURLタブに同じ入力欄がすでにあり、店先に生JSONのURLを
    並べるのは最も不向きという指摘のため。ここに紺地専用の .btn-ghost
@@ -920,6 +988,28 @@ section > h2,
   margin-top: 1.25rem;
 }
 
+/* 第12ラウンドD-4(R-5・監督裁定): 主従2枚のパネルは背景・枠・角丸・
+   paddingまで完全に同一の器で、差は12.48pxの札1枚だけだった。高さの
+   逆転は追わない(副は手順が1つ多いので背が高いのは内容として正しい)。
+   代わりに副(URL手動登録)を器から降ろし、「主=店先に出した札」
+   「副=地の上に書いた但し書き」にする。高さ増0・新色0。
+   縦paddingはそのまま残す(前後の間合いを変えないため)。
+   横paddingを0にする副作用(入力欄・ボタンが地の上に直接載る)は
+   実測で確認済み: 入力欄/ゴーストボタンの枠 --control-edge はページ地比
+   ライト3.53:1 / ダーク3.50:1 で非文字3:1を維持する。 */
+.michi-panel:not(.michi-panel--vcc) {
+  background: transparent;
+  border: none;
+  /* 罫は--fuda-card-edgeではなく.sumi-ruleと同じ墨の処方にする。
+     --fuda-card-edgeはライトでページ地と1.26:1しかなく、器を降ろした後の
+     唯一の目印が見えなくなるため(実測: この処方でライト約2.5:1、
+     ダークは従来の--fuda-card-edgeとほぼ同値の3.8:1)。 */
+  border-top: 1px solid color-mix(in srgb, var(--tsukumo-ink) 45%, var(--page-bg));
+  border-radius: 0;
+  padding-left: 0;
+  padding-right: 0;
+}
+
 /* 節の道標の級数(第10ラウンドB-3): タブ廃止後、この見出しが節内の唯一の
    道標なのに本文16pxの1.05倍しかなかった。h3は「節内見出し1.15rem /
    カード内見出し1.05rem」の2段に整理し、これは節内見出し側に置く。 */
@@ -931,20 +1021,24 @@ section > h2,
      第11ラウンドA-1からは本文(p, li)も同じ語彙になった。 */
 }
 
-/* 主パネルの「まずはこちら」ラベル(第11ラウンドB-1)。第10ラウンドは
-   h3の中の下線付きspanだったが、(1)読み上げ名が「VCCで追加 まずはこちら」
-   に混ざる (2)金茶の下線が文字色と ライト6.94:1 / ダーク1.26:1 でモードに
-   よって別の装置になる、の2点をデザインレビューが指摘。h3の外に出して
-   カード右上へ絶対配置し、金茶の枠を持つ小さな札にする(「札を掛けた店先」)。
-   文字はMAバッジと同じトークン(ライト=紺/ダーク=明るい金茶)のままで、
-   どちらのモードでも「枠のある札」という同じ装置になる。高さへの影響は0。 */
-.michi-panel--vcc {
-  position: relative;
+/* 主パネルの「まずはこちら」ラベル(第11ラウンドB-1で h3 の外の札に)。
+   第12ラウンドD-5(R-6): カード右上への絶対配置は、1280pxでは修飾する
+   h3「VCCで追加」から690px離れ、「推奨の印」ではなく「カード隅の飾り」に
+   見えていた(320pxでは隣接していて効いていた)。h3と同じ行のflexに載せ、
+   どの幅でも見出しの真横に掛かるようにする。h3のアクセシブル名は
+   「VCCで追加」のまま(spanは見出しの外)。札の高さ(約26px)はh3の行高
+   (約28px)に収まるので、カードの高さへの影響は0。 */
+.michi-panel-head {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.25rem 0.6rem;
+  margin-bottom: 0.6rem;
+}
+.michi-panel-head .michi-panel-title {
+  margin-bottom: 0;
 }
 .michi-panel-label {
-  position: absolute;
-  top: 1.5rem;
-  right: 1.5rem;
   font-size: 0.78rem;
   font-weight: 700;
   letter-spacing: 0.08em;
@@ -1084,8 +1178,12 @@ section > h2,
   content: '▸';
   display: inline-block;
   font-size: 0.7em;
-  /* ▸はCTAと同じ深い金茶(白カード上3.18:1、ダークカード上4.99:1)。 */
-  color: var(--omamori-gold-deep);
+  /* ▸は金茶(第12ラウンドD-1でsummary12個共通)。素の--omamori-gold-deepは
+     和紙地(.kiroku)上で2.92:1と非文字3:1をわずかに割るため、12個すべて
+     墨を8%差した一段深い金茶で統一する(実測: 白3.6 / 和紙3.3 /
+     ダークカード5.3)。ダークでは--tsukumo-inkが生成りなので、mixは
+     わずかに明るむ方向に働き、夜でも金茶のまま。 */
+  color: color-mix(in srgb, var(--omamori-gold-deep) 92%, var(--tsukumo-ink));
   transition: transform 0.15s ease;
 }
 
@@ -1306,7 +1404,12 @@ section > h2,
   gap: 0.35rem;
   font-size: 0.82rem;
   font-weight: 700;
-  color: var(--accent-text);
+  /* 第12ラウンドD-1(R-1): summary 12個中、ALCOMの1個だけが二次色+金茶▸で
+     他11個が緑という分裂を、「全部 二次色+金茶▸」側へ統一する
+     (デザイン推奨案2)。ページの色の意味が「緑=おまもりの世界(絵・○・✓)」
+     「金茶=店の側(押すもの・畳んであるもの)」に整理され、CTAを金茶に
+     した判断と同じ向きになる。実測: ライト5.70:1 / ダーク6.79:1(カード上)。 */
+  color: var(--text-secondary);
   /* タップターゲット(第5ラウンドD): 実測89×27で、圧縮後このページで
      最も押される要素なのに44px未満だった。paddingで当たり判定を縦44px
      以上に広げ、同量の負マージンで行送り(カードの高さ)は変えない。
@@ -1325,6 +1428,9 @@ section > h2,
   content: '▸';
   display: inline-block;
   font-size: 0.7em;
+  /* ▸はALCOMのsummaryと同じ金茶(第12ラウンドD-1。深さの理由は
+     .michi-alcom summary::before のコメント参照)。 */
+  color: color-mix(in srgb, var(--omamori-gold-deep) 92%, var(--tsukumo-ink));
   transition: transform 0.15s ease;
 }
 
@@ -1459,7 +1565,11 @@ section > h2,
 
 .tana-search input {
   width: 100%;
-  border: 1px solid var(--border);
+  /* 第12ラウンドE-1(レイアウトR-4残): URL入力欄・ゴーストボタンと同じ
+     「押せる部品」なのに装飾の--border(ライト1.26:1)のまま取り残されて
+     いた。本番はパッケージ1件で非表示だが、2件目が出た瞬間に基準割れの
+     入力欄が現れるため、--control-edge(3.72/3.46:1)へ揃える。 */
+  border: 1px solid var(--control-edge);
   border-radius: 10px;
   background: var(--card-bg);
   padding: 0.65rem 1rem;
@@ -1610,7 +1720,12 @@ section > h2,
   transform: translate(-50%, -50%);
 }
 .tana-dialog-close:hover {
-  background: var(--border);
+  /* 第12ラウンドD-3の随伴修正: 旧 var(--border) はダークの--borderを
+     #7A756Bへ上げた副作用で、hover時の✕(17.6px)が4.10:1までしか出なく
+     なるところだった。「地をひと呼吸だけ濃くする」という元の意図を
+     トークン合成で表し、両モードとも従来とほぼ同じ濃さを保つ
+     (ライト≈#E2E0DB、ダーク≈#38352F。✕はダーク9.7:1のまま)。 */
+  background: color-mix(in srgb, var(--text-primary) 12%, var(--card-bg-alt));
 }
 
 .tana-dialog-inner h4 {
@@ -1688,7 +1803,9 @@ section > h2,
   gap: 0.35rem;
   font-size: 0.92rem;
   font-weight: 700;
-  color: var(--accent-text);
+  /* 第12ラウンドD-1(R-1): summary 12個の統一(詳細は.fuda-card-more summary
+     のコメント参照)。和紙地の上でも 実測ライト5.23:1 / ダーク7.54:1。 */
+  color: var(--text-secondary);
   /* タップターゲット(第5ラウンドD): 実測281×30 → padding+負マージンで
      縦44px以上に(守り札のsummaryと同じ手法。レイアウトは動かさない)。 */
   padding: 9px 0;
@@ -1704,6 +1821,9 @@ section > h2,
   content: '▸';
   display: inline-block;
   font-size: 0.7em;
+  /* ▸は他のsummaryと同じ金茶(第12ラウンドD-1。深さの理由は
+     .michi-alcom summary::before のコメント参照)。 */
+  color: color-mix(in srgb, var(--omamori-gold-deep) 92%, var(--tsukumo-ink));
   transition: transform 0.15s ease;
 }
 
@@ -1913,9 +2033,8 @@ dialog:focus-visible {
     text-align: left;
     margin-bottom: 0.85rem;
   }
-  .koujou-cta-note {
-    text-align: center;
-  }
+  /* .koujou-cta-note { text-align: center } は第12ラウンドB-1(ヒーロー
+     1カラム帯の左揃え統一)で廃止した。 */
   /* タブ廃止(第8ラウンドA)で2つの道が常時表示になり、360pxの全長が
      8195→8351pxに伸びた。モバイルではパネルの内余白と手順の行間を
      少し詰めて増分の一部を相殺する(内容は削らない)。
@@ -1931,11 +2050,8 @@ dialog:focus-visible {
   .michi-panel {
     padding: 1.1rem;
   }
-  /* パネルの内余白1.1remに合わせて「まずはこちら」の札も追従させる */
-  .michi-panel-label {
-    top: 1.1rem;
-    right: 1.1rem;
-  }
+  /* 「まずはこちら」の札は第12ラウンドD-5でh3の行内に入ったため、
+     絶対配置の追従(top/right)は不要になった。 */
   .michi-panel + .michi-panel {
     margin-top: 0.75rem;
   }

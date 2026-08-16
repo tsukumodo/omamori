@@ -159,7 +159,11 @@
              アクセシブル名の計算では空白なしで連結され「アバター改変おまもりアバターを
              送り出す前に…」と読み上げられていた。区切りの空白を1つ挟む(視覚には影響しない)。 -->
         <h1 id="koujou-heading" class="koujou-title"><span class="koujou-title-name">アバター改変おまもり</span> <span class="koujou-title-tagline">アバターを送り出す前に、そっとひと目。</span></h1>
-        <p class="koujou-lead">VRChatアバターをアップロードする前に、ありがちな設定ミスをまとめて見つけてくれるUnity Editor拡張です。チェックはボタン一つで走り、見つかった問題はオブジェクトを選んで中身を確かめられます。直せるものはその場で直せるので、公開してから気づいて青ざめる場面を減らせます。</p>
+        <!-- no-orphan(第12ラウンドA-2): word-break:auto-phraseが390pxで
+             「ありが/ちな」と接尾語「がち」の途中で割るのを防ぐ(守り札の
+             「しまいがちです。」と同じ手当て)。5文字・実測75pxで、280pxの
+             親幅(244.8px)にも収まることを親要素基準で確認済み。 -->
+        <p class="koujou-lead">VRChatアバターをアップロードする前に、<span class="no-orphan">ありがちな</span>設定ミスをまとめて見つけてくれるUnity Editor拡張です。チェックはボタン一つで走り、見つかった問題はオブジェクトを選んで中身を確かめられます。直せるものはその場で直せるので、公開してから気づいて青ざめる場面を減らせます。</p>
 
         <div class="koujou-cta">
           <button type="button" id="addToVcc" class="btn btn-primary">おまもりを授かる</button>
@@ -226,7 +230,11 @@
             <h3 class="fuda-card-title">ピンクのマテリアル</h3>
             <span class="fuda-severity fuda-severity--warning">警告</span>
           </div>
-          <p class="fuda-card-scene">シェーダーが同梱されていないアセットを使ったときや、アップデートで参照が外れたときに、マテリアルが唐突に真っピンクへ変わってしまいます。</p>
+          <!-- no-orphan(第12ラウンドC): 280pxでこの段落だけ「しまいま/す。」と
+               語中で割れて「す。」が孤立していた(text-wrap:balanceは7行以上に
+               なる幅では効かないため)。区切りは「変わって|しまいます。」で
+               語の途中では割れない。6文字・実測86pxで280pxの親幅にも収まる。 -->
+          <p class="fuda-card-scene">シェーダーが同梱されていないアセットを使ったときや、アップデートで参照が外れたときに、マテリアルが唐突に真っピンクへ変わって<span class="no-orphan">しまいます。</span></p>
           <details class="fuda-card-more">
             <summary aria-label="ピンクのマテリアルの見つけかたを読む">見つけかたを読む</summary>
             <div class="fuda-card-more-body">
@@ -439,9 +447,15 @@
            「VCCで追加 まずはこちら」に混ざるうえ、金茶下線がダークで文字色と
            1.26:1になり装置として消えていたため。CSSでカード右上に絶対配置し、
            枠のある小さな札として掛ける(高さへの影響なし)。 -->
+      <!-- 第12ラウンドD-5: 札(まずはこちら)をカード右上の絶対配置から
+           h3と同じ行のflexへ移した。1280pxでは見出しから690px離れて
+           「隅の飾り」に見えていたため。spanはh3の外のままなので
+           読み上げ名は「VCCで追加」から変わらない。 -->
       <div class="michi-panel michi-panel--vcc">
-        <h3 class="michi-panel-title">VCCで追加</h3>
-        <span class="michi-panel-label">まずはこちら</span>
+        <div class="michi-panel-head">
+          <h3 class="michi-panel-title">VCCで追加</h3>
+          <span class="michi-panel-label">まずはこちら</span>
+        </div>
         <p class="michi-panel-summary">ワンクリックでVCCにリスティングを登録する、一番早い道です。</p>
         <div class="michi-panel-action">
           <button type="button" class="btn btn-primary btn-small vcc-trigger">おまもりを授かる</button>
@@ -506,7 +520,10 @@
                では割れない)。 -->
           <li>上の「コピー」ボタンで、<span class="no-orphan">リスティングURLを</span><span class="no-orphan">控える</span></li>
           <li>VCCを開いて Settings → 「Packages」タブへ</li>
-          <li>「Add Repository」をクリックし、控えた<span class="no-orphan">URLを貼り付け</span></li>
+          <!-- 第12ラウンドF-1: 「控えたURL」は一続きで読ませたい連体修飾
+               なので、spanを「控えたURLを貼り付け」へ広げた(内容レビュー小2)。
+               実測161px・280pxの親幅(171.2px)に収まることを親基準で確認済み。 -->
+          <li>「Add Repository」をクリックし、<span class="no-orphan">控えたURLを貼り付け</span></li>
           <li>「Add」→<span class="no-orphan">「I Understand」</span>をクリックしてプロジェクトに追加</li>
         </ol>
         <!-- 第10ラウンドA-1: 旧文「この手順は、ALCOMでも同じように登録できます」は
