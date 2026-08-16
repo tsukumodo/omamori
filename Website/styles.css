@@ -63,14 +63,15 @@ p:last-child {
   margin-bottom: 0;
 }
 
-/* 孤児行の根治(第10ラウンドA-5): ヒーロー注記の最終行が11幅すべてで
-   「い。」の2文字だけになる等、1〜2文字の孤立行が文言変更のたびに再発
-   していた(第7ラウンドD-Aの.no-orphanは貼った1箇所しか守れない対症療法
-   だった)。本文段落・リスト項目にtext-wrap:prettyを当て、Chromium系では
-   最終行の孤立をエンジン側で回避する。見出しの text-wrap:balance と同じ
-   語彙で、未対応ブラウザは現状の折り返しに落ちるだけ(無害)。 */
+/* 孤児行の根治(第11ラウンドA-1): 第10ラウンドの text-wrap:pretty は
+   空白区切り言語の道具で、和文では最終行が1文字伸びるだけだった
+   (デザインレビュー8回目のon/off実測。孤児9件・送り仮名の割れ2件が残存)。
+   日本語の文節モデルで折り返すword-break:auto-phrase(Chromium 119+)へ
+   差し替える。見出し(h1〜h4)と.michi-panel-titleで既に使っている語彙で、
+   依存もビルドも増えない。未対応ブラウザは現状の折り返しに落ちるだけ。
+   代償は全長の増(実測値は都度レポート)。 */
 p, li {
-  text-wrap: pretty;
+  word-break: auto-phrase;
 }
 
 ul, ol {
@@ -145,6 +146,14 @@ button, input {
      ダーク側だけ明るい値に差し替える。 */
   --fuda-card-edge: var(--border);
 
+  /* 操作部品(入力欄・ghostボタン)の枠(第11ラウンドD-4): 装飾の--borderは
+     ライトで白カード比1.37:1しかなく、URL入力欄とコピー/情報ボタンが
+     WCAG 1.4.11(非文字UI 3:1)を割っていた(レイアウトR-4)。操作できる
+     部品の枠だけ専用トークンで一段はっきりさせる。
+     実測: #8A8478 vs #FFF 3.72 / vs #FBF9F4 3.53。ダークは守り札の輪郭と
+     同じ値(カード地比3.46)。 */
+  --control-edge: #8A8478;
+
   /* 配色体系: 店の色は紺+金茶、抹茶は「おまもり」という商品の色。
      ヒーローは店の紺地。--hero-bg はダーク側で一段深い紺に上書きする
      (第5ラウンドH: ライト/ダークの第1画面の差分が1.15%しかなく、テーマを
@@ -155,11 +164,21 @@ button, input {
   --hero-sub: #D9CFB0;
   --hero-charm-fill: var(--omamori-green-light);
 
-  /* 主動線ボタンの文字色(第5ラウンドC): 「おまもりを授かる」は全箇所で
-     抹茶(--omamori-green)地に統一する。生成り#F0E8D0だと 4.11:1 でAA(4.5:1)を
-     割るため、文字はわずかに明るい紙白 #FBFAF6(=--tsukumo-eye-white と同値)に
-     する。実測(WCAG式) #FBFAF6 vs #467A56 = 4.83:1。 */
-  --on-green: #FBFAF6;
+  /* 主CTAの金茶(第11ラウンド裁定): 抹茶のCTA(rgb(70,122,86))は、押せない
+     おまもりの絵(rgb(78,136,98)・面積5.8倍)と1.202:1のほぼ同色で、しかも
+     絵のほうが「角丸の緑面+白抜き✓+白文字」というCTAと同じ構成要素を
+     持っていた(レイアウトN-5が2巡連続で指摘)。CTAを店の金茶側へ移す
+     (店=紺+金茶/商品=抹茶の体系。「授かる」は店の側の行為)。
+     --omamori-gold(#C8A87C)そのままでは白カード上で2.25:1しか出ないため、
+     同色相の深い金茶を専用に置く。机上計算(WCAG式。描画画素でも検証):
+       紺文字#162244 vs #AD8B57 = 4.91:1 (AA 4.5+)
+       #AD8B57 vs 白カード#FFF = 3.18 / 紺ヒーロー#162244 = 4.91 /
+       ダークカード#242220 = 4.99 / ダークヒーロー#0F1830 = 5.54 (全て3:1+)
+     テーマ非依存の固定色(抹茶CTA時代と同じ方針)。hoverは一段暗い金茶
+     (紺文字4.56 / vs白3.42で、hover状態でもAA・非文字3:1を維持)。 */
+  --omamori-gold-deep: #AD8B57;
+  --omamori-gold-deep-hover: #A8854F;
+  --on-gold: var(--omamori-navy);
 
   --chip-bg: rgba(70, 122, 86, 0.1);
   --chip-border: rgba(70, 122, 86, 0.3);
@@ -215,6 +234,7 @@ button, input {
     /* 実測: card-bg(#242220)比 3.46:1 / page-bg(#1A1915)比 3.84:1。
        AA非文字基準(3:1)を満たす暖色寄りのグレー(D-1)。 */
     --fuda-card-edge: #7A756B;
+    --control-edge: var(--fuda-card-edge);
     /* ライトのみ 3.37→5.82 に直っていた(1-4)。ダークは #7A7568 のまま
        page-bg比 3.83:1 で AA未達だったため、こちらも明るくする。 */
     --footer-text: #9C9587;
@@ -262,6 +282,14 @@ button, input {
   }
   .koujou-charm {
     filter: drop-shadow(0 6px 14px rgba(0, 0, 0, 0.3)) drop-shadow(0 0 10px rgba(222, 189, 140, 0.3));
+  }
+
+  /* 第11ラウンドB-7: 紺の丸番号の座はダークのカード地と1.02:1で、ライトの
+     15.60:1に対して事実上「素の数字」になっていた(第10ラウンドの自己申告1)。
+     パネル枠と同じ既存トークン(--fuda-card-edge、ダーク3.46:1)のinsetリングを
+     1本足して輪郭を立てる。新色ゼロ・高さ増ゼロ・塗りは両モード同じ紺のまま。 */
+  .michi-steps li::before {
+    box-shadow: inset 0 0 0 1px var(--fuda-card-edge);
   }
 }
 
@@ -430,25 +458,25 @@ section > h2,
   transform: translateY(0);
 }
 
-/* 主動線の統一(第5ラウンドC): 「おまもりを授かる」は同一クラス・同一文言・
-   同一動作なのに、ヒーローだけ金茶・他は抹茶と2色に割れていた。
-   「授かる」は商品(おまもり=抹茶)を受け取る動作なので抹茶1色に統一し、
-   金茶は店の意匠(店章・縁・肩書き)専用に残す。文字は生成り#F0E8D0だと
-   4.11:1でAA(4.5:1)を割るため、--on-green(#FBFAF6、4.83:1)にする。
-   hoverは明るくせず暗くする(明るい抹茶#4E8862は文字と3.35:1まで落ちる)。 */
+/* 主動線の統一: 「おまもりを授かる」は3箇所(ヒーロー/VCCパネル/ダイアログ)
+   とも同一の金茶(第11ラウンド裁定。理由と実測値はトークン定義部を参照)。
+   文字は店の紺。緑はおまもりの絵と守り札まわり(summary・○・✓)の色として
+   残り、押す物体の色は金茶だけになる。 */
 .btn-primary {
-  background: var(--omamori-green);
-  color: var(--on-green);
-  box-shadow: 0 3px 10px rgba(70, 122, 86, 0.35), var(--glow);
+  background: var(--omamori-gold-deep);
+  color: var(--on-gold);
+  box-shadow: 0 3px 10px rgba(173, 139, 87, 0.35), var(--glow);
 }
 .btn-primary:hover {
-  background: #3C6A4A;
+  background: var(--omamori-gold-deep-hover);
 }
 
 .btn-ghost {
   background: transparent;
   color: var(--text-primary);
-  border: 1px solid var(--border);
+  /* --border→--control-edge(第11ラウンドD-4): 押せる部品の枠が
+     ライト1.37:1で装飾の罫と同じ薄さだった(WCAG 1.4.11)。 */
+  border: 1px solid var(--control-edge);
 }
 .btn-ghost:hover {
   background: var(--card-bg-alt);
@@ -816,7 +844,7 @@ section > h2,
 }
 
 /* ヒーローの「授かる」も色は共通(.btn-primary)のまま、サイズだけ主役級にする。
-   抹茶#467A56 vs 紺#162244 はWCAG式3.10:1(ダークの深い紺とは3.5:1)で、
+   金茶#AD8B57 vs 紺#162244 はWCAG式4.91:1(ダークの深い紺#0F1830とは5.54:1)で、
    非文字UIの3:1を満たす。 */
 .koujou-cta .btn-primary {
   font-size: 1.05rem;
@@ -826,7 +854,11 @@ section > h2,
 .koujou-cta-note {
   font-size: 0.82rem;
   color: var(--hero-sub);
-  max-width: 46ch;
+  /* 46ch→リードと同じ820px(第11ラウンドD-2): 46ch(≈335px)はリードの行長
+     (1280pxで598px)の56%しかなく、4行組の最終行に「さい。」が全13幅で
+     孤立する真因だった(レイアウトR-2)。リードと同じ行長にして2行に組み、
+     ヒーロー右端の割れも減らす。 */
+  max-width: 820px;
   margin: 0;
   /* .koujou-lead と同じ揃えにする。ヒーロー内の視線の流れが
      中央(h1・チップ)→左(リード)→中央(注記)→左(URL欄)と3回
@@ -895,23 +927,31 @@ section > h2,
   font-size: 1.15rem;
   font-weight: 700;
   margin-bottom: 0.6rem;
-  word-break: auto-phrase; /* 見出し相当。本文には当てない */
+  /* word-break:auto-phrase は h1〜h4 共通ルール(§1)で当たる。
+     第11ラウンドA-1からは本文(p, li)も同じ語彙になった。 */
 }
 
-/* 主パネルの「まずはこちら」ラベル(第10ラウンドB-1)。h3と同じ行に置いて
-   高さを増やさない。金茶の細字は白カード上で2:1程度しか出ないため、
-   文字はMAバッジと同じトークン(ライト=紺/ダーク=明るい金茶)にし、
-   金茶は下線1本で見せる(新しい色は足さない)。 */
+/* 主パネルの「まずはこちら」ラベル(第11ラウンドB-1)。第10ラウンドは
+   h3の中の下線付きspanだったが、(1)読み上げ名が「VCCで追加 まずはこちら」
+   に混ざる (2)金茶の下線が文字色と ライト6.94:1 / ダーク1.26:1 でモードに
+   よって別の装置になる、の2点をデザインレビューが指摘。h3の外に出して
+   カード右上へ絶対配置し、金茶の枠を持つ小さな札にする(「札を掛けた店先」)。
+   文字はMAバッジと同じトークン(ライト=紺/ダーク=明るい金茶)のままで、
+   どちらのモードでも「枠のある札」という同じ装置になる。高さへの影響は0。 */
+.michi-panel--vcc {
+  position: relative;
+}
 .michi-panel-label {
-  display: inline-block;
+  position: absolute;
+  top: 1.5rem;
+  right: 1.5rem;
   font-size: 0.78rem;
   font-weight: 700;
   letter-spacing: 0.08em;
   color: var(--ma-badge-text);
-  border-bottom: 2px solid var(--omamori-gold);
-  padding-bottom: 1px;
-  margin-left: 0.7rem;
-  vertical-align: 0.1em;
+  border: 1px solid var(--omamori-gold);
+  border-radius: 4px;
+  padding: 1px 0.45rem;
 }
 
 .michi-panel-summary {
@@ -943,10 +983,11 @@ section > h2,
   width: 1.7rem;
   height: 1.7rem;
   border-radius: 50%;
-  /* 丸番号は紺(第10ラウンドA-4): 旧は.btn-primaryと塗り・文字色とも同一の
+  /* 丸番号は紺(第10ラウンドA-4): 旧は当時のCTAと塗り・文字色とも同一の
      緑で、「おまもりを授かる」ボタンの真下に同じ緑の丸が並び、押せるものと
-     番号が同じ物体に見えていた。緑は「押すもの」(CTA 3箇所)に予約し、
-     順序は店の紺で示す。文字は生成り(紺地に12.4:1)。 */
+     番号が同じ物体に見えていた。順序は店の紺で示す。文字は生成り
+     (紺地に12.4:1)。CTA自体は第11ラウンドで金茶になったので、丸番号とは
+     色相からして別物になっている。ダークの輪郭リングは§2のダーク側を参照。 */
   background: var(--tsukumo-navy);
   color: var(--omamori-cream);
   font-family: 'Zen Maru Gothic', sans-serif;
@@ -994,12 +1035,16 @@ section > h2,
   flex-wrap: wrap;
   align-items: baseline;
   column-gap: 1.1rem;
-  row-gap: 0.3rem;
+  /* 0.3→0.2rem(第11ラウンドB-3): calloutを1remへ上げたぶんの相殺 */
+  row-gap: 0.2rem;
   margin: 0 0 0.9rem;
 }
 
 .michi-callout {
-  font-size: 0.88rem;
+  /* 1rem(第11ラウンドB-3): 「読み落とすとボタンが働かない」唯一のcritical文が
+     直上の手順(16px)より小さい14.08pxで組まれていた(デザインH-3)。本文と
+     同格の級数に上げ、増分は.michi-alcom-rowのrow-gapで相殺する。 */
+  font-size: 1rem;
   font-weight: 500;
   border-left: 3px solid var(--omamori-gold);
   padding-left: 0.8rem;
@@ -1020,7 +1065,12 @@ section > h2,
   gap: 0.35rem;
   font-size: 0.82rem;
   font-weight: 700;
-  color: var(--accent-text);
+  /* 二次色+金茶の▸(第11ラウンドB-5): 丸番号から緑を外した直後に、同じ
+     パネルへ緑のsummaryを1つ足していた(デザインH-5)。詳細リンクは
+     「押すもの」ではなく「畳んであるもの」なので、守り札のsummary群とは
+     色を分け、主パネル内の緑をゼロにする。
+     実測: #6B665E vs 白カード 5.70:1 / #B0A99C vs ダークカード 6.80:1。 */
+  color: var(--text-secondary);
   padding: 10.5px 0;
   margin: -10.5px 0;
   user-select: none;
@@ -1034,6 +1084,8 @@ section > h2,
   content: '▸';
   display: inline-block;
   font-size: 0.7em;
+  /* ▸はCTAと同じ深い金茶(白カード上3.18:1、ダークカード上4.99:1)。 */
+  color: var(--omamori-gold-deep);
   transition: transform 0.15s ease;
 }
 
@@ -1051,6 +1103,16 @@ section > h2,
   color: var(--text-secondary);
 }
 
+/* 第11ラウンドB-4: .michi-alcom-rowが縦積みになる幅では、金茶の縦線・
+   callout本文・summaryの▸で左端が3段に割れていた(デザインH-4)。
+   縦積みになる幅でだけ<details>へcalloutと同じインデントを与え、
+   ▸をcallout本文の左端に揃える。 */
+@media (max-width: 700px) {
+  .michi-alcom {
+    padding-left: calc(0.8rem + 3px);
+  }
+}
+
 /* --- 各タブ内の実行手段（C-1/C-3: 参照ではなく、その場で完結させる） --- */
 .michi-panel-action {
   margin-bottom: 1.25rem;
@@ -1065,7 +1127,9 @@ section > h2,
 .michi-url-row input {
   flex: 1;
   min-width: 0;
-  border: 1px solid var(--border);
+  /* --border→--control-edge(第11ラウンドD-4): パネル枠はダーク3.84:1へ
+     改善済みなのに、入力欄だけ1.37/1.32:1で取り残されていた(レイアウトR-4)。 */
+  border: 1px solid var(--control-edge);
   background: var(--card-bg-alt);
   color: var(--text-primary);
   border-radius: 8px;
@@ -1301,6 +1365,31 @@ section > h2,
   margin-top: auto;
 }
 
+/* 第11ラウンドD-6: 2列組でカード高はgridのstretchで揃うのに、<summary>の
+   位置が行内で最大26px(情景の行数差ぶん)ずれていた(レイアウトR-6)。
+   複数列になる幅(グリッドが2列になるのは内寸657.6px以上=ビューポート
+   約706px以上)でだけ、伸縮ぶんの余白を情景とdetailsの間へ集めて
+   「summary+バッジ」の一群をカード下端に揃える。バッジの無い3枚には
+   fix行と同じ高さ(0.82rem×1.8)の空きを::afterで確保し、summaryの行内の
+   ずれを badge種の高低差(数px)まで縮める。1列の幅ではカードが自然高で
+   伸縮余白が無く、::afterが全長を増やすだけなので適用しない。
+   ※このブロックは .fuda-card-fix / .fuda-card-ma の基底ルール(margin-top:
+   auto)より後ろに置くこと。同特異度のため書順で負けると効かない。 */
+@media (min-width: 710px) {
+  .fuda-card-more {
+    margin-top: auto;
+  }
+  .fuda-card-fix,
+  .fuda-card-ma {
+    margin-top: 0;
+  }
+  .fuda-card:not(:has(.fuda-card-fix, .fuda-card-ma))::after {
+    content: '';
+    display: block;
+    height: 1.476rem;
+  }
+}
+
 /* --- パフォーマンスパネル（深刻度を持たない別枠） --- */
 .fuda-performance {
   background: var(--card-bg-alt);
@@ -1430,9 +1519,11 @@ section > h2,
 
 .tana-item-version {
   font-weight: 700;
-  /* 第10ラウンドA-4連動: 緑を「押すもの」に予約するため、バージョン番号の
-     アクセント緑を外す(メタデータは主張しない)。 */
-  color: var(--text-secondary);
+  /* 第11ラウンドB-6: 第10ラウンドで緑を外した際に--text-secondaryへ落とした
+     結果、この節がページ唯一の完全モノクロ節になっていた(デザインS-2。
+     処方した本人が--ma-badge-textが正解と訂正)。バージョンは「等級の印」
+     なので紺+金茶の体系に返す(ライト=紺15.6:1 / ダーク=金茶8.88:1)。 */
+  color: var(--ma-badge-text);
 }
 
 .tana-item-actions {
@@ -1527,7 +1618,10 @@ section > h2,
   color: var(--text-secondary);
   margin: 1.1rem 0 0.4rem;
 }
-.tana-dialog-inner h4:first-of-type {
+/* 子結合子(第11ラウンドD-3): 結合子なしのh4:first-of-typeは
+   #packageInfoKeywordsWrap / #packageInfoLicenseWrap の中の「最初のh4」にも
+   一致し、後半2見出しのmargin-topだけ消えていた(レイアウトR-3)。 */
+.tana-dialog-inner > h4:first-of-type {
   margin-top: 0;
 }
 
@@ -1836,6 +1930,11 @@ dialog:focus-visible {
   }
   .michi-panel {
     padding: 1.1rem;
+  }
+  /* パネルの内余白1.1remに合わせて「まずはこちら」の札も追従させる */
+  .michi-panel-label {
+    top: 1.1rem;
+    right: 1.1rem;
   }
   .michi-panel + .michi-panel {
     margin-top: 0.75rem;
