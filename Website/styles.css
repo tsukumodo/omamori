@@ -39,6 +39,10 @@ body {
   color: var(--text-primary);
   background: var(--page-bg);
   overflow-x: hidden;
+  /* 行頭禁則(第10ラウンドA-6): 既定のline-break:autoでは小書き仮名や長音符が
+     行頭に落ちる(実測で「ウ/ィンドウ」と分割されていた)。strictで
+     小書き仮名・拗促音・長音符を行頭禁則の対象にする。CSS 1宣言・依存ゼロ。 */
+  line-break: strict;
 }
 
 h1, h2, h3, h4 {
@@ -57,6 +61,16 @@ p {
 }
 p:last-child {
   margin-bottom: 0;
+}
+
+/* 孤児行の根治(第10ラウンドA-5): ヒーロー注記の最終行が11幅すべてで
+   「い。」の2文字だけになる等、1〜2文字の孤立行が文言変更のたびに再発
+   していた(第7ラウンドD-Aの.no-orphanは貼った1箇所しか守れない対症療法
+   だった)。本文段落・リスト項目にtext-wrap:prettyを当て、Chromium系では
+   最終行の孤立をエンジン側で回避する。見出しの text-wrap:balance と同じ
+   語彙で、未対応ブラウザは現状の折り返しに落ちるだけ(無害)。 */
+p, li {
+  text-wrap: pretty;
 }
 
 ul, ol {
@@ -684,17 +698,25 @@ section > h2,
     grid-template-columns: auto 1fr;
     column-gap: 2.75rem;
     align-items: center;
-    justify-items: center;
+    /* 左端の統一(第10ラウンドA-7): justify-items:centerだとmax-widthの効く
+       要素(h1・注記・バッジ)だけがカラム内で中央へずれ、ヒーローの左端が
+       4本(449.5/458/496.7/589.3px)に割れていた。テキスト列は左端1本
+       (x=458)に揃え、おまもりの絵だけ自分のカラム中央に置く。 */
+    justify-items: start;
   }
   .koujou-charm {
     grid-column: 1;
     grid-row: 1 / 4;
     width: 190px;
     margin-bottom: 0;
+    justify-self: center;
   }
   .koujou-title {
     grid-column: 2;
     grid-row: 1;
+    /* 2カラムで強い左端を作った以上、h1だけ中央揃えは矛盾する(A-7連動)。
+       900px未満は.koujouのtext-align:centerのまま。 */
+    text-align: left;
   }
   .koujou-lead {
     grid-column: 2;
@@ -704,9 +726,19 @@ section > h2,
     grid-column: 2;
     grid-row: 3;
   }
+  /* .koujou-ctaはwidth:100%のflexなので、justify-items:startだけでは
+     中の注記(max-width:46ch)が中央に残る。子も左端に揃える。
+     ※基底の .koujou-cta { align-items:center } はファイル後方にあり
+     同特異度だと書順で負けるため、.koujou 付きで一段上げる。 */
+  .koujou .koujou-cta {
+    align-items: flex-start;
+  }
   .koujou-badges {
-    grid-column: 1 / -1;
+    /* 1/-1のままだと左端がグリッド左端(=おまもりカラムの左)になり、
+       テキスト列と揃わない。テキスト列(2列目)に入れて左端を1本にする。 */
+    grid-column: 2;
     grid-row: 4;
+    justify-content: flex-start;
   }
   .koujou-charm-detail {
     display: inline;
@@ -838,29 +870,48 @@ section > h2,
 
 /* タブUI(.michi-tabs / .michi-tab)は第8ラウンドAで廃止した。実機で
    「タップしても何も起きない」と受け取られたため、2つの道は隠さず
-   両方を縦に並べて常時表示する。VCC(主)は緑の縁で立たせ、URL手動
-   登録(副)は通常の枠のままにして主従を示す。 */
+   両方を縦に並べて常時表示する。
+   第10ラウンドB-1: 主従の表現を「VCC側の緑2px縁」から金茶のラベル
+   (.michi-panel-label)へ変更した。緑は廃止直前まで「選択中タブ」の色で
+   「もう選んである」に誤読されうるうえ、ダークでは副パネルの1px枠が
+   1.45:1で消えて二択が二択に見えなくなっていた。両パネルとも同じ1px枠に
+   戻し、枠色はダークでも3:1を満たす--fuda-card-edge(ライトは--borderと
+   同値)にする。 */
 .michi-panel {
   background: var(--card-bg);
-  border: 1px solid var(--border);
+  border: 1px solid var(--fuda-card-edge);
   border-radius: 12px;
   padding: 1.5rem;
-}
-
-.michi-panel--vcc {
-  border-color: var(--omamori-green);
-  border-width: 2px;
 }
 
 .michi-panel + .michi-panel {
   margin-top: 1.25rem;
 }
 
+/* 節の道標の級数(第10ラウンドB-3): タブ廃止後、この見出しが節内の唯一の
+   道標なのに本文16pxの1.05倍しかなかった。h3は「節内見出し1.15rem /
+   カード内見出し1.05rem」の2段に整理し、これは節内見出し側に置く。 */
 .michi-panel-title {
-  font-size: 1.05rem;
+  font-size: 1.15rem;
   font-weight: 700;
   margin-bottom: 0.6rem;
   word-break: auto-phrase; /* 見出し相当。本文には当てない */
+}
+
+/* 主パネルの「まずはこちら」ラベル(第10ラウンドB-1)。h3と同じ行に置いて
+   高さを増やさない。金茶の細字は白カード上で2:1程度しか出ないため、
+   文字はMAバッジと同じトークン(ライト=紺/ダーク=明るい金茶)にし、
+   金茶は下線1本で見せる(新しい色は足さない)。 */
+.michi-panel-label {
+  display: inline-block;
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  color: var(--ma-badge-text);
+  border-bottom: 2px solid var(--omamori-gold);
+  padding-bottom: 1px;
+  margin-left: 0.7rem;
+  vertical-align: 0.1em;
 }
 
 .michi-panel-summary {
@@ -892,10 +943,12 @@ section > h2,
   width: 1.7rem;
   height: 1.7rem;
   border-radius: 50%;
-  background: var(--omamori-green);
-  /* 生成り#F0E8D0は抹茶地で4.11:1とAAを割るため、.btn-primaryと同じ
-     --on-green(4.83:1)に揃える(第5ラウンドC連動)。 */
-  color: var(--on-green);
+  /* 丸番号は紺(第10ラウンドA-4): 旧は.btn-primaryと塗り・文字色とも同一の
+     緑で、「おまもりを授かる」ボタンの真下に同じ緑の丸が並び、押せるものと
+     番号が同じ物体に見えていた。緑は「押すもの」(CTA 3箇所)に予約し、
+     順序は店の紺で示す。文字は生成り(紺地に12.4:1)。 */
+  background: var(--tsukumo-navy);
+  color: var(--omamori-cream);
   font-family: 'Zen Maru Gothic', sans-serif;
   font-weight: 700;
   font-size: 0.85rem;
@@ -926,6 +979,76 @@ section > h2,
 }
 .michi-note a:hover {
   text-decoration: none;
+}
+
+/* ALCOMのcritical情報(第10ラウンドA-2): 「Windows/Linuxは設定画面で
+   vcc://を有効化」は読み落とすとボタンが働かない唯一の情報。手順直後に
+   短文で独立させ、注記(0.85rem・二次色)より一段目立たせる(本文色+
+   金茶の縦線1本)。箱にしない(上下パディングを持たせない)ことで、
+   目立たせつつブロック全体の高さは増やさない。
+   critical文と補足のdetailsはflex行に載せる: 広い画面では1行に並んで
+   旧注記(1280pxで3行)より低くなり、狭い画面ではflex-wrapで自然に
+   縦積みになる(モバイルの行数削減と1280pxの高さ削減を両立するため)。 */
+.michi-alcom-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  column-gap: 1.1rem;
+  row-gap: 0.3rem;
+  margin: 0 0 0.9rem;
+}
+
+.michi-callout {
+  font-size: 0.88rem;
+  font-weight: 500;
+  border-left: 3px solid var(--omamori-gold);
+  padding-left: 0.8rem;
+  margin: 0;
+}
+
+/* ALCOMの補足(v0.1.4以降・macOSは既定で有効)は<details>へ畳む(A-2)。
+   このページの他11個のdetailsと同じ開閉語彙・同じ44pxタップ確保。 */
+.michi-alcom {
+  margin: 0;
+}
+
+.michi-alcom summary {
+  cursor: pointer;
+  list-style: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: var(--accent-text);
+  padding: 10.5px 0;
+  margin: -10.5px 0;
+  user-select: none;
+}
+
+.michi-alcom summary::-webkit-details-marker {
+  display: none;
+}
+
+.michi-alcom summary::before {
+  content: '▸';
+  display: inline-block;
+  font-size: 0.7em;
+  transition: transform 0.15s ease;
+}
+
+.michi-alcom[open] summary::before {
+  transform: rotate(90deg);
+}
+
+.michi-alcom summary:hover {
+  text-decoration: underline;
+}
+
+.michi-alcom-body {
+  margin-top: 0.5rem;
+  font-size: 0.85rem;
+  color: var(--text-secondary);
 }
 
 /* --- 各タブ内の実行手段（C-1/C-3: 参照ではなく、その場で完結させる） --- */
@@ -1187,7 +1310,9 @@ section > h2,
 }
 
 .fuda-performance h3 {
-  font-size: 1.1rem;
+  /* h3の2段整理(第10ラウンドB-3): 節内見出し1.15rem / カード内見出し
+     1.05rem の2段に統一する。これは節内見出し側。 */
+  font-size: 1.15rem;
   margin-bottom: 0.6rem;
 }
 
@@ -1305,7 +1430,9 @@ section > h2,
 
 .tana-item-version {
   font-weight: 700;
-  color: var(--accent-text);
+  /* 第10ラウンドA-4連動: 緑を「押すもの」に予約するため、バージョン番号の
+     アクセント緑を外す(メタデータは主張しない)。 */
+  color: var(--text-secondary);
 }
 
 .tana-item-actions {
@@ -1351,7 +1478,9 @@ section > h2,
 }
 
 .tana-dialog-head h3 {
-  font-size: 1.2rem;
+  /* h3の2段整理(第10ラウンドB-3): 1.2remはページで唯一の級数だった。
+     節内見出し(1.15rem)側に揃える。 */
+  font-size: 1.15rem;
   margin-bottom: 0.3rem;
 }
 
@@ -1511,9 +1640,11 @@ section > h2,
 }
 
 /* 記録する/記録しない の見出しはh3(D-5): 以前はh4で、h2(利用統計のお約束)
-   から直接h4に飛んでおり見出し階層がスキップしていた。 */
+   から直接h4に飛んでおり見出し階層がスキップしていた。
+   第10ラウンドB-3: 0.85rem(13.6px)は本文(0.88rem)より小さい見出しだった。
+   h3の2段整理でカード内見出し(1.05rem)側に揃える。 */
 .kiroku-lists h3 {
-  font-size: 0.85rem;
+  font-size: 1.05rem;
   margin: 0 0 0.5rem;
 }
 
@@ -1616,8 +1747,10 @@ section > h2,
 
 .rakkan-links a {
   font-size: 0.85rem;
-  text-decoration: none;
-  color: var(--accent-text);
+  /* 第10ラウンドA-4連動: 落款は紺と金茶の場所。外部リンクの緑を外し、
+     墨色+常時下線にする(hoverで下線を消す)。 */
+  text-decoration: underline;
+  color: var(--text-primary);
   font-weight: 500;
   /* タップターゲット(D-3): 実測15px高。行間だけの当たり判定だった文字
      リンクに縦のpaddingを足して44pxへ。横幅はもともと44px以上ある。 */
@@ -1627,7 +1760,7 @@ section > h2,
   padding: 4px 2px;
 }
 .rakkan-links a:hover {
-  text-decoration: underline;
+  text-decoration: none;
 }
 
 /* =========================================================================
@@ -1693,16 +1826,19 @@ dialog:focus-visible {
      8195→8351pxに伸びた。モバイルではパネルの内余白と手順の行間を
      少し詰めて増分の一部を相殺する(内容は削らない)。
      第9ラウンド: ALCOM注記とコピー手順の明示で再び伸びたぶんを、
-     URL欄・手順・注記まわりの余白でさらに一部相殺する(内容は削らない)。 */
+     URL欄・手順・注記まわりの余白でさらに一部相殺する(内容は削らない)。
+     第10ラウンド: A-1(ALCOMの断定を事実の範囲に正した文の+2行)と
+     A-6(行頭禁則strictの+1行)で伸びるぶんを、同じ方針の余白詰めで相殺し、
+     全長8461px(360px)を超えないよう保つ(内容は削らない)。 */
   .michi-url-row {
     flex-direction: column;
-    margin: 0.75rem 0;
+    margin: 0.5rem 0;
   }
   .michi-panel {
     padding: 1.1rem;
   }
   .michi-panel + .michi-panel {
-    margin-top: 1rem;
+    margin-top: 0.75rem;
   }
   .michi-panel-action {
     margin-bottom: 1rem;
@@ -1711,10 +1847,13 @@ dialog:focus-visible {
     margin-bottom: 1rem;
   }
   .michi-steps li {
-    margin-bottom: 0.6rem;
+    margin-bottom: 0.45rem;
   }
   .michi-note {
-    padding-top: 0.7rem;
+    padding-top: 0.55rem;
+  }
+  .michi-alcom-row {
+    margin-bottom: 0.5rem;
   }
   .tana-item-actions {
     flex-direction: column;

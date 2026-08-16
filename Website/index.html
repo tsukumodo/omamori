@@ -427,26 +427,42 @@
       <h2 id="michi-heading" tabindex="-1">二つの道</h2>
       <p class="section-lead">お手元のおまもりをプロジェクトへ迎え入れる方法を、二つご案内します。追加が済んだら、Unityメニューの「Tools &gt; アバター改変おまもり」からウィンドウを開いてお使いいただけます。</p>
 
+      <!-- 第10ラウンドB-1: 主従の表現を「緑の2px縁」から金茶のラベルへ変更。
+           緑は「選択中タブ」だった色で「もう選んである」に誤読され、ダークでは
+           副パネルの枠(1.45:1)が消えて二択に見えなくなっていたため。ラベルは
+           h3と同じ行に置き、パネルの高さを増やさない。 -->
       <div class="michi-panel michi-panel--vcc">
-        <h3 class="michi-panel-title">VCCで追加</h3>
+        <!-- span間の空白はアクセシブル名の区切り(h1の第5ラウンドG-1と同じ理由)。 -->
+        <h3 class="michi-panel-title">VCCで追加 <span class="michi-panel-label">まずはこちら</span></h3>
         <p class="michi-panel-summary">ワンクリックでVCCにリスティングを登録する、一番早い道です。</p>
         <div class="michi-panel-action">
           <button type="button" class="btn btn-primary btn-small vcc-trigger">おまもりを授かる</button>
         </div>
         <ol class="michi-steps">
-          <li>上の「おまもりを授かる」ボタンを押す</li>
-          <li>VCCが開いたら「Add」→「I Understand」の順にクリック</li>
+          <!-- no-orphan: 390pxで最終行が「押す」の2文字に孤立する
+               (text-wrap:prettyは1文字の孤児しか救わない)。 -->
+          <li>上の「おまもりを授かる」<span class="no-orphan">ボタンを押す</span></li>
+          <li>VCCが開いたら「Add」→<span class="no-orphan">「I Understand」</span>の順にクリック</li>
           <li>プロジェクトを開いて「アバター改変おまもり」を追加</li>
         </ol>
-        <!-- 第9ラウンドB: ALCOMへの言及(オーナー質問「ALCOMでもいいんだよね？」対応)。
-             書いてよい事実は監督が一次情報(vrc-get公式CHANGELOG-gui.md)で確認した
-             3点のみ: (1)ALCOMはVCC互換クライアントで設定ファイルを共有、
-             (2)vcc://対応はv0.1.4以降・macOSは既定で有効・Windows/Linuxは
-             ALCOMの設定画面で手動有効化、(3)URL手動登録は同じ手順で通る。
-             ALCOM外部サイトへのリンクは張らない(オーナー未承認)。
-             初心者が迷わないよう「ALCOMをお使いの方は」と条件から入り、
-             ALCOMを知らない読者はVCCの一文だけ読めば済む構成にする。 -->
-        <p class="michi-note">VCCがまだ手元にない場合は、先に<a href="https://vcc.docs.vrchat.com/" target="_blank" rel="noopener">VRChat公式のVCC</a>を導入してからお試しください。VCC互換クライアントのALCOMをお使いの方も、このボタンをそのままお使いいただけます(vcc://リンクへの対応はALCOM v0.1.4以降です)。macOSでは初めから有効ですが、Windows / LinuxではALCOMの設定画面で vcc:// リンクを有効にしておく必要があります。</p>
+        <!-- 第10ラウンドA-2: ALCOM言及の再配置(第9ラウンドBの1段落8行を3分割)。
+             「Windows/Linuxは設定画面でvcc://を有効化」は読み落とすとボタンが
+             働かない唯一の情報なのに、最小文字の灰色注記の末尾に埋まっていた。
+             critical な1文だけを手順直後の目立つ短文(.michi-callout)に独立させ、
+             補足(v0.1.4以降・macOSは既定で有効)はdetailsへ畳み、注記には
+             VCC未導入の案内だけを残す。書いてよい事実は従来どおり一次情報
+             (vrc-get公式CHANGELOG-gui.md)で確認済みの範囲のみ。ALCOM外部サイトへの
+             リンクは張らない(オーナー未承認)。 -->
+        <div class="michi-alcom-row">
+          <p class="michi-callout">Windows / Linux版のALCOMでは、設定画面で vcc:// リンクの有効化が必要です。</p>
+          <details class="michi-alcom">
+            <summary>ALCOMでの対応をくわしく見る</summary>
+            <div class="michi-alcom-body">
+              <p>VCC互換クライアントのALCOMをお使いの方も、「おまもりを授かる」ボタンをそのままお使いいただけます。vcc://リンクへの対応はALCOM v0.1.4以降で、macOSでは初めから有効です。</p>
+            </div>
+          </details>
+        </div>
+        <p class="michi-note">VCCがまだ手元にない場合は、先に<a href="https://vcc.docs.vrchat.com/" target="_blank" rel="noopener">VRChat公式のVCC</a>を導入してからお試しください。</p>
       </div>
 
       <!-- 第9ラウンドA: URL欄を手順リストの上へ移した。旧配置では手順2で
@@ -458,7 +474,10 @@
            ため削除(「上の」が指す先も変わるので文言ごと整理)。 -->
       <div class="michi-panel">
         <h3 class="michi-panel-title">URLで手動登録</h3>
-        <p class="michi-panel-summary">上のボタンがうまく働かないときは、下のリスティングURLをVCCの「Add Repository」に直接貼り付けて登録できます。</p>
+        <!-- 第10ラウンドA-3: 「上のボタン」は約300px上の別カードのボタンを指して
+             いた(同じパネルの手順1「上の「コピー」ボタン」とスコープが衝突)。
+             位置参照をやめてパネル名で指す。 -->
+        <p class="michi-panel-summary">「VCCで追加」のボタンがうまく働かないときは、下のリスティングURLをVCCの「Add Repository」に直接貼り付けて登録できます。</p>
         <div class="michi-url-row">
           <label for="listingUrlPanel" class="visually-hidden">VPMリスティングURL</label>
           <input type="text" readonly id="listingUrlPanel" value="{{ listingInfo.Url }}">
@@ -468,9 +487,15 @@
           <li>上の「コピー」ボタンで、リスティングURLを控える</li>
           <li>VCCを開いて Settings → 「Packages」タブへ</li>
           <li>「Add Repository」をクリックし、控えたURLを貼り付け</li>
-          <li>「Add」→「I Understand」をクリックしてプロジェクトに追加</li>
+          <li>「Add」→<span class="no-orphan">「I Understand」</span>をクリックしてプロジェクトに追加</li>
         </ol>
-        <p class="michi-note">VCCの反応がない場合は、VCCの再起動をお試しください。この手順は、ALCOMでも同じように登録できます。</p>
+        <!-- 第10ラウンドA-1: 旧文「この手順は、ALCOMでも同じように登録できます」は
+             未確認の断定だった。一次情報(vrc-get公式CHANGELOG-gui.md)が述べるのは
+             vcc://スキームへの対応のみで、ALCOMのリポジトリ追加UI(「Settings」
+             「Packages」「Add Repository」「I Understand」の各ラベル)には一切
+             言及がない。「同じリスティングURLをリポジトリとして登録できる」という
+             VPMリスティングの仕様として確実に言える範囲に収める。 -->
+        <p class="michi-note">VCCの反応がない場合は、VCCの再起動をお試しください。ALCOMをお使いの場合も、同じリスティングURLをリポジトリとして登録できます(画面や項目の名称はVCCと異なることがあります)。</p>
       </div>
     </section>
 
@@ -599,7 +624,8 @@
                   <li>日付(年月日のみ)</li>
                   <li>おまもりのバージョン</li>
                   <li>フィードバックとしてコピーした日(年月日のみ。まだコピーしていなければ記録されません)</li>
-                  <li>利用統計の収集を無効にしているかどうか</li>
+                  <!-- no-orphan: 320pxで最終行が「うか」の2文字に孤立するため。 -->
+                  <li>利用統計の収集を無効にして<span class="no-orphan">いるかどうか</span></li>
                   <li>記録データの形式のバージョン</li>
                 </ul>
               </div>
@@ -614,7 +640,12 @@
               </div>
             </div>
 
-            <p class="kiroku-manage">Unityの Tools &gt; つくも堂 &gt; 使用統計を見る から、記録内容の確認や「フィードバックとしてコピー」、統計のクリア、収集の無効化・再開ができます。よろしければ、コピーした内容をつくも堂のX(@tsukumodo_lab)のDMで送っていただけると、今後のチェック項目を考える参考にさせていただきます(任意です)。🍀</p>
+            <!-- 第10ラウンドB-2: 🔍を消した理由(句点の直後に絵文字が挟まる
+                 「。🍀」の形)がここにも残っていた。削除ではなく文中への移動を
+                 選んだのは、🍀(利用統計)+🏮(footer)の2個構成が5〜6巡目で確定
+                 済みのため。文末の「。」の外へ出し、文の途中(読点相当の位置)に
+                 添える。 -->
+            <p class="kiroku-manage">Unityの Tools &gt; つくも堂 &gt; 使用統計を見る から、記録内容の確認や「フィードバックとしてコピー」、統計のクリア、収集の無効化・再開ができます。よろしければ、コピーした内容をつくも堂のX(@tsukumodo_lab)のDMで送っていただけると、今後のチェック項目を考える参考にさせていただきます🍀(任意です)。</p>
           </div>
         </details>
       </div>
@@ -667,7 +698,7 @@
          必ず文と同じ行にぶら下がるようにする(絵文字→SVG置換はしない。
          🍀だけラスタ字形で残る中途半端が生まれるため)。
          ※ページ全体の絵文字は第8ラウンドBで🍀🏮の2個構成になった。 -->
-    <p class="rakkan-tagline">VRChat社とは無関係の、有志による非公式ツールです。お気づきの点があれば、お気軽に<span class="no-orphan">Xまでどうぞ。🏮</span></p>
+    <p class="rakkan-tagline">VRChat社とは無関係の、有志による非公式ツールです。お気づきの点があれば、<span class="no-orphan">お気軽にXまでどうぞ🏮</span></p>
     <ul class="rakkan-links">
       <li><a href="https://tsukumodo-lab.booth.pm/items/8132860" target="_blank" rel="noopener">BOOTH</a></li>
       <li><a href="https://x.com/tsukumodo_lab" target="_blank" rel="noopener">X (@tsukumodo_lab)</a></li>
