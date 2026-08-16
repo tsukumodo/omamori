@@ -147,7 +147,14 @@ function initPackageDialog() {
     els.version.textContent = `v${info.version}`;
     els.description.textContent = info.description;
     els.author.textContent = info.author.name;
-    els.author.href = info.author.url || '#';
+    // author.url は package.json の任意項目。ライセンス欄と同じ理由で、
+    // 未指定のときは href を外して素のテキストとして見せる（href="#" のままだと
+    // target="_blank" と相まって「同じページが新しいタブで開く」リンクになる）。
+    if (info.author.url) {
+      els.author.href = info.author.url;
+    } else {
+      els.author.removeAttribute('href');
+    }
 
     els.dependencies.innerHTML = '';
     Object.entries(info.dependencies).forEach(([depName, depVersion]) => {
