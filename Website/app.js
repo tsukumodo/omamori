@@ -174,7 +174,15 @@ function initPackageDialog() {
     } else {
       els.licenseWrap.hidden = false;
       els.license.textContent = info.license || 'ライセンスを見る';
-      els.license.href = info.licensesUrl || '#';
+      // licensesUrl は package.json の任意項目で、未指定なら空文字で描画される。
+      // href="#" のまま出すとページ先頭に飛ぶだけの死んだリンクになるので、
+      // URL が無いときは href を外して素のテキストとして見せる
+      // （href の無い <a> はリンクとして扱われず、フォーカスも受け取らない）。
+      if (info.licensesUrl) {
+        els.license.href = info.licensesUrl;
+      } else {
+        els.license.removeAttribute('href');
+      }
     }
 
     // ダイアログのCTA「おまもりを授かる」は initVccButtons が
