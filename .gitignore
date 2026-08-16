@@ -73,3 +73,6 @@ Resources/
 # AI coding assistant local state
 .claude/settings.local.json
 .codex/
+
+# tools/listing-preview の生成物（node tools/listing-preview/preview.mjs の出力先）
+/_preview/

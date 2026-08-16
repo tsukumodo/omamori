@@ -4,210 +4,753 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>アバター改変おまもり — つくも堂</title>
-  <!-- Fluent UI はバージョン未固定の unpkg 参照だと latest（v3・破壊的変更）を掴んで
-       ページ全体が動かなくなるため、v2.6.1 を同梱して配信する（Issue #28 / 2026-08-07 に実際に発生） -->
-  <script type="module" src="vendor/fluentui-web-components-2.6.1.min.js"></script>
+  <meta name="description" content="「アバター改変おまもり」は、VRChatアバターをアップロードする前に、ありがちな設定ミスをまとめて見つけてくれるUnity Editor拡張です。">
+
+  <!-- OGP / Twitter Card。X・Discordにこのページのリンクを貼ったときのプレビュー用。
+       og:image は index.json のURL（{{ listingInfo.Url }}）とは別物（画像そのものの絶対URL）
+       で、Scribanテンプレート変数として提供されていないためハードコードしている。
+       リポジトリ・配信パスが変わる場合はここも合わせて更新すること。 -->
+  <meta property="og:type" content="website">
+  <meta property="og:locale" content="ja_JP">
+  <meta property="og:title" content="アバター改変おまもり — つくも堂">
+  <meta property="og:description" content="「アバター改変おまもり」は、VRChatアバターをアップロードする前に、ありがちな設定ミスをまとめて見つけてくれるUnity Editor拡張です。">
+  <meta property="og:image" content="https://tsukumodo.github.io/omamori/omamori-thumbnail.png">
+  <meta property="og:image:alt" content="アバター改変おまもり">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="アバター改変おまもり — つくも堂">
+  <meta name="twitter:description" content="「アバター改変おまもり」は、VRChatアバターをアップロードする前に、ありがちな設定ミスをまとめて見つけてくれるUnity Editor拡張です。">
+  <meta name="twitter:image" content="https://tsukumodo.github.io/omamori/omamori-thumbnail.png">
+
   <link rel="stylesheet" href="styles.css">
   <link rel="icon" href="./favicon.ico">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@400;500;700&family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
 </head>
-<body>
-  <div class="col align-items-center content">
+<body class="washi">
+  <a class="skip-link" href="#main">本文へ移動</a>
 
-    <div class="shop-header">
-      <img src="tsukumodo-header.png" alt="つくも堂 TSUKUMODO" class="shop-header-img">
-    </div>
-
-    <header class="hero col align-items-center">
-      <img src="omamori-thumbnail.png" alt="アバター改変おまもり" class="hero-thumbnail">
-      <h1 class="hero-title">アバター改変おまもり</h1>
-      <p class="hero-subtitle">VRChatアバターの設定ミスをビルド前に一括検出</p>
-      <div class="hero-badges">
-        <span class="badge">無料</span>
-        <span class="badge">MIT License</span>
-        <span class="badge">MA対応</span>
+  <!-- 暖簾の構造(第5ラウンドA): 実物の暖簾は帯と裾が同じ1枚の布で、屋号は布に
+       染め抜かれている。布を生成り(--noren-cloth)、布の隙間と店の中を暗い藍
+       (--noren-gap)にし、店章と屋号は布の上(=生成りの帯部分)に藍で載せる。
+       以前の「紺の布を紺の地に置き、金茶のdrop-shadow縁取りで立たせる」構造は、
+       縁が実際にはほぼ描画されず(画素実測で隙間の片側1pxのみ)、布と地が
+       1.18:1で区別できなかったため廃止した。 -->
+  <header class="noren">
+    <div class="noren-band">
+      <div class="seigaiha noren-band-pattern" aria-hidden="true"></div>
+      <div class="noren-crest" aria-hidden="true">
+        <svg class="tsukumo-mascot" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <!-- 歯の形はブランド資材(Website/tsukumodo-logo.png)を実測して作り直した(D-12)。
+             旧形は歯車の座(r=30)に対して歯の長さが比率0.47(y=6が先端)と長すぎ、
+             間隔も相対的に広く見え「サンサースト」に読めていた。実測(ロゴPNGを
+             中心から半径方向にピクセル走査)では歯の長さは座の半径の約0.18〜0.22倍
+             (先端は座から突き出て6〜7ユニット程度)だったため、先端をy=13.5(座からの
+             突き出し6.5ユニット)に短縮し、丸めた台形にした。 -->
+        <path id="tooth-header" d="M44.8 20 L45.36 14.79 Q45.5 13.5 46.8 13.5 L53.2 13.5 Q54.5 13.5 54.64 14.79 L55.2 20 Z"/>
+          </defs>
+          <g fill="var(--tsukumo-gear)">
+            <use href="#tooth-header" transform="rotate(0 50 50)"/>
+            <use href="#tooth-header" transform="rotate(45 50 50)"/>
+            <use href="#tooth-header" transform="rotate(90 50 50)"/>
+            <use href="#tooth-header" transform="rotate(135 50 50)"/>
+            <use href="#tooth-header" transform="rotate(180 50 50)"/>
+            <use href="#tooth-header" transform="rotate(225 50 50)"/>
+            <use href="#tooth-header" transform="rotate(270 50 50)"/>
+            <use href="#tooth-header" transform="rotate(315 50 50)"/>
+          </g>
+          <circle cx="50" cy="50" r="30" fill="var(--tsukumo-gear)"/>
+          <circle cx="50" cy="50" r="25.5" fill="var(--tsukumo-navy)"/>
+          <circle cx="50" cy="50" r="20.5" fill="none" stroke="var(--tsukumo-gear)" stroke-width="1" stroke-dasharray="2.6 2.6" opacity="0.85"/>
+          <g class="mascot-eye">
+            <ellipse cx="41.5" cy="48" rx="6.4" ry="6.8" fill="var(--tsukumo-eye-white)"/>
+            <g class="mascot-pupil" transform="translate(0,0)">
+              <circle cx="41.5" cy="49" r="4.2" fill="var(--tsukumo-pupil)"/>
+              <circle cx="39.7" cy="47.2" r="1.35" fill="var(--tsukumo-eye-white)"/>
+            </g>
+            <path class="mascot-lid" d="M35.1 48 a6.4 6.4 0 0 1 12.8 0 Z" fill="var(--tsukumo-navy)" opacity="0"/>
+          </g>
+          <g class="mascot-eye">
+            <ellipse cx="58.5" cy="48" rx="6.4" ry="6.8" fill="var(--tsukumo-eye-white)"/>
+            <g class="mascot-pupil" transform="translate(0,0)">
+              <circle cx="58.5" cy="49" r="4.2" fill="var(--tsukumo-pupil)"/>
+              <circle cx="56.7" cy="47.2" r="1.35" fill="var(--tsukumo-eye-white)"/>
+            </g>
+            <path class="mascot-lid" d="M52.1 48 a6.4 6.4 0 0 1 12.8 0 Z" fill="var(--tsukumo-navy)" opacity="0"/>
+          </g>
+          <path d="M43.5 58.5 Q50 63.5 56.5 58.5" fill="none" stroke="var(--tsukumo-gear)" stroke-width="1.8" stroke-linecap="round"/>
+        </svg>
       </div>
-    </header>
+      <p class="noren-shopname">つくも堂<span class="noren-shopname-en">TSUKUMODO</span></p>
+    </div>
+    <!-- 布は最大6枚。表示枚数はCSSのメディアクエリで3〜6枚に切り替え、
+         1枚あたりの幅がどの画面でも約100〜320pxに収まるようにする
+         (布の幅がビューポート比例で473pxまで太っていた回帰X-1と、
+         360/390pxで4枚目が0×0になっていた回帰X-2の同時解消)。 -->
+    <div class="noren-hem" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i></div>
+  </header>
 
-    <section class="install-section col align-items-center">
-      <div class="addToVccBlock row align-items-center">
-        <fluent-text-field aria-readonly="true" id="vccUrlField" class="vccUrlField" readonly value="{{ listingInfo.Url }}">
-        </fluent-text-field>
-        <fluent-button appearance="accent" class="ms-2" id="vccAddRepoButton">Add to VCC</fluent-button>
-        <fluent-button class="ms-2" id="vccUrlFieldCopy">
-          <svg slot="start" width="20" height="20" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
-            <path d="M8 2C6.89543 2 6 2.89543 6 4V14C6 15.1046 6.89543 16 8 16H14C15.1046 16 16 15.1046 16 14V4C16 2.89543 15.1046 2 14 2H8ZM7 4C7 3.44772 7.44772 3 8 3H14C14.5523 3 15 3.44772 15 4V14C15 14.5523 14.5523 15 14 15H8C7.44772 15 7 14.5523 7 14V4ZM4 6.00001C4 5.25973 4.4022 4.61339 5 4.26758V14.5C5 15.8807 6.11929 17 7.5 17H13.7324C13.3866 17.5978 12.7403 18 12 18H7.5C5.567 18 4 16.433 4 14.5V6.00001Z"/>
+  <!-- tabindex="-1"（D-15）: skip-link 遷移後にフォーカスをここへ明示的に
+       移すため。ブラウザによってはフラグメント遷移後もフォーカスが
+       <body> のまま残ることがある（Firefox等）。 -->
+  <main id="main" tabindex="-1">
+
+    <!-- ② 口上（ヒーロー） -->
+    <section class="koujou" aria-labelledby="koujou-heading">
+      <div class="asanoha koujou-pattern" aria-hidden="true"></div>
+      <div class="wrap">
+        <div class="koujou-charm" aria-hidden="true">
+          <!-- おまもりの形(第5ラウンドB): Website/omamori-thumbnail.png(1440px版)の
+               クリーム輪郭画素を1行ずつ走査して取り直した。前回(1:1.74)は
+               「幅」の分母に上辺(最も狭い325px)を使う取り違えがあった。
+               今回の実測(分母=最大幅):
+                 - 本体 top=y317 / bottom=y882 / 高さ566px、最大幅366px(y=636、
+                   上から56.4%の位置) → 幅:高さ = 366:566 = 1:1.546
+                 - 上辺の幅は326px = 最大幅の89.1%。角の丸みはほぼ直角(≤1px)
+                 - 側辺は「垂直」ではなく、上辺89.1%→56.4%地点で100%まで
+                   ほぼ直線的に張り出し、残り43.6%の高さで底の中央へ収束する
+                   (78%:88.5% / 84%:78.7% / 90%:62.8% / 94%:46.4%)
+                 - 紐のアーチは上辺直上で幅108px = 最大幅の29.5%。アーチの高さは
+                   本体高さの13.6%、その上に高さ6.4%の直線(実物に留め具の丸は無い)
+                 - 盾の幅は本体高さの23.5%(旧実装の盾は本体高さ比で正しかったので
+                   一様スケール0.89で縮小)、上下は本体高さの23.7%〜58.6%
+               viewBox は 100×195(本体40..195=155ユニット、100:155=1:1.55)。
+               幅100は前版と同じなので線幅は相似のまま流用。
+               収束部の曲線は実測プロファイル9点を通るCatmull-Rom曲線をそのまま
+               ベジェに変換したもの。
+               第6ラウンド2-a: viewBoxを「-2 -2 104 199」に広げた。0 0 100 195の
+               ままだと、最大幅の位置(x=0/100)でstroke-width2.2の外側半分が
+               viewBoxに切り落とされ、底の先端(y=195)も約6px幅で水平に切断
+               されていた(5巡目D-3c)。座標は一切変えず、余白2ユニットを
+               四辺に足しただけ。
+               第6ラウンド2-b: 内枠と「改変安全」を戻した(.koujou-charm-detail)。
+               900px以上では絵が190pxになり文字は実測15.5pxで読める。
+               900px未満は72px/48px表示のままなのでCSSで非表示にする
+               (6.1px/4.1pxの文字は読めない、という第5ラウンドB-3の判断は
+               維持し、「絵を大きくできる幅でだけ描く」に改める)。
+               文字位置は資材の実測(文字中心=本体高さの81.5%地点)に合わせた
+               y=168(本体40..195)。内枠は本体輪郭の中心相似縮小0.9倍で、
+               資材の「輪郭の少し内側を回る同じ形の線」を再現する。 -->
+          <svg class="koujou-charm-shape" viewBox="-2 -2 104 199" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+              <path id="charm-body" d="M5.36,41.5 Q5.45,40 6.95,40 L93.05,40 Q94.55,40 94.64,41.5 L100,127.4 C99.68,130.9 99.33,142.4 98.1,148.5 C96.87,154.6 94.88,159.35 92.6,164 C90.33,168.65 87.68,172.8 84.45,176.4 C81.22,180 77.28,183.1 73.2,185.7 C69.12,188.3 63.82,190.35 59.95,191.9 C56.08,193.45 51.66,194.5 50,195 C48.34,194.5 43.92,193.45 40.05,191.9 C36.18,190.35 30.88,188.3 26.8,185.7 C22.72,183.1 18.78,180 15.55,176.4 C12.32,172.8 9.67,168.65 7.4,164 C5.12,159.35 3.13,154.6 1.9,148.5 C0.67,142.4 0.32,130.9 0,127.4 Z"/>
+            </defs>
+            <use href="#charm-body" fill="var(--hero-charm-fill)" stroke="var(--omamori-cream)" stroke-width="2.2" stroke-linejoin="round"/>
+            <path d="M35.25,40 Q35.25,18.9 50,18.9 Q64.75,18.9 64.75,40" fill="none" stroke="var(--omamori-cream)" stroke-width="2.2" stroke-linecap="round"/>
+            <line x1="50" y1="18.9" x2="50" y2="9" stroke="var(--omamori-cream)" stroke-width="2.2" stroke-linecap="round"/>
+            <path d="M50,76.7 L68.2,82.27 L68.2,104.46 Q68.2,121.13 50,130.8 Q31.8,121.13 31.8,104.46 L31.8,82.27 Z" fill="none" stroke="var(--omamori-cream)" stroke-width="2"/>
+            <path d="M38.43,104.46 L46.69,112.78 L64.89,90.55" fill="none" stroke="var(--omamori-cream)" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"/>
+            <g class="koujou-charm-detail">
+              <use href="#charm-body" transform="translate(50,117.5) scale(0.9) translate(-50,-117.5)" fill="none" stroke="var(--omamori-cream)" stroke-width="1.1" opacity="0.6"/>
+              <text x="50" y="168" text-anchor="middle" font-family="'Zen Maru Gothic','Noto Sans JP',sans-serif" font-size="8.5" font-weight="700" letter-spacing="1.5" fill="var(--omamori-cream)">改変安全</text>
+            </g>
           </svg>
-          Copy
-        </fluent-button>
-        <fluent-tooltip id="urlBarHelpTooltip" anchor="urlBarHelp">
-          VCCへの追加方法
-        </fluent-tooltip>
-        <fluent-button id="urlBarHelp" appearance="stealth" class="ms-2">
-          <svg width="20" height="20" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
-            <path d="M4 4V16C4 17.1046 4.89543 18 6 18H15.5C15.7761 18 16 17.7761 16 17.5C16 17.2239 15.7761 17 15.5 17H6C5.44772 17 5 16.5523 5 16H15C15.5523 16 16 15.5523 16 15V4C16 2.89543 15.1046 2 14 2H6C4.89543 2 4 2.89543 4 4ZM14 3C14.5523 3 15 3.44772 15 4V15H5V4C5 3.44772 5.44772 3 6 3H14ZM8.76069 6.40877C8.95015 6.21142 9.31074 6 10 6C10.6893 6 11.0499 6.21142 11.2393 6.40877C11.4409 6.61877 11.5 6.86546 11.5 7C11.5 7.4539 11.2301 7.69835 10.7773 7.92363C10.6657 7.97916 10.552 8.02883 10.4343 8.0797L10.4116 8.08953C10.3056 8.13534 10.1902 8.18521 10.088 8.23655C9.98257 8.28953 9.85193 8.36283 9.7433 8.46505C9.62799 8.57355 9.5 8.75189 9.5 9V9.99999C9.5 10.2761 9.72386 10.5 10 10.5C10.2761 10.5 10.5 10.2753 10.5 9.99918V9.1493C10.5111 9.14333 10.5234 9.13694 10.537 9.13009C10.6125 9.09217 10.703 9.05302 10.8197 9.00257L10.8313 8.99753C10.948 8.94704 11.0843 8.8878 11.2227 8.81894C11.7699 8.5467 12.5 8.0461 12.5 7C12.5 6.63454 12.3591 6.13123 11.9607 5.71623C11.5501 5.28858 10.9107 5 10 5C9.08926 5 8.44985 5.28858 8.03931 5.71623C7.64091 6.13123 7.5 6.63454 7.5 7C7.5 7.27614 7.72386 7.5 8 7.5C8.27614 7.5 8.5 7.27614 8.5 7C8.5 6.86546 8.55909 6.61877 8.76069 6.40877ZM10 13C10.4142 13 10.75 12.6642 10.75 12.25C10.75 11.8358 10.4142 11.5 10 11.5C9.58579 11.5 9.25 11.8358 9.25 12.25C9.25 12.6642 9.58579 13 10 13Z" />
-          </svg>
-        </fluent-button>
+        </div>
+
+        <!-- h1に製品名を入れる(C-2連動): これまでh1はキャッチコピーのみで、
+             ページの第1画面(特に360px)に製品名が一度も現れていなかった。
+             h1自体は1つのまま、肩書き(製品名)+キャッチコピーの2行構成にする。
+             肩書きが増えたぶんは、直後のリードから重複する名乗り
+             「「アバター改変おまもり」は、」を外すことで情報を増やさずに
+             相殺している(削っているのは名乗りの重複だけで、説明文の
+             内容は一文字も削っていない)。 -->
+        <!-- span間の空白(第5ラウンドG-1): 2つのspanはdisplay:blockで視覚上は2行だが、
+             アクセシブル名の計算では空白なしで連結され「アバター改変おまもりアバターを
+             送り出す前に…」と読み上げられていた。区切りの空白を1つ挟む(視覚には影響しない)。 -->
+        <h1 id="koujou-heading" class="koujou-title"><span class="koujou-title-name">アバター改変おまもり</span> <span class="koujou-title-tagline">アバターを送り出す前に、そっとひと目。</span></h1>
+        <!-- no-orphan(第12ラウンドA-2): word-break:auto-phraseが390pxで
+             「ありが/ちな」と接尾語「がち」の途中で割るのを防ぐ(守り札の
+             「しまいがちです。」と同じ手当て)。5文字・実測75pxで、280pxの
+             親幅(244.8px)にも収まることを親要素基準で確認済み。 -->
+        <p class="koujou-lead">VRChatアバターをアップロードする前に、<span class="no-orphan">ありがちな</span>設定ミスをまとめて見つけてくれるUnity Editor拡張です。チェックはボタン一つで走り、見つかった問題はオブジェクトを選んで中身を確かめられます。直せるものはその場で直せるので、公開してから気づいて青ざめる場面を減らせます。</p>
+
+        <div class="koujou-cta">
+          <button type="button" id="addToVcc" class="btn btn-primary">おまもりを授かる</button>
+          <!-- 生のリスティングURL欄はここに置かない(D-14)。生JSONのURLを
+               目立たせるのは最も不向きで、しかも「二つの道」のURLタブに全く同じ
+               入力欄がすでにある(重複)。手動登録が必要な方はそちらへ。 -->
+          <!-- 第7ラウンドC: 旧文言「導入済みでない方は…他の方法も」は
+               「これから手に取る人」前提だった。読者はすでに入手済みなので、
+               ボタンが働かないときの逃げ道(URL手動登録)への案内に改める。 -->
+          <p class="koujou-cta-note">VCC(VRChat Creator Companion)でこのリスティングを開き、プロジェクトに追加します。ボタンがうまく働かないときは、<a href="#michi-heading">「二つの道」</a>の手動登録をお使いください。</p>
+        </div>
+
+        <!-- ヒーロー圧縮(C-2): CTAより上にあると主導線(ボタン)が
+             第1画面から押し出されるため、CTAの下へ移動した。情報は
+             削っていない(4項目とも従来のまま)。 -->
+        <ul class="koujou-badges">
+          <li class="chip">無料</li>
+          <li class="chip">MIT License</li>
+          <li class="chip">MA対応(任意)</li>
+          <li class="chip">Unity 2022.3〜</li>
+        </ul>
       </div>
     </section>
 
-    <fluent-dialog id="addListingToVccHelp" hidden modal>
-      <div class="col ps-4 pe-4">
-        <div class="row align-items-center justify-content-between mt-3 mb-4">
-          <div class="row align-items-center">
-            <svg class="me-2" style="fill: var(--neutral-foreground-rest)" width="20" height="20" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
-              <path d="M4 4V16C4 17.1046 4.89543 18 6 18H15.5C15.7761 18 16 17.7761 16 17.5C16 17.2239 15.7761 17 15.5 17H6C5.44772 17 5 16.5523 5 16H15C15.5523 16 16 15.5523 16 15V4C16 2.89543 15.1046 2 14 2H6C4.89543 2 4 2.89543 4 4ZM14 3C14.5523 3 15 3.44772 15 4V15H5V4C5 3.44772 5.44772 3 6 3H14Z" />
-            </svg>
-            <h3 class="m-0">VCCへの追加方法</h3>
+    <hr class="sumi-rule">
+
+    <!-- ③ 守り札グリッド -->
+    <section class="fuda wrap" aria-labelledby="fuda-heading">
+      <h2 id="fuda-heading">おまもりが見ているもの</h2>
+      <!-- 絵文字(第8ラウンドB): 第6ラウンドで戻した虫めがね🔍はここから外した。
+           「確かめていきます。🔍 見つかった…」と句点の直後に挟まり、文を
+           分断していた(オーナー指摘)。文末へ移しても「。🔍」の並びが残る
+           ことに変わりはないため、移動ではなく削除を選んだ。ページ全体の
+           絵文字は🍀(利用統計)と🏮(footer)の2個構成になる。 -->
+      <p class="section-lead">チェックを実行すると、下記の項目を一つずつ確かめていきます。見つかった問題はオブジェクトを選んで直接確認でき、直せるものはボタン一つで直せます。</p>
+
+      <ul class="fuda-grid">
+        <li class="fuda-card" data-severity="error">
+          <div class="fuda-card-head">
+            <h3 class="fuda-card-title">消えたスクリプト</h3>
+            <span class="fuda-severity fuda-severity--error">エラー</span>
           </div>
-          <fluent-button appearance="stealth" id="addListingToVccHelpClose">
-            <svg width="20" height="20" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
-              <path d="M4.08859 4.21569L4.14645 4.14645C4.32001 3.97288 4.58944 3.9536 4.78431 4.08859L4.85355 4.14645L10 9.293L15.1464 4.14645C15.32 3.97288 15.5894 3.9536 15.7843 4.08859L15.8536 4.14645C16.0271 4.32001 16.0464 4.58944 15.9114 4.78431L15.8536 4.85355L10.707 10L15.8536 15.1464C16.0271 15.32 16.0464 15.5894 15.9114 15.7843L15.8536 15.8536C15.68 16.0271 15.4106 16.0464 15.2157 15.9114L15.1464 15.8536L10 10.707L4.85355 15.8536C4.67999 16.0271 4.41056 16.0464 4.21569 15.9114L4.14645 15.8536C3.97288 15.68 3.9536 15.4106 4.08859 15.2157L4.14645 15.1464L9.293 10L4.14645 4.85355C3.97288 4.67999 3.9536 4.41056 4.08859 4.21569L4.14645 4.14645L4.08859 4.21569Z" />
-            </svg>
-          </fluent-button>
-        </div>
-        <p class="mb-1">VCCにこのリスティングを追加する手順：</p>
-        <ul class="mt-1 ps-5">
-          <li class="mb-2">VCCを開いて Settings に移動</li>
-          <li class="mb-2">「Packages」タブをクリック</li>
-          <li class="mb-2">「Add Repository」をクリック</li>
-          <li class="mb-2">下記のURLを貼り付け</li>
-          <li class="mb-2">「Add」→「I Understand」をクリック</li>
-          <li class="mb-2">プロジェクトを開いてパッケージを追加</li>
-        </ul>
-        <h5 class="m-0 mb-2">Listing URL</h5>
-        <div class="row align-items-center">
-          <fluent-text-field aria-readonly="true" id="vccListingInfoUrlField" class="vccUrlField" readonly value="{{ listingInfo.Url }}">
-          </fluent-text-field>
-          <fluent-button class="ms-2" id="vccListingInfoUrlFieldCopy">
-            <svg slot="start" width="20" height="20" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
-              <path d="M8 2C6.89543 2 6 2.89543 6 4V14C6 15.1046 6.89543 16 8 16H14C15.1046 16 16 15.1046 16 14V4C16 2.89543 15.1046 2 14 2H8ZM7 4C7 3.44772 7.44772 3 8 3H14C14.5523 3 15 3.44772 15 4V14C15 14.5523 14.5523 15 14 15H8C7.44772 15 7 14.5523 7 14V4ZM4 6.00001C4 5.25973 4.4022 4.61339 5 4.26758V14.5C5 15.8807 6.11929 17 7.5 17H13.7324C13.3866 17.5978 12.7403 18 12 18H7.5C5.567 18 4 16.433 4 14.5V6.00001Z"/>
-            </svg>
-            Copy
-          </fluent-button>
-        </div>
-        <div class="caption1 mt-4">詳しくは <a href="https://vcc.docs.vrchat.com" target="_blank">VCCドキュメント</a> をご覧ください</div>
+          <!-- no-orphan(第11ラウンド): word-break:auto-phraseの文節モデルが
+               「しまいが/ちです。」と接尾語「がち」の途中で割ってしまうのを防ぐ
+               (480〜1920pxで実測)。区切りは「紛れ込んで|しまいがちです」で
+               語の途中では割れない。 -->
+          <p class="fuda-card-scene">アセットを削除したときや、他のプロジェクトからプレハブをコピーしてきたときに、参照先を失ったコンポーネントがアバターの中へ紛れ込んで<span class="no-orphan">しまいがちです。</span></p>
+          <!-- 名前の区別(第5ラウンドE): 「くわしく見る」が守り札のsummary10個(インライン
+               展開)と棚のボタン2個(モーダル起動)で計12個、同名のまま挙動が違っていた。
+               守り札側は動作が伝わる「見つけかたを読む」に改め、aria-labelに札名を
+               含めて支援技術のコントロール一覧でも12個が区別できるようにする
+               (可視文言はアクセシブル名に含まれておりWCAG 2.5.3も満たす)。 -->
+          <details class="fuda-card-more">
+            <summary aria-label="消えたスクリプトの見つけかたを読む">見つけかたを読む</summary>
+            <div class="fuda-card-more-body">
+              <p class="fuda-card-detail">Missing状態のコンポーネントを一つずつ見つけて教えてくれます。多くは参照が壊れているだけなので自動修正で一括削除できますが、Unityの仕様上この修正だけはUndoで戻せません。</p>
+            </div>
+          </details>
+          <p class="fuda-card-fix"><span aria-hidden="true">✓</span> 自動修正あり</p>
+        </li>
+
+        <li class="fuda-card" data-severity="warning">
+          <div class="fuda-card-head">
+            <h3 class="fuda-card-title">ピンクのマテリアル</h3>
+            <span class="fuda-severity fuda-severity--warning">警告</span>
+          </div>
+          <!-- no-orphan(第12ラウンドC): 280pxでこの段落だけ「しまいま/す。」と
+               語中で割れて「す。」が孤立していた(text-wrap:balanceは7行以上に
+               なる幅では効かないため)。区切りは「変わって|しまいます。」で
+               語の途中では割れない。6文字・実測86pxで280pxの親幅にも収まる。 -->
+          <p class="fuda-card-scene">シェーダーが同梱されていないアセットを使ったときや、アップデートで参照が外れたときに、マテリアルが唐突に真っピンクへ変わって<span class="no-orphan">しまいます。</span></p>
+          <details class="fuda-card-more">
+            <summary aria-label="ピンクのマテリアルの見つけかたを読む">見つけかたを読む</summary>
+            <div class="fuda-card-more-body">
+              <p class="fuda-card-detail">シェーダーが見つからないマテリアルを、アバターの中から探し出します。自動修正は用意していないので、見つかった箇所は手作業でシェーダーを差し直してください。</p>
+            </div>
+          </details>
+        </li>
+
+        <li class="fuda-card" data-severity="warning">
+          <div class="fuda-card-head">
+            <h3 class="fuda-card-title">意図しない発光</h3>
+            <span class="fuda-severity fuda-severity--warning">警告</span>
+          </div>
+          <p class="fuda-card-scene">肌にテクスチャを入れただけのつもりが、気づけばアバター全体が煌々と光り輝いていた——という声から生まれたチェックです。</p>
+          <details class="fuda-card-more">
+            <summary aria-label="意図しない発光の見つけかたを読む">見つけかたを読む</summary>
+            <div class="fuda-card-more-body">
+              <p class="fuda-card-detail">lilToonとUnity Standard系のマテリアルを対象に、Emissionがオンで実際に光っているものを見つけます(真っ黒や極端に暗いものは除きます)。ロック済みのマテリアルや対応外のシェーダーは対象外です。</p>
+              <p class="fuda-card-detail">自動修正は発光だけをオフにし、色の設定は残します。同じマテリアルの他の箇所も一緒に変わり、発光を切り替える作りのアバターでは動きが崩れることもあるので、心当たりがあれば見送ってください。うっかり押してもUndo(Ctrl+Z)で戻せます。</p>
+            </div>
+          </details>
+          <p class="fuda-card-fix"><span aria-hidden="true">✓</span> 自動修正あり</p>
+        </li>
+
+        <li class="fuda-card" data-severity="error">
+          <div class="fuda-card-head">
+            <h3 class="fuda-card-title">Descriptorの重複</h3>
+            <span class="fuda-severity fuda-severity--error">エラー</span>
+          </div>
+          <p class="fuda-card-scene">アバターを複製したときや、プレハブをコピーして作業したときに、VRC Avatar Descriptorが同じ階層に増えてしまうことも少なくありません。</p>
+          <details class="fuda-card-more">
+            <summary aria-label="Descriptorの重複の見つけかたを読む">見つけかたを読む</summary>
+            <div class="fuda-card-more-body">
+              <p class="fuda-card-detail">アバタールート以下にDescriptorが複数ないか見て回ります。重複が3個あっても「1件の問題」としてまとめて数え、どれを残すか選ぶだけで残りを一括整理できます。</p>
+            </div>
+          </details>
+          <p class="fuda-card-fix"><span aria-hidden="true">✓</span> 自動修正あり</p>
+        </li>
+
+        <li class="fuda-card" data-severity="both">
+          <div class="fuda-card-head">
+            <h3 class="fuda-card-title">トグルの行き先</h3>
+            <span class="fuda-severity-group">
+              <span class="fuda-severity fuda-severity--warning">警告</span>
+              <span class="fuda-severity fuda-severity--error">エラー</span>
+            </span>
+          </div>
+          <!-- 頻度修辞の削減(第5ラウンドF-3): 「意外とよくあります」等の頻度の主張が
+               10枚中4枚で反復していたため、この札と「パラメータの空欄」は具体的な
+               情景描写に置き換える(頻度表現はDescriptor・装飾品の2枚に絞る)。
+               条件節(ターゲット未設定/自己参照)はMAObjectToggleCheckの実装どおり。 -->
+          <p class="fuda-card-scene">Modular AvatarのObjectToggleは、オン/オフの相手を指してはじめて働きます。ところが指し先が空のままだったり、うっかり自分自身を指していたりすると、そのまま気づかれずに残ります。</p>
+          <details class="fuda-card-more">
+            <summary aria-label="トグルの行き先の見つけかたを読む">見つけかたを読む</summary>
+            <div class="fuda-card-more-body">
+              <p class="fuda-card-detail">ターゲットが空のままなら警告、自分自身を参照する自己参照ならエラーとして知らせます。設定漏れは早めに見つけておくと安心です。</p>
+            </div>
+          </details>
+          <p class="fuda-card-ma">Modular Avatar が必要</p>
+        </li>
+
+        <li class="fuda-card" data-severity="warning">
+          <div class="fuda-card-head">
+            <h3 class="fuda-card-title">装飾品の設置忘れ</h3>
+            <span class="fuda-severity fuda-severity--warning">警告</span>
+          </div>
+          <p class="fuda-card-scene">アクセサリーを子オブジェクトとして入れたものの、Merge ArmatureやBone Proxyの設定を忘れたまま——という状態はよく起こります。</p>
+          <details class="fuda-card-more">
+            <summary aria-label="装飾品の設置忘れの見つけかたを読む">見つけかたを読む</summary>
+            <div class="fuda-card-more-body">
+              <p class="fuda-card-detail">Armatureを持つ子オブジェクトを調べ、Merge Armature / Bone Proxyが未設定になっていないか確かめます。ターゲット自体が未設定の場合も、あわせて拾い上げます。</p>
+            </div>
+          </details>
+          <p class="fuda-card-ma">Modular Avatar が必要</p>
+        </li>
+
+        <li class="fuda-card" data-severity="error">
+          <div class="fuda-card-head">
+            <h3 class="fuda-card-title">宙に浮いたメニュー</h3>
+            <span class="fuda-severity fuda-severity--error">エラー</span>
+          </div>
+          <!-- 述語の復元(第5ラウンドF-2): 「〜てしまうことも。」はページで唯一の
+               述語のない文で、です/ます調から外れていた。「宙ぶらりん」は札の見出し
+               「宙に浮いたメニュー」と呼応させている。 -->
+          <p class="fuda-card-scene">Expression Menuの階層を組み立てている途中で、MenuInstallerを挟み忘れたMenuItemが、宙ぶらりんのまま取り残されてしまいます。</p>
+          <details class="fuda-card-more">
+            <summary aria-label="宙に浮いたメニューの見つけかたを読む">見つけかたを読む</summary>
+            <div class="fuda-card-more-body">
+              <p class="fuda-card-detail">MenuItemの祖先をたどり、MenuInstallerにつながっていないものを見つけて知らせます。つながっていないメニューは、アップロードしても実際のメニューには現れません。</p>
+            </div>
+          </details>
+          <p class="fuda-card-ma">Modular Avatar が必要</p>
+        </li>
+
+        <li class="fuda-card" data-severity="warning">
+          <div class="fuda-card-head">
+            <h3 class="fuda-card-title">パラメータの空欄</h3>
+            <span class="fuda-severity fuda-severity--warning">警告</span>
+          </div>
+          <p class="fuda-card-scene">Expression Menuだけを先に組んで、Expression Parametersの用意が後回しになると、名前を入れないまま置き去りになった行が、そのまま残ってしまいます。</p>
+          <details class="fuda-card-more">
+            <summary aria-label="パラメータの空欄の見つけかたを読む">見つけかたを読む</summary>
+            <div class="fuda-card-more-body">
+              <p class="fuda-card-detail">Expression Menuが設定されているのにParametersが未設定の場合と、名前が空のパラメータが残っている場合の両方に気づかせてくれます。空のパラメータは同期帯域を無駄に消費するため、整理のきっかけになります。</p>
+            </div>
+          </details>
+        </li>
+
+        <li class="fuda-card" data-severity="warning">
+          <div class="fuda-card-head">
+            <h3 class="fuda-card-title">動かないFXレイヤー</h3>
+            <span class="fuda-severity fuda-severity--warning">警告</span>
+          </div>
+          <p class="fuda-card-scene">アップロードしたのに表情や着せ替えが反映されない——そんなときは、FXレイヤーのWeightが0のまま止まっている場合があります。</p>
+          <details class="fuda-card-more">
+            <summary aria-label="動かないFXレイヤーの見つけかたを読む">見つけかたを読む</summary>
+            <div class="fuda-card-more-body">
+              <p class="fuda-card-detail">FXレイヤーのWeightが0のままになっていないか確かめます。自動修正でWeightを1に戻すことができ、Undo(Ctrl+Z)で元の状態にも戻せます。</p>
+            </div>
+          </details>
+          <p class="fuda-card-fix"><span aria-hidden="true">✓</span> 自動修正あり</p>
+        </li>
+
+        <li class="fuda-card" data-severity="error">
+          <div class="fuda-card-head">
+            <h3 class="fuda-card-title">あふれた同期容量</h3>
+            <span class="fuda-severity fuda-severity--error">エラー</span>
+          </div>
+          <p class="fuda-card-scene">パラメータを増やしていくうちに、気づかないまま同期の上限を超えてしまい、アップロード時にエラーの壁にぶつかってしまいます。</p>
+          <details class="fuda-card-more">
+            <summary aria-label="あふれた同期容量の見つけかたを読む">見つけかたを読む</summary>
+            <div class="fuda-card-more-body">
+              <p class="fuda-card-detail">Expression Parametersの同期パラメータ合計ビット数が256bitを超えていないか計算して知らせます。超えたままではアップロードに失敗するため、公開前に気づけるのが利点です。</p>
+            </div>
+          </details>
+        </li>
+      </ul>
+
+      <div class="fuda-performance">
+        <h3>パフォーマンスもひと目で</h3>
+        <!-- D-18: 1段落270字は製品の一番の売りが最も読まれない形になっていたため、
+             事実は1文字も削らずに自然な区切りで2段落へ分ける。 -->
+        <p>PCとQuest/iOSそれぞれの総合ランクと、ランクを下げている項目を並べて表示します。各項目には「あと何をどこまで減らすと1ランク上がるか」の目安が付き、目標値はVRChat SDKが持つ基準をそのまま使うため、SDKの更新にも自然に追従します。</p>
+        <p>Quest/iOSで使えない要素(非対応シェーダー・Quest上で無効になるコンポーネント・Unity Constraintなど)も、件数と影響つきで教えてくれます。各項目からは、公式ドキュメントの該当ページを直接開けます。</p>
+        <p class="fuda-performance-caution">ここに表示される数値は、Modular Avatarなどの非破壊改変ツールを適用する前の状態のものです。実際にアップロードされる最終的な値は、VRChat SDKのビルドパネルでご確認ください。</p>
       </div>
-    </fluent-dialog>
 
-    <div class="searchBlock">
-      <fluent-text-field id="searchInput" placeholder="パッケージを検索..." type="text" autoFocus></fluent-text-field>
-    </div>
+    </section>
 
-    <fluent-menu id="rowMoreMenu" hidden>
-      <fluent-menu-item id="rowMoreMenuDownload">
-        <svg slot="start" width="20" height="20" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
-          <path d="M15.5 16.9997C15.7761 16.9997 16 17.2236 16 17.4997C16 17.7452 15.8231 17.9494 15.5899 17.9917L15.5 17.9997H4.5C4.22386 17.9997 4 17.7759 4 17.4997C4 17.2543 4.17688 17.0501 4.41012 17.0078L4.5 16.9997H15.5ZM10.0001 2.00195C10.2456 2.00195 10.4497 2.17896 10.492 2.41222L10.5 2.5021L10.496 14.296L14.1414 10.6476C14.3148 10.4739 14.5842 10.4544 14.7792 10.5892L14.8485 10.647C15.0222 10.8204 15.0418 11.0898 14.907 11.2848L14.8492 11.3541L10.3574 15.8541C10.285 15.9267 10.1957 15.9724 10.1021 15.9911L9.99608 16.0008C9.83511 16.0008 9.69192 15.9247 9.60051 15.8065L5.14386 11.3547C4.94846 11.1595 4.94823 10.8429 5.14336 10.6475C5.3168 10.4739 5.58621 10.4544 5.78117 10.5892L5.85046 10.647L9.496 14.288L9.5 2.50181C9.50008 2.22567 9.724 2.00195 10.0001 2.00195Z" />
-        </svg>
-        <div>Download .ZIP</div>
-      </fluent-menu-item>
-    </fluent-menu>
+    <!-- 直すときも、ていねいに(第6ラウンド6): この内容はバックアップ・Undo・
+         修正履歴という「直したあと」の話で、「おまもりが見ているもの」
+         (=チェック項目)の中身ではない。h2→h3の階層としては正しくても
+         意味として誤っており、見出しを頼りに走査する読者がバックアップの
+         注意書きに到達できなかった(5巡目レイアウト§3-B)。独自のh2を持つ
+         節として独立させる。
+         記述内容は第5ラウンドF-4のまま: CHANGELOG v0.6.0 / v0.7.0 で当たりを
+         付け、Editor/CheckResult.cs(ValueLabel/BeforeValue/AfterValue)・
+         EmissionCheck.cs:102(4項目めの予告)・FixHistoryStore.cs(static List、
+         クリアはボタンのみ=Unity終了まで残る)・CardExporter.cs(1200×630 PNG)
+         の現在の実装に合わせてある。 -->
+    <section class="naoshi wrap" aria-labelledby="naoshi-heading">
+      <h2 id="naoshi-heading">直すときも、ていねいに</h2>
+      <ul class="fuda-atogaki-list">
+        <li>「修正」を押す前に、「FX Layer / Weight: 0 → 1」のように修正前後の値を予告します。自動修正のある札は、すべて予告付きです。</li>
+        <li>実行した修正は「修正履歴」の欄に実際の値つきで並び、Unityを終了するまで見返せます。</li>
+        <!-- 第11ラウンドD-5: この✓は「金色のチェックマークが付く」という内容
+             そのものなので、隠すだけでは読み上げが「金色の「」が付きます」に
+             壊れる。記号はaria-hiddenにし、読み上げ用の語をvisually-hiddenで補う。 -->
+        <li>チェック結果は、件数と日付をまとめた1枚のカード画像(PNG)に書き出せます。アバター名などは載せず、すべてきれいなら金色の「<span aria-hidden="true">✓</span><span class="visually-hidden">チェックマーク</span>」が付きます。</li>
+      </ul>
 
-    <fluent-dialog id="packageInfoModal" hidden modal>
-      <div class="col ps-4 pe-4">
-        <div class="row align-items-center justify-content-between mt-3 mb-4">
-          <div class="col">
-            <h3 class="m-0 mb-1" id="packageInfoName">Package Name</h3>
-            <div class="row">
-              <div class="caption1" id="packageInfoId">com.package.id</div>
-              <div class="caption1 ms-2" id="packageInfoVersion">v1.0.1</div>
+      <!-- D-8: バックアップの勧め・免責。Undo不可の削除(消えたスクリプト)や
+           アセットの書き換えを行う道具として、これまで0件だった。実装で
+           「ほとんどの修正はUndoで戻せる」ことは事実なので過度に脅さず、
+           いつもの作業習慣として自然に添える。 -->
+      <!-- 第5ラウンドF-1: 唯一の不可逆操作(消えたスクリプトの一括削除)が<details>の
+           中にだけあり、流し読みの読者に届いていなかった。常時見えるこの注記に
+           括弧書きで明示する(MissingScriptCheck.cs:63-72 のUndo不可と一致)。 -->
+      <p class="fuda-backup-note">おまもりの自動修正は、シーンやアセットを直接書き換えます。ほとんどの操作はUndo(Ctrl+Z)で元に戻せます(「消えたスクリプト」の修正だけは、Unityの仕様上戻せません)。大切な作業の前には、シーンの保存やバージョン管理へのコミットといった、いつものバックアップ習慣もあわせてお使いください。</p>
+    </section>
+
+    <!-- 動作要件（④二つの道の直前。追加へ進む前に環境の確認ができるように） -->
+    <section class="youken wrap" aria-labelledby="youken-heading">
+      <h2 id="youken-heading">動作環境</h2>
+      <ul>
+        <li>Unity 2022.3 以降</li>
+        <li>VRChat SDK - Avatars 3.7.0 以降(パフォーマンス表示のConstraint項目が、SDK 3.7.0で追加された値を使うため)</li>
+        <li>Modular Avatar(任意 — 未インストールの場合はMA関連のチェックのみスキップされます)</li>
+      </ul>
+    </section>
+
+    <!-- ④ 二つの道
+         第7ラウンドA: 「BOOTHから入手」のタブとパネルを削除し「三つの道」を
+         「二つの道」へ改名（id=michi-heading はヒーロー注記のアンカーが
+         参照しているので変えない）。
+         第8ラウンドA: タブという仕組み自体を廃止し、両方の道を最初から
+         縦に並べた。オーナーが実機で「タブをタップしても何も起きない」
+         体験をしたため（機能は正常だったが、選択済みタブを押しても何も
+         起きない構造自体が問題）。道が2つだけなら片方を隠す価値はない。
+         VCCが主・URL手動登録が副（ボタンが働かないときの逃げ道）。 -->
+    <section class="michi wrap" aria-labelledby="michi-heading">
+      <!-- tabindex="-1"(第5ラウンドG-2): ヒーロー注記の「二つの道」リンクで
+           ここへ飛んだあと、フォーカスがBODYに落ちたままだった。skip-linkの
+           #main と同じ対処で、フラグメント遷移後のフォーカスをこの見出しに移す。 -->
+      <h2 id="michi-heading" tabindex="-1">二つの道</h2>
+      <p class="section-lead">お手元のおまもりをプロジェクトへ迎え入れる方法を、二つご案内します。追加が済んだら、Unityメニューの「Tools &gt; アバター改変おまもり」からウィンドウを開いてお使いいただけます。</p>
+
+      <!-- 第10ラウンドB-1: 主従の表現を「緑の2px縁」から金茶のラベルへ変更。
+           第11ラウンドB-1: ラベルをh3の外へ出した。h3の中にあると読み上げ名が
+           「VCCで追加 まずはこちら」に混ざるうえ、金茶下線がダークで文字色と
+           1.26:1になり装置として消えていたため。CSSでカード右上に絶対配置し、
+           枠のある小さな札として掛ける(高さへの影響なし)。 -->
+      <!-- 第12ラウンドD-5: 札(まずはこちら)をカード右上の絶対配置から
+           h3と同じ行のflexへ移した。1280pxでは見出しから690px離れて
+           「隅の飾り」に見えていたため。spanはh3の外のままなので
+           読み上げ名は「VCCで追加」から変わらない。 -->
+      <div class="michi-panel michi-panel--vcc">
+        <div class="michi-panel-head">
+          <h3 class="michi-panel-title">VCCで追加</h3>
+          <span class="michi-panel-label">まずはこちら</span>
+        </div>
+        <p class="michi-panel-summary">ワンクリックでVCCにリスティングを登録する、一番早い道です。</p>
+        <div class="michi-panel-action">
+          <button type="button" class="btn btn-primary btn-small vcc-trigger">おまもりを授かる</button>
+        </div>
+        <ol class="michi-steps">
+          <!-- no-orphan: word-break:auto-phrase(第11ラウンドA-1)の未対応ブラウザ
+               でも390pxで最終行が「押す」の2文字に孤立しないよう残している。
+               区切りは「ボタンを押す」の頭で、語の途中では割れない。 -->
+          <li>上の「おまもりを授かる」<span class="no-orphan">ボタンを押す</span></li>
+          <!-- 320/480pxで「クリック」「追加」だけの最終行になるのを防ぐ
+               (区切りは「I Understand」|の順に / 開いて|「アバター…」で語の
+               途中では割れない)。 -->
+          <li>VCCが開いたら「Add」→<span class="no-orphan">「I Understand」</span><span class="no-orphan">の順にクリック</span></li>
+          <li>プロジェクトを開いて「アバター改変おまもり」を<span class="no-orphan">追加</span></li>
+        </ol>
+        <!-- 第10ラウンドA-2: ALCOM言及の再配置(第9ラウンドBの1段落8行を3分割)。
+             「Windows/Linuxは設定画面でvcc://を有効化」は読み落とすとボタンが
+             働かない唯一の情報なのに、最小文字の灰色注記の末尾に埋まっていた。
+             critical な1文だけを手順直後の目立つ短文(.michi-callout)に独立させ、
+             補足(v0.1.4以降・macOSは既定で有効)はdetailsへ畳み、注記には
+             VCC未導入の案内だけを残す。書いてよい事実は従来どおり一次情報
+             (vrc-get公式CHANGELOG-gui.md)で確認済みの範囲のみ。ALCOM外部サイトへの
+             リンクは張らない(オーナー未承認)。 -->
+        <div class="michi-alcom-row">
+          <!-- 第11ラウンドC-1/D-1: 「(v0.1.4以降)」を追加。vcc://対応(と設定項目
+               そのもの)はALCOM v0.1.4で入ったため、下限を書かないと古いALCOMの
+               利用者が存在しない設定を探すことになる(常時表示のcritical文が、
+               畳んだdetailsの中の情報に依存していた)。一次情報は従来どおり
+               vrc-get公式CHANGELOG-gui.mdの[0.1.4]。 -->
+          <p class="michi-callout">Windows / Linux版のALCOM(v0.1.4以降)では、設定画面で vcc:// リンクの有効化が必要です。</p>
+          <details class="michi-alcom">
+            <summary>ALCOMでの対応をくわしく見る</summary>
+            <div class="michi-alcom-body">
+              <p>VCC互換クライアントのALCOMをお使いの方も、「おまもりを授かる」ボタンをそのままお使いいただけます。vcc://リンクへの対応はALCOM v0.1.4以降で、macOSでは初めから有効です。</p>
+            </div>
+          </details>
+        </div>
+        <p class="michi-note">VCCがまだ手元にない場合は、先に<a href="https://vcc.docs.vrchat.com/" target="_blank" rel="noopener">VRChat公式のVCC</a>を導入してからお試しください。</p>
+      </div>
+
+      <!-- 第9ラウンドA: URL欄を手順リストの上へ移した。旧配置では手順2で
+           「URLを貼り付け」と言われた時点でコピー元が視界の下にあり、
+           読む順と操作する順が逆だった。コピーを手順1として明示し、
+           「コピーしてから貼り付ける」という実際の作業順とページ上の
+           並び(=DOM順=フォーカス順)を一致させる。注記の
+           「URLは上のコピー ボタンから控えられます」は手順1と重複する
+           ため削除(「上の」が指す先も変わるので文言ごと整理)。 -->
+      <div class="michi-panel">
+        <h3 class="michi-panel-title">URLで手動登録</h3>
+        <!-- 第10ラウンドA-3: 「上のボタン」は約300px上の別カードのボタンを指して
+             いた(同じパネルの手順1「上の「コピー」ボタン」とスコープが衝突)。
+             位置参照をやめてパネル名で指す。 -->
+        <p class="michi-panel-summary">「VCCで追加」のボタンがうまく働かないときは、下のリスティングURLをVCCの「Add Repository」に直接貼り付けて登録できます。</p>
+        <div class="michi-url-row">
+          <label for="listingUrlPanel" class="visually-hidden">VPMリスティングURL</label>
+          <input type="text" readonly id="listingUrlPanel" value="{{ listingInfo.Url }}">
+          <button type="button" id="copyListingUrlPanel" class="btn btn-ghost btn-small">コピー</button>
+        </div>
+        <ol class="michi-steps">
+          <!-- 320/480pxで「控える」「貼り付け」だけの最終行になるのを防ぐ
+               (区切りは ボタンで、|リスティング… / 控えた|URLを… で語の途中
+               では割れない)。 -->
+          <li>上の「コピー」ボタンで、<span class="no-orphan">リスティングURLを</span><span class="no-orphan">控える</span></li>
+          <li>VCCを開いて Settings → 「Packages」タブへ</li>
+          <!-- 第12ラウンドF-1: 「控えたURL」は一続きで読ませたい連体修飾
+               なので、spanを「控えたURLを貼り付け」へ広げた(内容レビュー小2)。
+               実測161px・280pxの親幅(171.2px)に収まることを親基準で確認済み。 -->
+          <li>「Add Repository」をクリックし、<span class="no-orphan">控えたURLを貼り付け</span></li>
+          <li>「Add」→<span class="no-orphan">「I Understand」</span>をクリックしてプロジェクトに追加</li>
+        </ol>
+        <!-- 第10ラウンドA-1: 旧文「この手順は、ALCOMでも同じように登録できます」は
+             未確認の断定だった。一次情報(vrc-get公式CHANGELOG-gui.md)が述べるのは
+             vcc://スキームへの対応のみで、ALCOMのリポジトリ追加UI(「Settings」
+             「Packages」「Add Repository」「I Understand」の各ラベル)には一切
+             言及がない。「同じリスティングURLをリポジトリとして登録できる」という
+             VPMリスティングの仕様として確実に言える範囲に収める。 -->
+        <p class="michi-note">VCCの反応がない場合は、VCCの再起動をお試しください。ALCOMをお使いの場合も、同じリスティングURLをリポジトリとして登録できます(画面や項目の名称はVCCと異なることがあります)。</p>
+      </div>
+    </section>
+
+    <!-- ⑤ パッケージ情報（Scribanループはここだけ）
+         第7ラウンドB: このページは「アバター改変おまもり」1つのための導入ページで、
+         他の商品をここに載せない(オーナー指示。BOOTH同梱PDFからだけ来られる
+         想定のため)。「棚に少しずつ増える」前提の見出し・リードを改めた。
+         下の for package in packages ループ自体はテンプレート契約
+         (DESIGN_SPEC.md §2)なので残す。文言だけの変更。
+         ※このコメントに波括弧のタグ表記を書いてはいけない——Scriban(と
+         プレビューの簡易エンジン)はHTMLコメント内でもタグを解釈するため、
+         実際にループが開いてしまう。 -->
+    <section class="tana wrap" aria-labelledby="tana-heading">
+      <h2 id="tana-heading">お渡しするパッケージ</h2>
+      <p class="section-lead">このリスティングでお渡しするのは、「アバター改変おまもり」ひとつです。</p>
+
+      <div class="tana-search" id="tanaSearch" hidden>
+        <label for="packageSearch" class="visually-hidden">パッケージを検索</label>
+        <input type="search" id="packageSearch" placeholder="パッケージを検索…">
+      </div>
+
+      <ul class="tana-list" id="tanaList">
+        {{~ for package in packages ~}}
+        <li class="tana-item" data-package-name="{{ package.DisplayName }}" data-package-id="{{ package.Name }}">
+          <h3 class="tana-item-name">{{ package.DisplayName }}</h3>
+          <p class="tana-item-desc">{{ package.Description }}</p>
+          <p class="tana-item-meta">
+            <span class="tana-item-version">v{{ package.Version }}</span>
+            <span class="tana-item-id">{{ package.Name }}</span>
+          </p>
+          <!-- 「おまもりを授かる」ボタンはここには置かない(D-6)。VCCへの追加は
+               リスティング(このリポジトリ全体)単位の操作で、個々のパッケージを
+               選んで追加する仕組みがVCC側に無いため、data-package-idを持たせても
+               パッケージが増えた瞬間に中身が伴わない死んだ属性になっていた。
+               「くわしく見る」から開くダイアログに、同じ操作のCTAをまとめて
+               置く(D-9で行き止まりも解消)。 -->
+          <!-- 名前の区別(第5ラウンドE): 守り札の<summary>と同名の「くわしく見る」で
+               挙動だけが違って(こちらはモーダル起動)いたため、動作が伝わる名前にする。 -->
+          <!-- .zip直リンクは置かない(第8ラウンドC): BOOTH→同梱PDF→このページ→VCC
+               という一本道から外れる4つ目の出口で、zipで導入した人はVPMの更新を
+               受け取れずサポートしづらくなるため、オーナー確認のうえ削除した。 -->
+          <div class="tana-item-actions">
+            <button type="button" class="btn btn-ghost btn-small tana-info" data-package-id="{{ package.Name }}" aria-label="{{ package.DisplayName }}のパッケージ情報を開く">パッケージ情報を開く</button>
+          </div>
+        </li>
+        {{~ end ~}}
+      </ul>
+
+      <!-- D-2: 検索で0件になったときに棚が唐突に空白にならないよう案内を出す。
+           aria-live="polite" で、検索中に件数が変わったことをスクリーン
+           リーダーにも伝える(JS側で hidden を切り替える。表示文言はここでは
+           固定だが、role="status"相当の告知として機能する)。 -->
+      <p class="tana-empty" id="tanaEmpty" role="status" aria-live="polite" hidden>この名前では見つかりませんでした。検索語を短くするか、別の言葉でお試しください。</p>
+    </section>
+
+    <!-- aria-labelledby(D-9): ダイアログの実測値がnullだったため、見出し
+         (#packageInfoName)を明示的に紐づける。 -->
+    <dialog id="packageInfoDialog" aria-labelledby="packageInfoName">
+      <div class="tana-dialog-inner">
+        <div class="tana-dialog-head">
+          <div>
+            <h3 id="packageInfoName">Package Name</h3>
+            <div class="tana-dialog-meta">
+              <span id="packageInfoId">com.package.id</span>
+              <span id="packageInfoVersion">v1.0.0</span>
             </div>
           </div>
-          <fluent-button appearance="stealth" id="packageInfoModalClose">
-            <svg width="20" height="20" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
-              <path d="M4.08859 4.21569L4.14645 4.14645C4.32001 3.97288 4.58944 3.9536 4.78431 4.08859L4.85355 4.14645L10 9.293L15.1464 4.14645C15.32 3.97288 15.5894 3.9536 15.7843 4.08859L15.8536 4.14645C16.0271 4.32001 16.0464 4.58944 15.9114 4.78431L15.8536 4.85355L10.707 10L15.8536 15.1464C16.0271 15.32 16.0464 15.5894 15.9114 15.7843L15.8536 15.8536C15.68 16.0271 15.4106 16.0464 15.2157 15.9114L15.1464 15.8536L10 10.707L4.85355 15.8536C4.67999 16.0271 4.41056 16.0464 4.21569 15.9114L4.14645 15.8536C3.97288 15.68 3.9536 15.4106 4.08859 15.2157L4.14645 15.1464L9.293 10L4.14645 4.85355C3.97288 4.67999 3.9536 4.41056 4.08859 4.21569L4.14645 4.14645L4.08859 4.21569Z" />
-            </svg>
-          </fluent-button>
+          <button type="button" class="tana-dialog-close" id="packageInfoDialogClose" aria-label="閉じる">✕</button>
         </div>
-        <h5 class="m-0">パッケージ情報</h5>
-        <p class="mb-4 mt-1" id="packageInfoDescription">Package Description</p>
-        <h5 class="m-0">作者</h5>
-        <p class="mb-4 mt-1"><a href="#" target="_blank" id="packageInfoAuthor">Author Name</a></p>
-        <h5 class="m-0 mb-2">依存パッケージ</h5>
-        <ul class="mt-1 ps-5" id="packageInfoDependencies"></ul>
-        <div class="col">
-          <h5 class="m-0 mb-2">キーワード</h5>
-          <div class="mb-2 mt-1 row" id="packageInfoKeywords"></div>
+
+        <h4>パッケージ情報</h4>
+        <p id="packageInfoDescription">Package Description</p>
+
+        <h4>作者</h4>
+        <p><a href="#" target="_blank" rel="noopener" id="packageInfoAuthor">Author Name</a></p>
+
+        <h4>依存パッケージ</h4>
+        <ul id="packageInfoDependencies"></ul>
+
+        <div id="packageInfoKeywordsWrap">
+          <h4>キーワード</h4>
+          <div id="packageInfoKeywords"></div>
         </div>
-        <div class="col">
-          <h5 class="m-0">ライセンス</h5>
-          <a href="#" class="mb-4 mt-1" id="packageInfoLicense">License</a>
+
+        <div id="packageInfoLicenseWrap">
+          <h4>ライセンス</h4>
+          <a href="#" target="_blank" rel="noopener" id="packageInfoLicense">License</a>
         </div>
-        <h5 class="m-0 mb-2">Listing URL</h5>
-        <div class="row align-items-center">
-          <fluent-text-field aria-readonly="true" id="packageInfoVccUrlField" class="vccUrlField" readonly value="{{ listingInfo.Url }}">
-          </fluent-text-field>
-          <fluent-button class="ms-2" id="packageInfoVccUrlFieldCopy">
-            <svg slot="start" width="20" height="20" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
-              <path d="M8 2C6.89543 2 6 2.89543 6 4V14C6 15.1046 6.89543 16 8 16H14C15.1046 16 16 15.1046 16 14V4C16 2.89543 15.1046 2 14 2H8ZM7 4C7 3.44772 7.44772 3 8 3H14C14.5523 3 15 3.44772 15 4V14C15 14.5523 14.5523 15 14 15H8C7.44772 15 7 14.5523 7 14V4ZM4 6.00001C4 5.25973 4.4022 4.61339 5 4.26758V14.5C5 15.8807 6.11929 17 7.5 17H13.7324C13.3866 17.5978 12.7403 18 12 18H7.5C5.567 18 4 16.433 4 14.5V6.00001Z"/>
-            </svg>
-            Copy
-          </fluent-button>
-          <fluent-tooltip id="packageInfoListingTooltip" anchor="packageInfoListingHelp">
-            VCCへの追加方法
-          </fluent-tooltip>
-          <fluent-button id="packageInfoListingHelp" class="ms-2">
-            <svg width="20" height="20" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
-              <path d="M4 4V16C4 17.1046 4.89543 18 6 18H15.5C15.7761 18 16 17.7761 16 17.5C16 17.2239 15.7761 17 15.5 17H6C5.44772 17 5 16.5523 5 16H15C15.5523 16 16 15.5523 16 15V4C16 2.89543 15.1046 2 14 2H6C4.89543 2 4 2.89543 4 4Z" />
-            </svg>
-          </fluent-button>
+
+        <!-- D-9: メタデータだけで行き止まりだったダイアログに、実際に手に入れる
+             ためのCTAを添える。「おまもりを授かる」は他のVCC追加ボタンと
+             同じ操作(class="vcc-trigger"でapp.jsが自動配線)。
+             第8ラウンドC: ここにあった.zip直リンクは削除した(棚と同じ理由)。 -->
+        <div class="tana-dialog-actions">
+          <button type="button" class="btn btn-primary btn-small vcc-trigger">おまもりを授かる</button>
         </div>
-        <div class="caption1 mt-4">詳しくは <a href="https://vcc.docs.vrchat.com" target="_blank">VCCドキュメント</a> をご覧ください</div>
       </div>
-    </fluent-dialog>
+    </dialog>
 
-    <fluent-card class="packages">
-      <fluent-data-grid id="packageGrid" role="grid" grid-template-columns="1fr 100px 220px">
-        <fluent-data-grid-row row-type="header">
-          <fluent-data-grid-cell cell-type="columnheader" grid-column="1">パッケージ名</fluent-data-grid-cell>
-          <fluent-data-grid-cell cell-type="columnheader" grid-column="2">種別</fluent-data-grid-cell>
-          <fluent-data-grid-cell cell-type="columnheader" grid-column="3"></fluent-data-grid-cell>
-        </fluent-data-grid-row>
-        {{~ for package in packages ~}}
-          <fluent-data-grid-row data-package-name="{{ package.DisplayName }}" data-package-id="{{ package.Name }}">
-            <fluent-data-grid-cell grid-column="1">
-              <div class="col">
-                <div class="packageName">{{ package.DisplayName }}</div>
-                <div class="caption1">{{ package.Description }}</div>
-                <div class="caption2">{{ package.Name }}</div>
+    <hr class="sumi-rule">
+
+    <!-- ⑥ 利用統計のお約束 -->
+    <section class="kiroku washi" aria-labelledby="kiroku-heading">
+      <div class="asanoha kiroku-pattern" aria-hidden="true"></div>
+      <div class="wrap">
+        <h2 id="kiroku-heading">利用統計のお約束</h2>
+        <p>おまもりは改善のため、ごく簡単な利用統計を、あなたのPC内——プロジェクトの Library/ フォルダの中に記録します。データが自動で送信されることは一切ありません。</p>
+
+        <!-- D-19: 利用統計の面積が「三つの道」の約2倍あったため、守り札(§8)と
+             同じ<details>で圧縮する。常に見えるのは核心の約束(上のp、＝自動送信は
+             一切ない)だけにし、保存場所・記録項目の内訳・管理方法は開くと読める
+             詳細に回す。情報は削っていない。 -->
+        <details class="kiroku-more">
+          <summary>記録する項目・保存場所をくわしく見る</summary>
+          <div class="kiroku-more-body">
+            <p>保存先は &lt;プロジェクト&gt;/Library/com.tsukumodo.avatar-omamori/usage-stats.json です。プロジェクトやLibraryフォルダを削除すれば、統計は一緒になくなります。</p>
+            <p>なお、初回のご案内を何度もお見せしないよう、「ご案内済みかどうか」だけはUnity側の設定に覚えてもらっています。こちらはプロジェクトを消しても残りますが、中身はその一つきりで、統計は含まれません。</p>
+
+            <div class="kiroku-lists">
+              <div>
+                <h3>記録する</h3>
+                <ul class="kiroku-do">
+                  <li>チェック種別ごとの検出件数(例: Missing Scriptチェックが何件検出したか)</li>
+                  <li>修正種別ごとの自動修正の実行回数</li>
+                  <li>チェックの実行回数</li>
+                  <li>日付(年月日のみ)</li>
+                  <li>おまもりのバージョン</li>
+                  <li>フィードバックとしてコピーした日(年月日のみ。まだコピーしていなければ記録されません)</li>
+                  <!-- 第11ラウンドA-2: 旧no-orphan spanは「無効にし/ている」と
+                       て形の途中で割れる区切りだった(デザインS-1)。折り返しは
+                       word-break:auto-phrase(A-1)が文節単位で受け持つので、
+                       spanごと外した。 -->
+                  <li>利用統計の収集を無効にしているかどうか</li>
+                  <li>記録データの形式のバージョン</li>
+                </ul>
               </div>
-            </fluent-data-grid-cell>
-            <fluent-data-grid-cell grid-column="2" class="row align-items-center">
-              {{ package.Type }}
-            </fluent-data-grid-cell>
-            <fluent-data-grid-cell grid-column="3" class="row align-items-center justify-content-end">
-              <fluent-button appearance="accent" class="rowAddToVccButton" data-package-id="{{ package.Name }}">Add to VCC</fluent-button>
-              <fluent-button title="Package Info" class="rowPackageInfoButton ms-2" data-package-id="{{ package.Name }}">
-                <svg width="20" height="20" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
-                  <path d="M10.4921 8.91012C10.4497 8.67687 10.2456 8.49999 10.0001 8.49999C9.72397 8.49999 9.50011 8.72385 9.50011 8.99999V13.5021L9.50817 13.592C9.55051 13.8253 9.75465 14.0021 10.0001 14.0021C10.2763 14.0021 10.5001 13.7783 10.5001 13.5021V8.99999L10.4921 8.91012ZM10.7988 6.74999C10.7988 6.33578 10.463 5.99999 10.0488 5.99999C9.63461 5.99999 9.29883 6.33578 9.29883 6.74999C9.29883 7.16421 9.63461 7.49999 10.0488 7.49999C10.463 7.49999 10.7988 7.16421 10.7988 6.74999ZM18 10C18 5.58172 14.4183 2 10 2C5.58172 2 2 5.58172 2 10C2 14.4183 5.58172 18 10 18C14.4183 18 18 14.4183 18 10ZM3 10C3 6.13401 6.13401 3 10 3C13.866 3 17 6.13401 17 10C17 13.866 13.866 17 10 17C6.13401 17 3 13.866 3 10Z"/>
-                </svg>
-              </fluent-button>
-              <fluent-button class="rowMenuButton ms-2" appearance="stealth" data-package-url="{{ package.ZipUrl }}">
-                <svg width="20" height="20" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
-                  <path d="M6.25 10C6.25 10.6904 5.69036 11.25 5 11.25C4.30964 11.25 3.75 10.6904 3.75 10C3.75 9.30964 4.30964 8.75 5 8.75C5.69036 8.75 6.25 9.30964 6.25 10ZM11.25 10C11.25 10.6904 10.6904 11.25 10 11.25C9.30964 11.25 8.75 10.6904 8.75 10C8.75 9.30964 9.30964 8.75 10 8.75C10.6904 8.75 11.25 9.30964 11.25 10ZM15 11.25C15.6904 11.25 16.25 10.6904 16.25 10C16.25 9.30964 15.6904 8.75 15 8.75C14.3096 8.75 13.75 9.30964 13.75 10C13.75 10.6904 14.3096 11.25 15 11.25Z"/>
-                </svg>
-              </fluent-button>
-            </fluent-data-grid-cell>
-          </fluent-data-grid-row>
-        {{~ end ~}}
-      </fluent-data-grid>
-    </fluent-card>
+              <div>
+                <h3>記録しない</h3>
+                <ul class="kiroku-dont">
+                  <li>アバター名・アバターのGUID</li>
+                  <li>シーン名・ファイルパス</li>
+                  <li>PC名・ユーザー名</li>
+                  <li>時刻(時分秒)</li>
+                </ul>
+              </div>
+            </div>
 
-    <section class="col align-items-center" style="max-width: 720px; margin: 32px auto 8px; padding: 0 16px; line-height: 1.7;">
-      <h3 style="margin-bottom: 8px;">利用統計について</h3>
-      <p style="margin: 0 0 8px;">おまもりは改善のため、ごく簡単な利用統計を<strong>あなたのPC内（プロジェクトの Library/ フォルダ）にのみ</strong>記録します。自動送信は一切しません。</p>
-      <p style="margin: 0 0 4px;"><strong>記録する:</strong> チェック・修正の種別ごとの回数 / 実行回数 / 日付（年月日のみ）/ バージョン</p>
-      <p style="margin: 0 0 8px;"><strong>記録しない:</strong> アバター名・パス・シーン名・PC名・ユーザー名・時刻</p>
-      <p style="margin: 0;">Unity の <strong>Tools &gt; つくも堂 &gt; 使用統計を見る</strong> から、確認・コピー・クリア・無効化ができます。</p>
+            <!-- 第11ラウンドC-2: 第10ラウンドの文中移動は、動詞「させていただき
+                 ます」とそれを限定する「(任意です)」の間に🍀が割り込み、構文単位を
+                 分断していた(内容レビュー小2)。🏮と同じ「文末・句点なし」の形に
+                 揃える。絵文字は装飾なのでaria-hidden(第11ラウンドD-5)。 -->
+            <p class="kiroku-manage">Unityの Tools &gt; つくも堂 &gt; 使用統計を見る から、記録内容の確認や「フィードバックとしてコピー」、統計のクリア、収集の無効化・再開ができます。よろしければ、コピーした内容をつくも堂のX(@tsukumodo_lab)のDMで送っていただけると、今後のチェック項目を考える参考にさせていただきます<span class="no-orphan">(任意です)<span aria-hidden="true">🍀</span></span></p>
+          </div>
+        </details>
+      </div>
     </section>
 
-    <footer class="site-footer col align-items-center">
-      <img src="tsukumodo-logo.png" alt="つくも堂" class="footer-logo">
-      <p>つくも堂 — TSUKUMODO</p>
-    </footer>
-  </div>
+  </main>
+
+  <footer class="rakkan">
+    <div class="rakkan-mascot" aria-hidden="true">
+      <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <!-- 歯の形はヘッダーの店章(#tooth-header)と同一形状(D-12)。 -->
+        <path id="tooth-footer" d="M44.8 20 L45.36 14.79 Q45.5 13.5 46.8 13.5 L53.2 13.5 Q54.5 13.5 54.64 14.79 L55.2 20 Z"/>
+        </defs>
+        <g fill="var(--tsukumo-gear)">
+          <use href="#tooth-footer" transform="rotate(0 50 50)"/>
+          <use href="#tooth-footer" transform="rotate(45 50 50)"/>
+          <use href="#tooth-footer" transform="rotate(90 50 50)"/>
+          <use href="#tooth-footer" transform="rotate(135 50 50)"/>
+          <use href="#tooth-footer" transform="rotate(180 50 50)"/>
+          <use href="#tooth-footer" transform="rotate(225 50 50)"/>
+          <use href="#tooth-footer" transform="rotate(270 50 50)"/>
+          <use href="#tooth-footer" transform="rotate(315 50 50)"/>
+        </g>
+        <circle cx="50" cy="50" r="30" fill="var(--tsukumo-gear)"/>
+        <circle cx="50" cy="50" r="25.5" fill="var(--tsukumo-navy)"/>
+        <circle cx="50" cy="50" r="20.5" fill="none" stroke="var(--tsukumo-gear)" stroke-width="1" stroke-dasharray="2.6 2.6" opacity="0.85"/>
+        <g class="mascot-eye">
+          <ellipse cx="41.5" cy="48" rx="6.4" ry="6.8" fill="var(--tsukumo-eye-white)"/>
+          <g class="mascot-pupil" transform="translate(0,0)">
+            <circle cx="41.5" cy="49" r="4.2" fill="var(--tsukumo-pupil)"/>
+            <circle cx="39.7" cy="47.2" r="1.35" fill="var(--tsukumo-eye-white)"/>
+          </g>
+          <path class="mascot-lid" d="M35.1 48 a6.4 6.4 0 0 1 12.8 0 Z" fill="var(--tsukumo-navy)" opacity="0"/>
+        </g>
+        <g class="mascot-eye">
+          <ellipse cx="58.5" cy="48" rx="6.4" ry="6.8" fill="var(--tsukumo-eye-white)"/>
+          <g class="mascot-pupil" transform="translate(0,0)">
+            <circle cx="58.5" cy="49" r="4.2" fill="var(--tsukumo-pupil)"/>
+            <circle cx="56.7" cy="47.2" r="1.35" fill="var(--tsukumo-eye-white)"/>
+          </g>
+          <path class="mascot-lid" d="M52.1 48 a6.4 6.4 0 0 1 12.8 0 Z" fill="var(--tsukumo-navy)" opacity="0"/>
+        </g>
+        <path d="M43.5 58.5 Q50 63.5 56.5 58.5" fill="none" stroke="var(--tsukumo-gear)" stroke-width="1.8" stroke-linecap="round"/>
+      </svg>
+    </div>
+    <p class="rakkan-name">つくも堂 — TSUKUMODO</p>
+    <!-- 第7ラウンドD-A: 🏮が測定した9幅すべてで単独行に落ち、赤橙の点が
+         1個浮いていた。直前の語句と white-space:nowrap で括り、灯籠が
+         必ず文と同じ行にぶら下がるようにする(絵文字→SVG置換はしない。
+         🍀だけラスタ字形で残る中途半端が生まれるため)。
+         ※ページ全体の絵文字は第8ラウンドBで🍀🏮の2個構成になった。 -->
+    <!-- 🏮は装飾なのでaria-hidden(第11ラウンドD-5。読み上げが「…どうぞ 提灯」と
+         混ざっていた)。 -->
+    <p class="rakkan-tagline">VRChat社とは無関係の、有志による非公式ツールです。不具合やお気づきの点は、<span class="no-orphan">XのDMまでお気軽にどうぞ<span aria-hidden="true">🏮</span></span></p>
+    <ul class="rakkan-links">
+      <li><a href="https://tsukumodo-lab.booth.pm/items/8132860" target="_blank" rel="noopener">BOOTH</a></li>
+      <li><a href="https://x.com/tsukumodo_lab" target="_blank" rel="noopener">X (@tsukumodo_lab)</a></li>
+    </ul>
+  </footer>
+
+  <!-- D-4: コピー成功をスクリーンリーダーへ伝えるための共有アナウンス領域。
+       ボタン自身のラベル変更(「写しました」)は見た目だけの変化で、視覚的に
+       確認できない利用者には伝わっていなかった。 -->
+  <div id="a11yStatus" role="status" aria-live="polite" class="visually-hidden"></div>
+
   <script type="module" src="app.js"></script>
 </body>
 </html>
