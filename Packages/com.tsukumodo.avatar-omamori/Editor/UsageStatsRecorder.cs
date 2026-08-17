@@ -58,53 +58,35 @@ namespace AvatarOmamori.Editor
         // ───────────────────────────── 記録 API ─────────────────────────────
 
         /// <summary>
-        /// チェック一括実行（<see cref="CheckRunner.RunAll"/>）1回分を記録する。
-        /// <paramref name="detectionsByCheckType"/> はチェッククラス名 → そのチェックが今回検出した件数。
-        /// opt-out 中は何もしない。
+        /// 記録の統合入口（Issue #35）。<see cref="RecordCheckRun"/> / <see cref="RecordDetections"/> は
+        /// どちらもこのメソッドへ委譲する薄いラッパー。
+        /// 呼び出し元（<see cref="AvatarOmamoriWindow.RunChecks"/>）が1回の実行につき1回だけ呼ぶことで、
+        /// ディスクへの書き込みを1往復に抑える。
         /// </summary>
-        public static void RecordCheckRun(IReadOnlyDictionary<string, int> detectionsByCheckType)
+        /// <param name="detectionsByKey">キー → 今回の検出件数。null 可。</param>
+        /// <param name="incrementRunCount">true ならチェック実行回数（<c>check_run_count</c>）を1増やす。</param>
+        public static void RecordRun(IReadOnlyDictionary<string, int> detectionsByKey, bool incrementRunCount)
         {
             var stats = Load();
             if (stats.OptOut) return;
 
-            stats.CheckRunCount++;
-            if (detectionsByCheckType != null)
+            if (incrementRunCount) stats.CheckRunCount++;
+
+            // 実行回数が増えるなら、検出が1件も無くても「実行された」事実は保存する必要がある。
+            // 逆に実行回数を増やさない呼び出し（RecordDetections 由来）は、加算対象が無ければ何も変わらないので保存しない。
+            var changed = incrementRunCount;
+
+            if (detectionsByKey != null)
             {
-                foreach (var kv in detectionsByCheckType)
+                foreach (var kv in detectionsByKey)
                 {
                     if (kv.Value <= 0) continue;
                     var key = SanitizeKey(kv.Key);
                     if (key == null) continue; // 識別子として不正なキーは捨てる（個人情報混入の最終防波堤）
                     stats.DetectionCounts.TryGetValue(key, out int cur);
                     stats.DetectionCounts[key] = cur + kv.Value;
+                    changed = true;
                 }
-            }
-
-            Touch(stats);
-            Save(stats);
-        }
-
-        /// <summary>
-        /// 検出件数だけを加算する（チェック実行回数は増やさない）。
-        /// <see cref="CheckRunner"/> を経由しない機能（パフォーマンス表示など）から呼ぶ。
-        /// <see cref="RecordCheckRun"/> と同じ実行で併用しても check_run_count が二重計上されないようにするための入口。
-        /// opt-out 中は何もしない。
-        /// </summary>
-        public static void RecordDetections(IReadOnlyDictionary<string, int> detectionsByKey)
-        {
-            var stats = Load();
-            if (stats.OptOut) return;
-            if (detectionsByKey == null) return;
-
-            var changed = false;
-            foreach (var kv in detectionsByKey)
-            {
-                if (kv.Value <= 0) continue;
-                var key = SanitizeKey(kv.Key);
-                if (key == null) continue; // 識別子として不正なキーは捨てる（個人情報混入の最終防波堤）
-                stats.DetectionCounts.TryGetValue(key, out int cur);
-                stats.DetectionCounts[key] = cur + kv.Value;
-                changed = true;
             }
 
             if (!changed) return;
@@ -112,6 +94,25 @@ namespace AvatarOmamori.Editor
             Touch(stats);
             Save(stats);
         }
+
+        /// <summary>
+        /// チェック一括実行（<see cref="CheckRunner.RunAll"/>）1回分を記録する。
+        /// <paramref name="detectionsByCheckType"/> はチェッククラス名 → そのチェックが今回検出した件数。
+        /// opt-out 中は何もしない。
+        /// 実体は <see cref="RecordRun"/>（<c>incrementRunCount: true</c>）への委譲。
+        /// </summary>
+        public static void RecordCheckRun(IReadOnlyDictionary<string, int> detectionsByCheckType)
+            => RecordRun(detectionsByCheckType, incrementRunCount: true);
+
+        /// <summary>
+        /// 検出件数だけを加算する（チェック実行回数は増やさない）。
+        /// <see cref="CheckRunner"/> を経由しない機能（パフォーマンス表示など）から呼ぶ。
+        /// <see cref="RecordCheckRun"/> と同じ実行で併用しても check_run_count が二重計上されないようにするための入口。
+        /// opt-out 中は何もしない。
+        /// 実体は <see cref="RecordRun"/>（<c>incrementRunCount: false</c>）への委譲。
+        /// </summary>
+        public static void RecordDetections(IReadOnlyDictionary<string, int> detectionsByKey)
+            => RecordRun(detectionsByKey, incrementRunCount: false);
 
         /// <summary>
         /// 自動修正1回分を記録する。<paramref name="checkTypeName"/> は修正を提供したチェッククラス名。

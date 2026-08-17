@@ -51,5 +51,39 @@ namespace AvatarOmamori.Tests.Editor
 
             Assert.IsFalse(result.IsDetail);
         }
+
+        [Test]
+        public void 内訳行だけのリストはグループを描画しない()
+        {
+            // サマリー行が無い＝内訳行だけが取り残されたケース（DEC-070）。
+            // 文脈のない断片になるため ShouldDrawGroup は false を返す必要がある
+            var items = new List<CheckResult>
+            {
+                new CheckResult(Severity.Error, "重複した VRC Avatar Descriptor: Avatar/Body", isDetail: true),
+                new CheckResult(Severity.Error, "重複した VRC Avatar Descriptor: Avatar/Hair", isDetail: true),
+            };
+
+            Assert.IsFalse(AvatarOmamoriWindow.ShouldDrawGroup(items));
+        }
+
+        [Test]
+        public void サマリー行があればグループを描画する()
+        {
+            var items = new List<CheckResult>
+            {
+                new CheckResult(Severity.Error, "VRC Avatar Descriptor が 3 個見つかりました"),
+                new CheckResult(Severity.Error, "重複した VRC Avatar Descriptor: Avatar/Body", isDetail: true),
+                new CheckResult(Severity.Error, "重複した VRC Avatar Descriptor: Avatar/Hair", isDetail: true),
+            };
+
+            Assert.IsTrue(AvatarOmamoriWindow.ShouldDrawGroup(items));
+            Assert.AreEqual(1, AvatarOmamoriWindow.CountPrimary(items));
+        }
+
+        [Test]
+        public void 空リストはグループを描画しない()
+        {
+            Assert.IsFalse(AvatarOmamoriWindow.ShouldDrawGroup(new List<CheckResult>()));
+        }
     }
 }
