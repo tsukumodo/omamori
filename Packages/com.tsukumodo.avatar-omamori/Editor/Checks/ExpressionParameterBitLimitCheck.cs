@@ -47,8 +47,10 @@ namespace AvatarOmamori.Editor.Checks
             {
                 yield return new CheckResult(
                     Severity.Error,
-                    $"[SDK] 同期パラメータのビット数が上限を超えています（{totalCost} / {MaxSyncedBits} bit、{totalCost - MaxSyncedBits} bit 超過）。アップロードに失敗します。不要な同期パラメータを削除するか、networkSynced を無効にしてください。",
-                    expressionParameters
+                    $"[SDK] 同期パラメータのビット数が上限を超えています（{totalCost} / {MaxSyncedBits} bit、{totalCost - MaxSyncedBits} bit 超過）。このままだとアップロードに失敗します。",
+                    expressionParameters,
+                    hint: "使わない同期パラメータを減らすか、同期が要らないものは Synced のチェックを外せます。",
+                    documentUrl: OmamoriDocUrls.AnimatorParameters
                 );
             }
         }

@@ -37,8 +37,9 @@ namespace AvatarOmamori.Editor.Checks
                         var path = HierarchyPathUtil.GetHierarchyPath(renderer.gameObject);
                         yield return new CheckResult(
                             Severity.Warning,
-                            $"[Shader] {path} のマテリアルスロット [{i}] が null です。マテリアルが正しく設定されているか確認してください。",
-                            renderer.gameObject
+                            $"[Shader] {path} のマテリアルスロット [{i}] が null です。その部分が正しく表示されません。",
+                            renderer.gameObject,
+                            hint: "Renderer の Materials に、その部分のマテリアルを割り当てられます。"
                         );
                         continue;
                     }
@@ -50,8 +51,9 @@ namespace AvatarOmamori.Editor.Checks
                         var shaderInfo = mat.shader == null ? "null" : mat.shader.name;
                         yield return new CheckResult(
                             Severity.Warning,
-                            $"[Shader] {path} のマテリアル \"{mat.name}\" (スロット [{i}]) のシェーダーが見つかりません ({shaderInfo})。対象シェーダー（lilToonなど）がプロジェクトにインポートされているか確認してください。",
-                            renderer.gameObject
+                            $"[Shader] {path} のマテリアル \"{mat.name}\" (スロット [{i}]) のシェーダーが見つかりません ({shaderInfo})。ピンク色で表示されます。",
+                            renderer.gameObject,
+                            hint: "lilToon など対象のシェーダーをプロジェクトにインポートすると直ります。"
                         );
                     }
                 }

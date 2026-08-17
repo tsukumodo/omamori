@@ -71,7 +71,9 @@ namespace AvatarOmamori.Editor.Checks
                 Severity.Warning,
                 $"[SDK] VRChat が対応していないコンポーネントが {components.Count} 個あります"
                 + $"（{groups.Count} 種類）。"
-                + "アップロード時に取り除かれるため、入れたはずの機能がアバターで動きません。");
+                + "アップロード時に取り除かれるため、入れたはずの機能がアバターで動きません。",
+                hint: "PC 版でだけ使うものなら、そのままで問題ありません。",
+                documentUrl: OmamoriDocUrls.AllowedAvatarComponents);
 
             // 内訳行。件数には数えず（IsDetail = true）、型ごとに1行だけ出す。
             // 「選択」で Ping できるのはその型の先頭1件のみ（CheckResult.TargetObject が単数のため。

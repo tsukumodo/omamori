@@ -50,8 +50,10 @@ namespace AvatarOmamori.Editor.Checks
                     // コンポーネント自体がない
                     yield return new CheckResult(
                         Severity.Warning,
-                        $"[MA] \"{go.name}\" は Armature を持っていますが、MA Merge Armature や Bone Proxy が設定されていません。衣装やアクセサリの場合、アバターに追従しない可能性があります。",
-                        go
+                        $"[MA] \"{go.name}\" は Armature を持っていますが、MA Merge Armature や Bone Proxy が設定されていません。衣装やアクセサリなら、着せてもアバターの動きに追従しないことがあります。",
+                        go,
+                        hint: "衣装なら MA Merge Armature、髪飾りなど一部分だけなら MA Bone Proxy を足すと追従します。",
+                        documentUrl: OmamoriDocUrls.MaMergeArmature
                     );
                     continue;
                 }
@@ -63,8 +65,10 @@ namespace AvatarOmamori.Editor.Checks
                     {
                         yield return new CheckResult(
                             Severity.Warning,
-                            $"[MA] \"{ma.gameObject.name}\" の Merge Armature のターゲットが未設定です。統合先のArmatureを指定してください。",
-                            ma
+                            $"[MA] \"{ma.gameObject.name}\" の Merge Armature のターゲットが未設定です。このままでは衣装がアバターに統合されません。",
+                            ma,
+                            hint: "Merge Target に、アバター側の Armature を指定できます。",
+                            documentUrl: OmamoriDocUrls.MaMergeArmature
                         );
                     }
                 }
@@ -76,8 +80,10 @@ namespace AvatarOmamori.Editor.Checks
                     {
                         yield return new CheckResult(
                             Severity.Warning,
-                            $"[MA] \"{bp.gameObject.name}\" の Bone Proxy のターゲットが未設定です。追従先のボーンを指定してください。",
-                            bp
+                            $"[MA] \"{bp.gameObject.name}\" の Bone Proxy のターゲットが未設定です。このままではどのボーンにも追従しません。",
+                            bp,
+                            hint: "Target に、追従させたいアバター側のボーンを指定できます。",
+                            documentUrl: OmamoriDocUrls.MaBoneProxy
                         );
                     }
                 }

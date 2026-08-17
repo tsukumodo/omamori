@@ -471,7 +471,29 @@ namespace AvatarOmamori.Editor
 
             DrawFixButton(result);
 
+            // 内訳行には出さない。サマリー行に集約するため（IsDetail 行は文脈のない断片で、
+            // 個別にリンクを出すとサマリーとの主従が崩れる）
+            if (!result.IsDetail && !string.IsNullOrEmpty(result.DocumentUrl))
+            {
+                if (GUILayout.Button("調べる", EditorStyles.miniButton, GUILayout.Width(56)))
+                {
+                    Application.OpenURL(result.DocumentUrl);
+                }
+            }
+
             EditorGUILayout.EndHorizontal();
+
+            // ヒントは折りたたみの奥に隠さず常時表示する（初心者は階層に隠すと存在に気づかない・DEC-073）。
+            // 字下げは DrawValueSnapshotRow と同じ算出式（アイコン幅24 + indentLevel*15）に揃える
+            if (!result.IsDetail && !string.IsNullOrEmpty(result.Hint))
+            {
+                EditorGUILayout.BeginHorizontal();
+                GUILayout.Space(24f + EditorGUI.indentLevel * 15f);
+                // 「💡」（U+1F4A1）は Unity エディタフォントに字形が無く、占有幅0pxで完全に脱落する
+                // （豆腐にすらならない）ことを実測で確認済み。フォント依存の無いテキストにする
+                EditorGUILayout.LabelField($"ヒント: {result.Hint}", EditorStyles.wordWrappedMiniLabel);
+                EditorGUILayout.EndHorizontal();
+            }
 
             if (!string.IsNullOrEmpty(result.ValueLabel) &&
                 (result.BeforeValue != null || result.AfterValue != null))

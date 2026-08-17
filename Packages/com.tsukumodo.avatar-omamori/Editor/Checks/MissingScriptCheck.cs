@@ -42,7 +42,7 @@ namespace AvatarOmamori.Editor.Checks
 
                     yield return new CheckResult(
                         Severity.Error,
-                        $"[Unity] {path} に Missing Script が {missingCount} 個あります。「修正」ボタンで一括削除できます（Inspector の右クリック → Remove Component からも削除可能）。",
+                        $"[Unity] {path} に Missing Script が {missingCount} 個あります。アップロード時にエラーになることがあります。",
                         go,
                         fixAction: () => RemoveMissingScripts(capturedGo),
                         fixConfirmMessage:
@@ -51,7 +51,8 @@ namespace AvatarOmamori.Editor.Checks
                             "Missing Script はすでにスクリプト参照が壊れているコンポーネントなので、削除しても実質的なデータ損失はありません。",
                         valueLabel: ValueLabel,
                         beforeValue: $"Missing×{capturedCount}個",
-                        afterValue: "0個"
+                        afterValue: "0個",
+                        hint: "「修正」ボタンで一括削除できます。Inspector の右クリック → Remove Component でも消せます。"
                     );
                 }
             }
