@@ -1,6 +1,21 @@
-// バージョン未固定の unpkg 参照は latest（v3）に切り替わった時点で baseLayerLuminance が
-// 消えて import ごと死ぬ（2026-08-07 に実際に発生・Issue #28）。同梱した v2.6.1 を使う
-import { baseLayerLuminance, StandardLuminance } from './vendor/fluentui-web-components-2.6.1.min.js';
+// つくも堂 VPMリスティング — ページ挙動
+//
+// このファイルは Scriban テンプレートとして描画される（DESIGN_SPEC.md §2）。
+// 冒頭の LISTING_URL 定数と PACKAGES オブジェクト生成ブロックのプレースホルダは
+// ビルド時に package-list-action が実データへ置き換える。書式を変えたり
+// 削除したりしないこと。
+//
+// Fluent UI 撤去後にこのファイルが持つ責務は次の6つだけ（INTEGRATION_SPEC.md §4。
+// 「二つの道」のタブUIは第8ラウンドAで廃止し、両方の道を常時表示にしたため
+// タブ制御の責務は無くなった）:
+//   1. LISTING_URL / PACKAGES の受け取り（Scriban）
+//   2. VCC追加ボタン（ヒーロー + 二つの道のVCC欄 + パッケージ詳細ダイアログ。
+//      VCCへの追加はリスティング単位の操作でパッケージ単位には出来ないため、
+//      棚の各行には個別の追加ボタンを置かない。D-6）
+//   3. URLコピー
+//   4. パッケージ詳細 <dialog> の開閉と内容差し込み
+//   5. 検索（2件以上のときだけ有効化）
+//   6. マスコットの目線追従・瞬き
 
 const LISTING_URL = "{{ listingInfo.Url }}";
 
@@ -31,203 +46,264 @@ const PACKAGES = {
 {{~ end ~}}
 };
 
-const setTheme = () => {
-  const isDarkTheme = () => window.matchMedia("(prefers-color-scheme: dark)").matches;
-  if (isDarkTheme()) {
-    baseLayerLuminance.setValueFor(document.documentElement, StandardLuminance.DarkMode);
+// ─── 1. VCC追加ボタン ────────────────────────────────────────────────
+function initVccButtons() {
+  const goToVcc = () => {
+    window.location.assign(`vcc://vpm/addRepo?url=${encodeURIComponent(LISTING_URL)}`);
+  };
+  // 棚の各行には .tana-add を置かない（D-6）。VCCへの追加はリスティング
+  // （リポジトリ）単位の操作で、VPMにはパッケージ単体を狙い撃ちで追加する
+  // 手段が無いため、行ごとに data-package-id を持たせても機能しない
+  // 死んだ属性になっていた。
+  document.querySelectorAll('#addToVcc, .vcc-trigger').forEach((button) => {
+    button.addEventListener('click', goToVcc);
+  });
+}
+
+// ─── 2. URLコピー ────────────────────────────────────────────────────
+// D-4: コピー成功はこれまでボタン自身のラベル変更（「写しました」）だけで
+// 伝えていたが、見た目の変化なのでスクリーンリーダー利用者には届かない。
+// 共有の role="status" 領域（#a11yStatus）にも同じ内容を流す。
+// 同文言が連続しても再アナウンスされるよう、一度空にしてから次のフレームで
+// 差し込む（同一テキストへの上書きだけだと変化なしと判断され黙殺する
+// 実装があるため）。
+function announce(message) {
+  const status = document.getElementById('a11yStatus');
+  if (!status) return;
+  status.textContent = '';
+  window.requestAnimationFrame(() => {
+    status.textContent = message;
+  });
+}
+
+function copyListingUrl(input, button) {
+  const text = input.value;
+  const showCopied = () => {
+    const original = button.dataset.originalLabel ?? button.textContent;
+    button.dataset.originalLabel = original;
+    button.textContent = '写しました';
+    button.classList.add('is-copied');
+    window.clearTimeout(button._copyResetTimer);
+    button._copyResetTimer = window.setTimeout(() => {
+      button.textContent = original;
+      button.classList.remove('is-copied');
+    }, 1800);
+    announce('リスティングURLをコピーしました');
+    blinkMascotOnce();
+  };
+
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(text).then(showCopied, () => {
+      // クリップボードへの書き込みに失敗した環境向けフォールバック
+      input.select();
+    });
   } else {
-    baseLayerLuminance.setValueFor(document.documentElement, StandardLuminance.LightMode);
+    // navigator.clipboard が無い環境向けフォールバック
+    input.select();
   }
 }
 
-(() => {
-  setTheme();
-
-  window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => {
-    setTheme();
+function initCopyButtons() {
+  // ヒーローの生URL欄は廃止した（D-14）。「二つの道」のURLタブにのみ残す。
+  const wirings = [
+    ['listingUrlPanel', 'copyListingUrlPanel'],
+  ];
+  wirings.forEach(([inputId, buttonId]) => {
+    const input = document.getElementById(inputId);
+    const button = document.getElementById(buttonId);
+    if (!input || !button) return;
+    button.addEventListener('click', () => copyListingUrl(input, button));
   });
+}
 
-  const packageGrid = document.getElementById('packageGrid');
+// ─── 3. パッケージ詳細ダイアログ ─────────────────────────────────────
+function initPackageDialog() {
+  const dialog = document.getElementById('packageInfoDialog');
+  if (!dialog) return;
 
-  const searchInput = document.getElementById('searchInput');
-  searchInput.addEventListener('input', ({ target: { value = '' }}) => {
-    const items = packageGrid.querySelectorAll('fluent-data-grid-row[row-type="default"]');
-    items.forEach(item => {
-      if (value === '') {
-        item.style.display = 'grid';
-        return;
-      }
-      if (
-        item.dataset?.packageName?.toLowerCase()?.includes(value.toLowerCase()) ||
-        item.dataset?.packageId?.toLowerCase()?.includes(value.toLowerCase())
-      ) {
-        item.style.display = 'grid';
-      } else {
-        item.style.display = 'none';
-      }
+  const els = {
+    name: document.getElementById('packageInfoName'),
+    id: document.getElementById('packageInfoId'),
+    version: document.getElementById('packageInfoVersion'),
+    description: document.getElementById('packageInfoDescription'),
+    author: document.getElementById('packageInfoAuthor'),
+    dependencies: document.getElementById('packageInfoDependencies'),
+    keywordsWrap: document.getElementById('packageInfoKeywordsWrap'),
+    keywords: document.getElementById('packageInfoKeywords'),
+    licenseWrap: document.getElementById('packageInfoLicenseWrap'),
+    license: document.getElementById('packageInfoLicense'),
+  };
+  const closeButton = document.getElementById('packageInfoDialogClose');
+
+  function openFor(packageId) {
+    const info = PACKAGES[packageId];
+    if (!info) {
+      console.error(`[つくも堂] パッケージ情報が見つかりません: ${packageId}`);
+      return;
+    }
+
+    els.name.textContent = info.displayName;
+    els.id.textContent = packageId;
+    els.version.textContent = `v${info.version}`;
+    els.description.textContent = info.description;
+    els.author.textContent = info.author.name;
+    // author.url は package.json の任意項目。ライセンス欄と同じ理由で、
+    // 未指定のときは href を外して素のテキストとして見せる（href="#" のままだと
+    // target="_blank" と相まって「同じページが新しいタブで開く」リンクになる）。
+    if (info.author.url) {
+      els.author.href = info.author.url;
+    } else {
+      els.author.removeAttribute('href');
+    }
+
+    els.dependencies.innerHTML = '';
+    Object.entries(info.dependencies).forEach(([depName, depVersion]) => {
+      const li = document.createElement('li');
+      li.textContent = `${depName} @ v${depVersion}`;
+      els.dependencies.appendChild(li);
     });
-  });
 
-  const urlBarHelpButton = document.getElementById('urlBarHelp');
-  const addListingToVccHelp = document.getElementById('addListingToVccHelp');
-  urlBarHelpButton.addEventListener('click', () => {
-    addListingToVccHelp.hidden = false;
-  });
-  const addListingToVccHelpClose = document.getElementById('addListingToVccHelpClose');
-  addListingToVccHelpClose.addEventListener('click', () => {
-    addListingToVccHelp.hidden = true;
-  });
+    if (info.keywords.length === 0) {
+      els.keywordsWrap.hidden = true;
+    } else {
+      els.keywordsWrap.hidden = false;
+      els.keywords.innerHTML = '';
+      info.keywords.forEach((keyword) => {
+        const chip = document.createElement('span');
+        chip.className = 'chip';
+        chip.textContent = keyword;
+        els.keywords.appendChild(chip);
+      });
+    }
 
-  const vccListingInfoUrlFieldCopy = document.getElementById('vccListingInfoUrlFieldCopy');
-  vccListingInfoUrlFieldCopy.addEventListener('click', () => {
-    const vccUrlField = document.getElementById('vccListingInfoUrlField');
-    vccUrlField.select();
-    navigator.clipboard.writeText(vccUrlField.value);
-    vccUrlFieldCopy.appearance = 'accent';
-    setTimeout(() => {
-      vccUrlFieldCopy.appearance = 'neutral';
-    }, 1000);
-  });
+    if (!info.license && !info.licensesUrl) {
+      els.licenseWrap.hidden = true;
+    } else {
+      els.licenseWrap.hidden = false;
+      els.license.textContent = info.license || 'ライセンスを見る';
+      // licensesUrl は package.json の任意項目で、未指定なら空文字で描画される。
+      // href="#" のまま出すとページ先頭に飛ぶだけの死んだリンクになるので、
+      // URL が無いときは href を外して素のテキストとして見せる
+      // （href の無い <a> はリンクとして扱われず、フォーカスも受け取らない）。
+      if (info.licensesUrl) {
+        els.license.href = info.licensesUrl;
+      } else {
+        els.license.removeAttribute('href');
+      }
+    }
 
-  const vccAddRepoButton = document.getElementById('vccAddRepoButton');
-  vccAddRepoButton.addEventListener('click', () => window.location.assign(`vcc://vpm/addRepo?url=${encodeURIComponent(LISTING_URL)}`));
-
-  const vccUrlFieldCopy = document.getElementById('vccUrlFieldCopy');
-  vccUrlFieldCopy.addEventListener('click', () => {
-    const vccUrlField = document.getElementById('vccUrlField');
-    vccUrlField.select();
-    navigator.clipboard.writeText(vccUrlField.value);
-    vccUrlFieldCopy.appearance = 'accent';
-    setTimeout(() => {
-      vccUrlFieldCopy.appearance = 'neutral';
-    }, 1000);
-  });
-
-  const rowMoreMenu = document.getElementById('rowMoreMenu');
-  const hideRowMoreMenu = e => {
-    if (rowMoreMenu.contains(e.target)) return;
-    document.removeEventListener('click', hideRowMoreMenu);
-    rowMoreMenu.hidden = true;
+    // ダイアログのCTA「おまもりを授かる」は initVccButtons が
+    // .vcc-trigger として共通で配線する（.zip直リンクは第8ラウンドCで削除）。
+    dialog.showModal();
   }
 
-  const rowMenuButtons = document.querySelectorAll('.rowMenuButton');
-  rowMenuButtons.forEach(button => {
-    button.addEventListener('click', e => {
-      if (rowMoreMenu?.hidden) {
-        rowMoreMenu.style.top = `${e.clientY + e.target.clientHeight}px`;
-        rowMoreMenu.style.left = `${e.clientX - 120}px`;
-        rowMoreMenu.hidden = false;
+  document.querySelectorAll('.tana-info').forEach((button) => {
+    button.addEventListener('click', () => openFor(button.dataset.packageId));
+  });
 
-        const downloadLink = rowMoreMenu.querySelector('#rowMoreMenuDownload');
-        const downloadListener = () => {
-          window.open(e?.target?.dataset?.packageUrl, '_blank');
-        }
-        downloadLink.addEventListener('change', () => {
-          downloadListener();
-          downloadLink.removeEventListener('change', downloadListener);
-        });
+  closeButton.addEventListener('click', () => dialog.close());
 
-        setTimeout(() => {
-          document.addEventListener('click', hideRowMoreMenu);
-        }, 1);
-      }
+  // 背景（::backdrop）クリックで閉じる。ダイアログ自身がクリックされた
+  // (=内側のコンテンツではない) 場合のみ閉じる、というネイティブdialogの定石。
+  dialog.addEventListener('click', (event) => {
+    if (event.target === dialog) dialog.close();
+  });
+}
+
+// ─── 4. 検索（2件以上のときだけ） ────────────────────────────────────
+function initSearch() {
+  const list = document.getElementById('tanaList');
+  const searchBlock = document.getElementById('tanaSearch');
+  const emptyMessage = document.getElementById('tanaEmpty');
+  if (!list || !searchBlock) return;
+
+  const items = Array.from(list.querySelectorAll('.tana-item'));
+  if (items.length < 2) return; // 1件以下なら検索欄は出さない
+
+  searchBlock.hidden = false;
+  const input = document.getElementById('packageSearch');
+  input.addEventListener('input', () => {
+    const query = input.value.trim().toLowerCase();
+    let visibleCount = 0;
+    items.forEach((item) => {
+      const name = (item.dataset.packageName || '').toLowerCase();
+      const id = (item.dataset.packageId || '').toLowerCase();
+      const matches = query === '' || name.includes(query) || id.includes(query);
+      item.hidden = !matches;
+      if (matches) visibleCount += 1;
     });
+    // D-2: 0件のとき棚が唐突に空白にならないよう案内を出す。
+    // #tanaEmpty は role="status" aria-live="polite" なので、非表示から
+    // 表示に切り替わったこと自体がスクリーンリーダーにも伝わる。
+    if (emptyMessage) emptyMessage.hidden = visibleCount > 0;
   });
+}
 
-  const packageInfoModal = document.getElementById('packageInfoModal');
-  const packageInfoModalClose = document.getElementById('packageInfoModalClose');
-  packageInfoModalClose.addEventListener('click', () => {
-    packageInfoModal.hidden = true;
-  });
+// ─── 5. マスコットの目線追従・瞬き ───────────────────────────────────
+let blinkMascotOnce = () => {};
 
-  // Fluent dialogs use nested shadow-rooted elements, so we need to use JS to style them
-  const modalControl = packageInfoModal.shadowRoot.querySelector('.control');
-  modalControl.style.maxHeight = "90%";
-  modalControl.style.transition = 'height 0.2s ease-in-out';
-  modalControl.style.overflowY = 'hidden';
+function initMascot() {
+  const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
+  if (reduceMotion.matches) return; // この機能ごと起動しない
 
-  const packageInfoName = document.getElementById('packageInfoName');
-  const packageInfoId = document.getElementById('packageInfoId');
-  const packageInfoVersion = document.getElementById('packageInfoVersion');
-  const packageInfoDescription = document.getElementById('packageInfoDescription');
-  const packageInfoAuthor = document.getElementById('packageInfoAuthor');
-  const packageInfoDependencies = document.getElementById('packageInfoDependencies');
-  const packageInfoKeywords = document.getElementById('packageInfoKeywords');
-  const packageInfoLicense = document.getElementById('packageInfoLicense');
+  const pupils = Array.from(document.querySelectorAll('.mascot-pupil'));
+  const lids = Array.from(document.querySelectorAll('.mascot-lid'));
+  if (pupils.length === 0) return;
 
-  const rowAddToVccButtons = document.querySelectorAll('.rowAddToVccButton');
-  rowAddToVccButtons.forEach((button) => {
-    button.addEventListener('click', () => window.location.assign(`vcc://vpm/addRepo?url=${encodeURIComponent(LISTING_URL)}`));
-  });
+  let targetX = 0;
+  let targetY = 0;
+  let rafId = null;
 
-  const rowPackageInfoButton = document.querySelectorAll('.rowPackageInfoButton');
-  rowPackageInfoButton.forEach((button) => {
-    button.addEventListener('click', e => {
-      const packageId = e.target.dataset?.packageId;
-      const packageInfo = PACKAGES?.[packageId];
-      if (!packageInfo) {
-        console.error(`Did not find package ${packageId}. Packages available:`, PACKAGES);
-        return;
-      }
-
-      packageInfoName.textContent = packageInfo.displayName;
-      packageInfoId.textContent = packageId;
-      packageInfoVersion.textContent = `v${packageInfo.version}`;
-      packageInfoDescription.textContent = packageInfo.description;
-      packageInfoAuthor.textContent = packageInfo.author.name;
-      packageInfoAuthor.href = packageInfo.author.url;
-
-      if ((packageInfo.keywords?.length ?? 0) === 0) {
-        packageInfoKeywords.parentElement.classList.add('hidden');
-      } else {
-        packageInfoKeywords.parentElement.classList.remove('hidden');
-        packageInfoKeywords.innerHTML = null;
-        packageInfo.keywords.forEach(keyword => {
-          const keywordDiv = document.createElement('div');
-          keywordDiv.classList.add('me-2', 'mb-2', 'badge');
-          keywordDiv.textContent = keyword;
-          packageInfoKeywords.appendChild(keywordDiv);
-        });
-      }
-
-      if (!packageInfo.license?.length && !packageInfo.licensesUrl?.length) {
-        packageInfoLicense.parentElement.classList.add('hidden');
-      } else {
-        packageInfoLicense.parentElement.classList.remove('hidden');
-        packageInfoLicense.textContent = packageInfo.license ?? 'See License';
-        packageInfoLicense.href = packageInfo.licensesUrl ?? '#';
-      }
-
-      packageInfoDependencies.innerHTML = null;
-      Object.entries(packageInfo.dependencies).forEach(([name, version]) => {
-        const depRow = document.createElement('li');
-        depRow.classList.add('mb-2');
-        depRow.textContent = `${name} @ v${version}`;
-        packageInfoDependencies.appendChild(depRow);
-      });
-
-      packageInfoModal.hidden = false;
-
-      setTimeout(() => {
-        const height = packageInfoModal.querySelector('.col').clientHeight;
-        modalControl.style.setProperty('--dialog-height', `${height + 14}px`);
-      }, 1);
+  function applyGaze() {
+    rafId = null;
+    pupils.forEach((pupil) => {
+      pupil.setAttribute('transform', `translate(${targetX.toFixed(2)}, ${targetY.toFixed(2)})`);
     });
-  });
+  }
 
-  const packageInfoVccUrlFieldCopy = document.getElementById('packageInfoVccUrlFieldCopy');
-  packageInfoVccUrlFieldCopy.addEventListener('click', () => {
-    const vccUrlField = document.getElementById('packageInfoVccUrlField');
-    vccUrlField.select();
-    navigator.clipboard.writeText(vccUrlField.value);
-    vccUrlFieldCopy.appearance = 'accent';
-    setTimeout(() => {
-      vccUrlFieldCopy.appearance = 'neutral';
-    }, 1000);
-  });
+  window.addEventListener('pointermove', (event) => {
+    const nx = (event.clientX / window.innerWidth) * 2 - 1; // -1〜1
+    const ny = (event.clientY / window.innerHeight) * 2 - 1;
+    targetX = Math.max(-2, Math.min(2, nx * 2));
+    targetY = Math.max(-1.5, Math.min(1.5, ny * 1.5));
+    if (rafId === null) rafId = requestAnimationFrame(applyGaze);
+  }, { passive: true });
 
-  const packageInfoListingHelp = document.getElementById('packageInfoListingHelp');
-  packageInfoListingHelp.addEventListener('click', () => {
-    addListingToVccHelp.hidden = false;
+  function setLids(opacity) {
+    lids.forEach((lid) => { lid.style.opacity = String(opacity); });
+  }
+
+  let blinkTimer = null;
+  function scheduleBlink() {
+    const delay = 2600 + Math.random() * 4200;
+    blinkTimer = window.setTimeout(() => {
+      blinkOnceInternal();
+      scheduleBlink();
+    }, delay);
+  }
+
+  function blinkOnceInternal() {
+    setLids(1);
+    window.setTimeout(() => setLids(0), 130);
+  }
+
+  blinkMascotOnce = blinkOnceInternal;
+  scheduleBlink();
+
+  // 途中でreduced-motionに切り替わった場合は追従・瞬きを止める
+  reduceMotion.addEventListener('change', (event) => {
+    if (event.matches) {
+      window.clearTimeout(blinkTimer);
+      setLids(0);
+      pupils.forEach((pupil) => pupil.setAttribute('transform', 'translate(0,0)'));
+      blinkMascotOnce = () => {};
+    }
   });
-})();
+}
+
+// ─── 起動 ────────────────────────────────────────────────────────────
+initVccButtons();
+initCopyButtons();
+initPackageDialog();
+initSearch();
+initMascot();

@@ -1,0 +1,33 @@
+{
+  "listingInfo": {
+    "Url": "https://tsukumodo.github.io/omamori/index.json"
+  },
+  "packages": [
+    {
+      "Name": "com.tsukumodo.avatar-omamori",
+      "DisplayName": "アバター改変おまもり",
+      "Description": "VRChatアバターの設定ミスをビルド前に一括検出するツール",
+      "Version": "0.9.0",
+      "Type": "Package",
+      "ZipUrl": "https://tsukumodo.github.io/omamori/com.tsukumodo.avatar-omamori-0.9.0.zip",
+      "Author": {
+        "Name": "tsukumodo",
+        "Url": ""
+      },
+      "License": "MIT",
+      "LicensesUrl": "",
+      "Keywords": [
+        "vrchat",
+        "avatar",
+        "validation",
+        "modular-avatar"
+      ],
+      "Dependencies": [
+        {
+          "Name": "com.vrchat.avatars",
+          "Version": ">=3.7.0"
+        }
+      ]
+    }
+  ]
+}
