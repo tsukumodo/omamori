@@ -53,6 +53,18 @@ namespace AvatarOmamori.Tests.Editor
             Assert.IsFalse(unavailable.Executed);
         }
 
+        [Test]
+        public void RunAll_サマリー行なしで内訳行だけを返すチェックは警告を出す()
+        {
+            // IsDetail は「直前のサマリー行の内訳」という契約（DEC-070）。契約違反を開発時に気づけるようにする
+            var checks = new IAvatarCheck[] { new DetailOnlyCheck() };
+
+            LogAssert.Expect(LogType.Warning, new Regex("DetailOnlyCheck"));
+            var results = CheckRunner.RunAll(_root, checks);
+
+            Assert.AreEqual(1, results.Count);
+        }
+
         // ネストした private クラスなので CheckRunner.DiscoverChecks（メインアセンブリのみ走査）には
         // 拾われず、本物のチェック一覧を汚さない
         private sealed class FakeCheck : IAvatarCheck
@@ -80,6 +92,19 @@ namespace AvatarOmamori.Tests.Editor
             public IEnumerable<CheckResult> Execute(GameObject avatarRoot)
             {
                 throw new InvalidOperationException("boom");
+            }
+        }
+
+        private sealed class DetailOnlyCheck : IAvatarCheck
+        {
+            public string DisplayName => "DetailOnlyCheck";
+
+            public bool IsAvailable() => true;
+
+            public IEnumerable<CheckResult> Execute(GameObject avatarRoot)
+            {
+                // サマリー行なしで内訳行だけを返す契約違反のケース
+                return new[] { new CheckResult(Severity.Warning, "内訳のみ", isDetail: true) };
             }
         }
     }

@@ -193,13 +193,13 @@ namespace AvatarOmamori.Editor
         {
             _scrollPos = EditorGUILayout.BeginScrollView(_scrollPos);
 
-            // 表示条件は CountPrimary ではなく生の Count で見る。
-            // 内訳行を1行も取りこぼさないため（見出しの件数は DrawSeverityGroup 側で CountPrimary を使う）
-            if (_errors.Count > 0)
+            // 表示条件は ShouldDrawGroup（CountPrimary > 0）で見る。内訳行（IsDetail）は直前のサマリー行の
+            // 補足という契約なので、サマリー行が1つも無いグループ（内訳行だけ）は文脈のない断片になるため描画しない（DEC-070）
+            if (ShouldDrawGroup(_errors))
                 DrawSeverityGroup("Error", _errors, ref _foldError, new Color(0.9f, 0.2f, 0.2f));
-            if (_warnings.Count > 0)
+            if (ShouldDrawGroup(_warnings))
                 DrawSeverityGroup("Warning", _warnings, ref _foldWarning, new Color(0.9f, 0.7f, 0.1f));
-            if (_infos.Count > 0)
+            if (ShouldDrawGroup(_infos))
                 DrawSeverityGroup("Info", _infos, ref _foldInfo, new Color(0.5f, 0.7f, 1f));
 
             if (_results.Count == 0)
@@ -297,12 +297,17 @@ namespace AvatarOmamori.Editor
         /// </summary>
         private void RunChecks()
         {
-            _results = CheckRunner.RunAll(_avatarRoot);
+            _results = CheckRunner.RunAll(_avatarRoot, out var detections);
             CacheResultsByCategory();
 
             _performanceReport = PerformanceReportBuilder.Build(_avatarRoot);
             EnsureExpandedFactors().Clear(); // 再チェックのたびに「ほか N 件」は畳み直す
-            RecordPerformanceUsage(_performanceReport);
+
+            // チェック側とパフォーマンス側の検出をまとめ、ディスクへの書き込みを1回にする（Issue #35）。
+            // 実行回数を増やすのはこの1箇所だけなので、check_run_count は二重計上されない。
+            UsageStatsRecorder.RecordRun(
+                MergeUsageCounts(detections, BuildPerformanceUsageCounts(_performanceReport)),
+                incrementRunCount: true);
         }
 
         /// <summary>
@@ -322,6 +327,12 @@ namespace AvatarOmamori.Editor
         /// </summary>
         internal static int CountPrimary(List<CheckResult> items)
             => items.Count(r => !r.IsDetail);
+
+        /// <summary>
+        /// Severity グループを描画するかどうか。内訳行（<see cref="CheckResult.IsDetail"/>）は
+        /// 直前のサマリー行の補足という契約なので、サマリー行が1つも無いグループは描画しない。
+        /// </summary>
+        internal static bool ShouldDrawGroup(List<CheckResult> items) => CountPrimary(items) > 0;
 
         private GUIStyle GetSummaryStyle()
         {
@@ -614,7 +625,10 @@ namespace AvatarOmamori.Editor
             IReadOnlyList<QuestIncompatibility> incompatibilities = null)
         {
             var hasRating = platform != null && platform.IsValid;
-            var hasIncompatibilities = incompatibilities != null && incompatibilities.Count > 0;
+            // AllPlatforms スコープの項目は v0.10.0 で UnsupportedComponentCheck へ移した。
+            // 生の Count で見ると、Quest 固有の検出が無いのに空の枠だけ出ることがある
+            var hasIncompatibilities = incompatibilities != null
+                && incompatibilities.Any(i => i.Scope == IncompatibilityScope.Quest);
 
             // 出すものが何も無ければ box ごと出さない（従来通り）
             if (!hasRating && !hasIncompatibilities) return;
@@ -648,13 +662,11 @@ namespace AvatarOmamori.Editor
 
             if (hasIncompatibilities)
             {
-                // Quest 固有の話と、PC でも剥がされる話を混ぜない。
-                // 混ぜると PC しか使わない人が後者を「Quest の話」として読み飛ばす
+                // 「アップロード時に取り除かれるもの（PC / Quest 共通）」は v0.10.0 で
+                // チェック一覧側（UnsupportedComponentCheck）へ移した。
+                // 同じ検出をここにも出すと、Foldout の件数が水増しされる（DEC-071）
                 DrawIncompatibilityGroup(
                     "Quest では使えないもの", incompatibilities, IncompatibilityScope.Quest);
-                DrawIncompatibilityGroup(
-                    "アップロード時に取り除かれるもの（PC / Quest 共通）",
-                    incompatibilities, IncompatibilityScope.AllPlatforms);
             }
 
             EditorGUILayout.EndVertical();
@@ -798,23 +810,50 @@ namespace AvatarOmamori.Editor
         }
 
         /// <summary>
-        /// パフォーマンス表示の発火を利用統計に記録する（DEC-069 T-7）。
+        /// パフォーマンス表示の発火に対応する利用統計の件数を組み立てる（DEC-069 T-7）。
         /// キーは ASCII 識別子のみ。アバター名・パス等は一切渡さない（DEC-055 の収集境界を維持）。
+        /// 書き込みは行わない。呼び出し側（<see cref="RunChecks"/>）がチェック側の検出とまとめて
+        /// <see cref="UsageStatsRecorder.RecordRun"/> で1回だけ記録する（Issue #35）。
         /// </summary>
-        private static void RecordPerformanceUsage(AvatarPerformanceReport report)
+        internal static Dictionary<string, int> BuildPerformanceUsageCounts(AvatarPerformanceReport report)
         {
-            if (report == null || !report.IsValid) return;
-
             var counts = new Dictionary<string, int>();
+            if (report == null || !report.IsValid) return counts;
+
             if (report.Pc != null && report.Pc.IsValid) counts["performance_rank_pc"] = 1;
             if (report.Quest != null && report.Quest.IsValid) counts["performance_rank_quest"] = 1;
-            if (report.QuestIncompatibilities.Count > 0)
-                counts["quest_incompatibility"] = report.QuestIncompatibilities.Count;
+            // AllPlatforms スコープの検出は UnsupportedComponentCheck が
+            // detectionsByCheckType 側に計上するため、ここで数えると二重計上になる（v0.10.0）
+            var questOnlyCount = report.QuestIncompatibilities
+                .Count(i => i.Scope == IncompatibilityScope.Quest);
+            if (questOnlyCount > 0)
+                counts["quest_incompatibility"] = questOnlyCount;
 
-            if (counts.Count == 0) return;
+            return counts;
+        }
 
-            // CheckRunner.RunAll と同じ実行で呼ばれるため、実行回数を二重計上しない入口を使う
-            UsageStatsRecorder.RecordDetections(counts);
+        /// <summary>利用統計に渡す件数辞書を合算する。同じキーは足し合わせる。</summary>
+        internal static Dictionary<string, int> MergeUsageCounts(
+            IReadOnlyDictionary<string, int> a, IReadOnlyDictionary<string, int> b)
+        {
+            var merged = new Dictionary<string, int>();
+            if (a != null)
+            {
+                foreach (var kv in a)
+                {
+                    merged.TryGetValue(kv.Key, out int cur);
+                    merged[kv.Key] = cur + kv.Value;
+                }
+            }
+            if (b != null)
+            {
+                foreach (var kv in b)
+                {
+                    merged.TryGetValue(kv.Key, out int cur);
+                    merged[kv.Key] = cur + kv.Value;
+                }
+            }
+            return merged;
         }
 
         /// <summary>

@@ -17,7 +17,11 @@ namespace AvatarOmamori.Editor.Performance
         /// <summary>Quest / iOS でのみ問題になる。</summary>
         Quest,
 
-        /// <summary>PC / Quest を問わず、アップロード時に取り除かれる。</summary>
+        /// <summary>
+        /// PC / Quest を問わず、アップロード時に取り除かれる。
+        /// v0.10.0 以降、このスコープはパフォーマンス表示の見出し分けではなく、
+        /// <c>UnsupportedComponentCheck</c>（チェック一覧側）へ振り分けるためのタグとして使う。
+        /// </summary>
         AllPlatforms
     }
 
@@ -45,19 +49,29 @@ namespace AvatarOmamori.Editor.Performance
         /// <summary>「調べる」で開く公式ドキュメント。適切な案内先が無い場合は null（ボタンを出さない）。</summary>
         public string DocumentUrl { get; }
 
+        /// <summary>
+        /// この項目の元になったコンポーネント。渡されなければ空。
+        /// <see cref="Targets"/> は「選択」用に GameObject へ寄せて重複排除したものなので、
+        /// ここから「型ごとの個数」を復元することはできない。
+        /// 型別の内訳を組み立てるチェック側（<c>UnsupportedComponentCheck</c>）のために持つ。
+        /// </summary>
+        public IReadOnlyList<Component> Components { get; }
+
         public QuestIncompatibility(
             string label,
             int count,
             string detail,
             IReadOnlyList<UnityEngine.Object> targets,
             IncompatibilityScope scope = IncompatibilityScope.Quest,
-            string documentUrl = null)
+            string documentUrl = null,
+            IReadOnlyList<Component> components = null)
         {
             Label = label;
             Count = count;
             Detail = detail;
             Targets = targets ?? Array.Empty<UnityEngine.Object>();
             Scope = scope;
+            Components = components ?? Array.Empty<Component>();
             DocumentUrl = documentUrl ?? (scope == IncompatibilityScope.Quest
                 ? PerformanceCategoryLabels.QuestDocUrl
                 : null);
@@ -309,7 +323,9 @@ namespace AvatarOmamori.Editor.Performance
                 illegal.Count,
                 $"{detail} — PC / Quest を問わず、アップロード時に取り除かれます",
                 illegal.Select(c => (UnityEngine.Object)c.gameObject).Distinct().ToList(),
-                IncompatibilityScope.AllPlatforms));
+                IncompatibilityScope.AllPlatforms,
+                // 型ごとの内訳は UnsupportedComponentCheck 側で組み立てる（判定はここに残す）
+                components: illegal));
         }
     }
 }
