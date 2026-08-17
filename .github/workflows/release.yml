@@ -1,7 +1,16 @@
 name: Build Release
 
-on: 
+on:
   workflow_dispatch:
+    inputs:
+      announcement_ready:
+        description: '告知素材が揃っているか（release-checklist.md の T-1 ゲート）。揃うまで no のままにする'
+        type: choice
+        required: true
+        default: 'no'
+        options:
+          - 'no'
+          - 'yes'
 
 jobs:
 
@@ -11,6 +20,26 @@ jobs:
     outputs:
       config_package: ${{ steps.config_package.outputs.configPackage }}
     steps:
+
+    # 告知準備ゲート（DEC-066）
+    # areas/operations/release-checklist.md の T-1「告知素材が揃っているか」を機械化したもの。
+    # 素材が揃わないまま公開だけ先行すると、告知が空振りする。
+    # v0.9.0 まではこの確認が手運用で、実際に一度素通りしている（DEC-074 ④）。
+    - name: Announcement Readiness Gate
+      env:
+        ANNOUNCEMENT_READY: ${{ inputs.announcement_ready }}
+      run: |
+        if [ "$ANNOUNCEMENT_READY" != "yes" ]; then
+          echo "::error::告知準備ゲート: announcement_ready が 'yes' ではないため、リリースを中止しました。"
+          echo "release-checklist.md T-1「告知素材が揃っているか」の3点を確認してください:"
+          echo "  1. X告知カード areas/brand/x-cards/vX.Y.Z-announce.png（2400x1350）"
+          echo "     ※ 実物のスクリーンショットがあっても必ず作る"
+          echo "  2. BOOTH カルーセル 枠6の差し替え画像（枠を増やすのではなく差し替える）"
+          echo "  3. BOOTH 商品説明の差分文面（見つける／教える／直す／残す のどのブロックに入れるか）"
+          echo "3点が揃ってから announcement_ready=yes で再実行してください。"
+          exit 1
+        fi
+        echo "告知準備ゲート: OK（announcement_ready=yes）"
 
     # Ensure that required repository variable has been created for the Package
     - name: Validate Package Config
