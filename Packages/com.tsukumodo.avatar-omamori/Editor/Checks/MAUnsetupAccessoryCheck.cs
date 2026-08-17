@@ -50,8 +50,10 @@ namespace AvatarOmamori.Editor.Checks
                     // コンポーネント自体がない
                     yield return new CheckResult(
                         Severity.Warning,
-                        $"[MA] \"{go.name}\" は Armature を持っていますが、MA Merge Armature や Bone Proxy が設定されていません。衣装やアクセサリの場合、アバターに追従しない可能性があります。",
-                        go
+                        $"[MA] \"{go.name}\" は Armature を持っていますが、MA Merge Armature や Bone Proxy が設定されていません。衣装やアクセサリなら、着せてもアバターの動きに追従しないことがあります。",
+                        go,
+                        hint: "衣装なら MA Merge Armature、髪飾りなど一部分だけなら MA Bone Proxy を足すと追従します。",
+                        documentUrl: OmamoriDocUrls.MaMergeArmature
                     );
                     continue;
                 }

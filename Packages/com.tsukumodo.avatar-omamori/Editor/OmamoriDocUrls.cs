@@ -1,7 +1,7 @@
 namespace AvatarOmamori.Editor
 {
     /// <summary>
-    /// VRChat公式ドキュメントのURL定数を集約するクラス。
+    /// 「調べる」ボタンから開く外部ドキュメント（VRChat 公式・Modular Avatar 公式）のURL定数を集約するクラス。
     /// 複数のチェックが同じURLを参照するようになるため、リンク切れ時にここ1箇所を直せばよいようにする。
     /// </summary>
     public static class OmamoriDocUrls
@@ -29,5 +29,14 @@ namespace AvatarOmamori.Editor
         /// アンカーを足して使う想定のため、末尾にスラッシュを付けたまま置く。
         /// </summary>
         public const string AvatarOptimizingTips = "https://creators.vrchat.com/avatars/avatar-optimizing-tips/";
+
+        /// <summary>
+        /// アバターのパラメータ解説。同期パラメータの上限（256 bit）が明記されている唯一のページなので、
+        /// 同期パラメータ上限チェックの案内先はここにする（Expressions Menu 側のページには上限の記載が無い）。
+        /// </summary>
+        public const string AnimatorParameters = "https://creators.vrchat.com/avatars/animator-parameters/";
+
+        /// <summary>Modular Avatar の Merge Armature の解説（衣装をアバターの Armature に統合する側）。</summary>
+        public const string MaMergeArmature = "https://modular-avatar.nadena.dev/docs/reference/merge-armature";
     }
 }
