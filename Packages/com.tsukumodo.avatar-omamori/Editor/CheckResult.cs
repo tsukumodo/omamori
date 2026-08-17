@@ -68,6 +68,12 @@ namespace AvatarOmamori.Editor
         /// </summary>
         public bool IsDetail { get; }
 
+        /// <summary>「どう直すか」の短いヒント。1行に収まる長さで書く（目安40〜60字）。</summary>
+        public string Hint { get; }
+
+        /// <summary>「調べる」ボタンで開く公式ドキュメント。null ならボタンを出さない。</summary>
+        public string DocumentUrl { get; }
+
         /// <summary>自動修正が利用可能かどうか。</summary>
         public bool HasFix => FixAction != null;
 
@@ -85,6 +91,8 @@ namespace AvatarOmamori.Editor
         /// <param name="beforeValue">修正前の値（任意）。例: "0"。</param>
         /// <param name="afterValue">修正後の値（任意）。例: "1"。</param>
         /// <param name="isDetail">true にすると直前のサマリー結果の内訳として扱い、件数に数えず字下げ表示する。</param>
+        /// <param name="hint">「どう直すか」の短いヒント（任意）。null なら表示しない。</param>
+        /// <param name="documentUrl">「調べる」ボタンで開く公式ドキュメント（任意）。null ならボタン非表示。</param>
         public CheckResult(
             Severity severity,
             string message,
@@ -96,7 +104,9 @@ namespace AvatarOmamori.Editor
             string valueLabel = null,
             string beforeValue = null,
             string afterValue = null,
-            bool isDetail = false)
+            bool isDetail = false,
+            string hint = null,
+            string documentUrl = null)
         {
             Severity = severity;
             Message = message;
@@ -109,6 +119,8 @@ namespace AvatarOmamori.Editor
             BeforeValue = beforeValue;
             AfterValue = afterValue;
             IsDetail = isDetail;
+            Hint = hint;
+            DocumentUrl = documentUrl;
         }
     }
 }

@@ -27,15 +27,13 @@ namespace AvatarOmamori.Editor.Performance
         /// このページには項目ごとのアンカーが無い（見出しは #pc-limits 等の粒度のみ）ため、
         /// 専用の解説ページが無いカテゴリだけがここに落ちる。
         /// </summary>
-        public const string PerformanceDocUrl =
-            "https://creators.vrchat.com/avatars/avatar-performance-ranking-system";
+        public const string PerformanceDocUrl = OmamoriDocUrls.PerformanceRanking;
 
         /// <summary>Quest / iOS のコンテンツ制限（層A の「調べる」リンク先）。</summary>
-        public const string QuestDocUrl =
-            "https://creators.vrchat.com/platforms/android/quest-content-limitations";
+        public const string QuestDocUrl = OmamoriDocUrls.QuestContentLimitations;
 
         /// <summary>アバター最適化のヒント（項目別の解説はこのページのアンカーに散らばっている）。</summary>
-        private const string OptimizingTipsUrl = "https://creators.vrchat.com/avatars/avatar-optimizing-tips/";
+        private const string OptimizingTipsUrl = OmamoriDocUrls.AvatarOptimizingTips;
 
         private const string MeshDocUrl = OptimizingTipsUrl + "#reduce-the-amount-of-meshes-on-your-avatar";
         private const string TextureDocUrl = OptimizingTipsUrl + "#watch-your-vram-usage";
@@ -51,14 +49,14 @@ namespace AvatarOmamori.Editor.Performance
         private const string ClothDocUrl = OptimizingTipsUrl + "#limit-usage-of-cloth";
 
         /// <summary>PhysBone の解説。</summary>
-        public const string PhysBoneDocUrl = "https://creators.vrchat.com/avatars/avatar-dynamics/physbones";
+        public const string PhysBoneDocUrl = OmamoriDocUrls.PhysBones;
         private const string PhysBoneColliderDocUrl = PhysBoneDocUrl + "#vrcphysbonecollider";
 
         /// <summary>Contact の解説。</summary>
         private const string ContactDocUrl = "https://creators.vrchat.com/avatars/avatar-dynamics/contacts";
 
         /// <summary>VRChat Constraints の解説（Unity Constraint からの移行案内を含む）。</summary>
-        public const string ConstraintDocUrl = "https://creators.vrchat.com/avatars/avatar-dynamics/constraints";
+        public const string ConstraintDocUrl = OmamoriDocUrls.Constraints;
 
         /// <summary>値の書式。</summary>
         public enum ValueFormat
