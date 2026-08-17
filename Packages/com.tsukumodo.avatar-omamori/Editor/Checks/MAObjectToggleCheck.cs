@@ -40,8 +40,9 @@ namespace AvatarOmamori.Editor.Checks
                     {
                         yield return new CheckResult(
                             Severity.Warning,
-                            $"[MA] ObjectToggle \"{toggle.gameObject.name}\" のトグルリスト [{i}] のターゲットが空です。不要なエントリは削除してください。",
-                            toggle
+                            $"[MA] ObjectToggle \"{toggle.gameObject.name}\" のトグルリスト [{i}] のターゲットが空です。このエントリは何も切り替えません。",
+                            toggle,
+                            hint: "切り替えたいオブジェクトを指定するか、使わないエントリは削除できます。"
                         );
                     }
                     else if (targetGo == toggle.gameObject)
@@ -49,7 +50,8 @@ namespace AvatarOmamori.Editor.Checks
                         yield return new CheckResult(
                             Severity.Error,
                             $"[MA] ObjectToggle \"{toggle.gameObject.name}\" のトグルリスト [{i}] が自身の GameObject を参照しています。MAビルドエラー（MA-1200）の原因になります。",
-                            toggle
+                            toggle,
+                            hint: "自分自身ではなく、切り替えたい別のオブジェクトを指定できます。"
                         );
                     }
                 }

@@ -33,7 +33,9 @@ namespace AvatarOmamori.Editor.Checks
                     yield return new CheckResult(
                         Severity.Error,
                         $"MA MenuItem \"{item.gameObject.name}\" の祖先に Menu Installer がありません。アップロード後、Expressionsメニューにトグルが表示されず操作できなくなります。",
-                        item
+                        item,
+                        hint: "同じ階層か親のオブジェクトに MA Menu Installer を足すと、メニューに出るようになります。",
+                        documentUrl: OmamoriDocUrls.MaMenuInstaller
                     );
                 }
             }

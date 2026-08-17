@@ -89,7 +89,7 @@ namespace AvatarOmamori.Editor.Checks
                     yield return new CheckResult(
                         Severity.Warning,
                         $"[Shader] {path} のマテリアル \"{mat.name}\" で Emission（発光）が有効です。" +
-                            "意図せず光っている場合はオフにできます。光らせたい場合はこのまま無視してOKです。",
+                            "意図していない場合、暗い場所でも光って見えます。",
                         renderer.gameObject,
                         fixAction: () => DisableEmission(capturedMat, capturedProfile),
                         fixLabel: "発光をオフ",
@@ -101,7 +101,8 @@ namespace AvatarOmamori.Editor.Checks
                             "Undo（Ctrl+Z）で元に戻せます。",
                         valueLabel: ValueLabel,
                         beforeValue: "ON",
-                        afterValue: "OFF"
+                        afterValue: "OFF",
+                        hint: "光らせたいなら、このままで問題ありません。意図しない発光なら「発光をオフ」で消せます。"
                     );
                 }
             }

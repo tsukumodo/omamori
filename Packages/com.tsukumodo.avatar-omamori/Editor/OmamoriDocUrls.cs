@@ -38,5 +38,21 @@ namespace AvatarOmamori.Editor
 
         /// <summary>Modular Avatar の Merge Armature の解説（衣装をアバターの Armature に統合する側）。</summary>
         public const string MaMergeArmature = "https://modular-avatar.nadena.dev/docs/reference/merge-armature";
+
+        /// <summary>Expression Menu / Controls の解説。</summary>
+        public const string ExpressionsMenu = "https://creators.vrchat.com/avatars/expression-menu-and-controls/";
+
+        /// <summary>Modular Avatar の Bone Proxy の解説（特定ボーンへの追従）。</summary>
+        public const string MaBoneProxy = "https://modular-avatar.nadena.dev/docs/reference/bone-proxy";
+
+        /// <summary>Modular Avatar の Menu Installer の解説（Menu Item をアバターのメニューに接続する側）。</summary>
+        public const string MaMenuInstaller = "https://modular-avatar.nadena.dev/docs/reference/menu-installer";
+
+        /// <summary>
+        /// VRChat がアバターで許可しているコンポーネントの一覧。
+        /// ここに無いものはアップロード時に取り除かれる。
+        /// </summary>
+        public const string AllowedAvatarComponents =
+            "https://creators.vrchat.com/avatars/whitelisted-avatar-components/whitelisted-avatar-components/";
     }
 }

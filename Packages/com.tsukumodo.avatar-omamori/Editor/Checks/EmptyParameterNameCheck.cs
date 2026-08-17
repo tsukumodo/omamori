@@ -34,7 +34,9 @@ namespace AvatarOmamori.Editor.Checks
                 yield return new CheckResult(
                     Severity.Warning,
                     "[SDK] Expression Menu が設定されていますが、Expression Parameters が未設定です。メニューのトグルやボタンが正しく動作しません。",
-                    descriptor
+                    descriptor,
+                    hint: "Avatar Descriptor の Expression Parameters に、メニューで使うパラメータのアセットを割り当てられます。",
+                    documentUrl: OmamoriDocUrls.ExpressionsMenu
                 );
                 yield break;
             }
@@ -52,8 +54,10 @@ namespace AvatarOmamori.Editor.Checks
                 {
                     yield return new CheckResult(
                         Severity.Warning,
-                        $"[SDK] Expression Parameters のエントリ [{i}] の名前が空です。不要なパラメータは削除してください。同期帯域を無駄に消費します。",
-                        expressionParameters
+                        $"[SDK] Expression Parameters のエントリ [{i}] の名前が空です。同期帯域を無駄に消費します。",
+                        expressionParameters,
+                        hint: "使っていないエントリなら、Expression Parameters の一覧から削除できます。",
+                        documentUrl: OmamoriDocUrls.AnimatorParameters
                     );
                 }
             }

@@ -65,8 +65,10 @@ namespace AvatarOmamori.Editor.Checks
                     {
                         yield return new CheckResult(
                             Severity.Warning,
-                            $"[MA] \"{ma.gameObject.name}\" の Merge Armature のターゲットが未設定です。統合先のArmatureを指定してください。",
-                            ma
+                            $"[MA] \"{ma.gameObject.name}\" の Merge Armature のターゲットが未設定です。このままでは衣装がアバターに統合されません。",
+                            ma,
+                            hint: "Merge Target に、アバター側の Armature を指定できます。",
+                            documentUrl: OmamoriDocUrls.MaMergeArmature
                         );
                     }
                 }
@@ -78,8 +80,10 @@ namespace AvatarOmamori.Editor.Checks
                     {
                         yield return new CheckResult(
                             Severity.Warning,
-                            $"[MA] \"{bp.gameObject.name}\" の Bone Proxy のターゲットが未設定です。追従先のボーンを指定してください。",
-                            bp
+                            $"[MA] \"{bp.gameObject.name}\" の Bone Proxy のターゲットが未設定です。このままではどのボーンにも追従しません。",
+                            bp,
+                            hint: "Target に、追従させたいアバター側のボーンを指定できます。",
+                            documentUrl: OmamoriDocUrls.MaBoneProxy
                         );
                     }
                 }

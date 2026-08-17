@@ -489,7 +489,9 @@ namespace AvatarOmamori.Editor
             {
                 EditorGUILayout.BeginHorizontal();
                 GUILayout.Space(24f + EditorGUI.indentLevel * 15f);
-                EditorGUILayout.LabelField($"💡 {result.Hint}", EditorStyles.wordWrappedMiniLabel);
+                // 「💡」（U+1F4A1）は Unity エディタフォントに字形が無く、占有幅0pxで完全に脱落する
+                // （豆腐にすらならない）ことを実測で確認済み。フォント依存の無いテキストにする
+                EditorGUILayout.LabelField($"ヒント: {result.Hint}", EditorStyles.wordWrappedMiniLabel);
                 EditorGUILayout.EndHorizontal();
             }
 

@@ -31,8 +31,7 @@ namespace AvatarOmamori.Editor.Checks
 
             string summaryMessage =
                 $"VRC Avatar Descriptor が {descriptors.Length} 個見つかりました。" +
-                "複数あるとアバターのビルド・アップロードに失敗します。" +
-                "「修正」ボタンで「どれを残すか」を選ぶウィンドウが開きます（選んだもの以外を自動削除、Undo 対応）。";
+                "複数あるとアバターのビルド・アップロードに失敗します。";
 
             yield return new CheckResult(
                 Severity.Error,
@@ -45,7 +44,8 @@ namespace AvatarOmamori.Editor.Checks
                 skipConfirm: true,                 // 独自の選択ウィンドウを出すので事前確認・自動再チェックともスキップ
                 valueLabel: ValueLabel,
                 beforeValue: $"Descriptor×{descriptors.Length}個",
-                afterValue: "1個"
+                afterValue: "1個",
+                hint: "「修正」ボタンで「どれを残すか」を選べます。選んだもの以外は自動で削除され、Undo で戻せます。"
             );
 
             // 各重複箇所も検出行として報告（FixAction はサマリー側に集約済み）。
