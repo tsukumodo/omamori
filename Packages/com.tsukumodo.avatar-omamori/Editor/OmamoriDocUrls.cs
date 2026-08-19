@@ -37,16 +37,23 @@ namespace AvatarOmamori.Editor
         public const string AnimatorParameters = "https://creators.vrchat.com/avatars/animator-parameters/";
 
         /// <summary>Modular Avatar の Merge Armature の解説（衣装をアバターの Armature に統合する側）。</summary>
-        public const string MaMergeArmature = "https://modular-avatar.nadena.dev/docs/reference/merge-armature";
+        public const string MaMergeArmature = "https://modular-avatar.nadena.dev/ja/docs/reference/merge-armature";
 
         /// <summary>Expression Menu / Controls の解説。</summary>
         public const string ExpressionsMenu = "https://creators.vrchat.com/avatars/expression-menu-and-controls/";
 
         /// <summary>Modular Avatar の Bone Proxy の解説（特定ボーンへの追従）。</summary>
-        public const string MaBoneProxy = "https://modular-avatar.nadena.dev/docs/reference/bone-proxy";
+        public const string MaBoneProxy = "https://modular-avatar.nadena.dev/ja/docs/reference/bone-proxy";
 
         /// <summary>Modular Avatar の Menu Installer の解説（Menu Item をアバターのメニューに接続する側）。</summary>
-        public const string MaMenuInstaller = "https://modular-avatar.nadena.dev/docs/reference/menu-installer";
+        public const string MaMenuInstaller = "https://modular-avatar.nadena.dev/ja/docs/reference/menu-installer";
+
+        /// <summary>
+        /// Modular Avatar の Object Toggle の解説（他のオブジェクトの表示/非表示を切り替える側）。
+        /// 公式サイトの改編で <c>docs/reference/</c> 直下から <c>docs/reference/reaction/</c> へ移っているため、
+        /// 他の MA 系リンクとパスの形が違う。
+        /// </summary>
+        public const string MaObjectToggle = "https://modular-avatar.nadena.dev/ja/docs/reference/reaction/object-toggle";
 
         /// <summary>
         /// VRChat がアバターで許可しているコンポーネントの一覧。
