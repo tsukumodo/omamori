@@ -98,13 +98,19 @@ namespace AvatarOmamori.Editor.Performance
             try
             {
                 var result = s_calculateRendererPolyCountMethod.Invoke(null, new object[] { renderer });
-                if (result is int count)
-                {
-                    polyCount = count;
-                    return true;
-                }
 
-                return false;
+                // 戻り値は uint?（VRChat SDK 3.10.3 で実測）。Mesh を持たない Renderer では null が返る。
+                // int で受けると型が一致せず「取得失敗＝0 ポリゴン」に落ちるため、
+                // 符号なし整数のまま long へ広げてから int に落とす。
+                // 2026-09-02: `result is int` で受けていたせいで全パーツが 0 poly になっていた
+                // （T-3 の実測照合で発覚。総ポリゴン 123,247 のはずが 0 だった）。
+                if (result == null) return false;
+
+                var value = Convert.ToInt64(result);
+                if (value < 0) return false;
+
+                polyCount = value > int.MaxValue ? int.MaxValue : (int)value;
+                return true;
             }
             catch (Exception e)
             {
