@@ -139,8 +139,8 @@ namespace AvatarOmamori.Editor
             string countsText = $"エラー {data.ErrorCount} ・ 警告 {data.WarningCount} ・ 情報 {data.InfoCount}";
             string fixText = $"自動修正 {data.FixCount}件";
             // ランク行はラベル「重さ」つき。数値・色分け・警告記号は付けない（DEC-094 決定4 / DEC-055）
-            bool hasRank = !string.IsNullOrEmpty(data.PerformanceRankText);
-            string rankText = hasRank ? $"重さ　{data.PerformanceRankText}" : "";
+            string rankText = BuildRankLine(data.PerformanceRankText);
+            bool hasRank = rankText != null;
             string dateText = data.DateText ?? "";
             string wordmarkText = string.IsNullOrEmpty(data.ToolVersion)
                 ? "つくも堂 TSUKUMODO"
@@ -206,6 +206,16 @@ namespace AvatarOmamori.Editor
                 R(60, 576, 500, 32, scale), TextAnchor.MiddleLeft);
             DrawTextGL(font, wordmarkText, footSize * scale, FontStyle.Bold, TextColor,
                 R(640, 576, 500, 32, scale), TextAnchor.MiddleRight);
+        }
+
+        /// <summary>
+        /// カードに描くランク行の文字列を組み立てる。ランク名が空なら null を返し、
+        /// 呼び出し側が行ごと省略する（「取得できませんでした」とも書かない・DEC-094 決定4）。
+        /// ラベルは「重さ」。ランク名のみで数値は載せない。
+        /// </summary>
+        internal static string BuildRankLine(string performanceRankText)
+        {
+            return string.IsNullOrEmpty(performanceRankText) ? null : $"重さ　{performanceRankText}";
         }
 
         /// <summary>カード座標（1200x630 基準）の Rect を scale 倍した実ピクセル Rect に変換する。</summary>

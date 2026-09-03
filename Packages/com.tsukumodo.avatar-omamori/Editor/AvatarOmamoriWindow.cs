@@ -606,6 +606,18 @@ namespace AvatarOmamori.Editor
         }
 
         /// <summary>
+        /// パーツ別内訳ウィンドウへの入口（ボタン）を描いてよいか。
+        /// SDK 内部 API が解決できない環境では、押しても空のウィンドウしか出せないためボタンごと描かない
+        /// （W0 設計 §5.2）。片方の API だけ取れた場合も <see cref="SdkPerformanceReflection.IsAvailable"/> 側で
+        /// 両方落ちる。IMGUI の分岐そのものはテストから叩けないので、条件だけ純粋関数に切り出してある
+        /// （ボタンが実際に1行だけで出ていることの確認は実機・T-8）。
+        /// </summary>
+        internal static bool ShouldShowBreakdownEntry(GameObject avatarRoot, bool sdkAvailable)
+        {
+            return avatarRoot != null && sdkAvailable;
+        }
+
+        /// <summary>
         /// PC / Quest の総合ランク名を並べた要素を返す。表示できるものが無ければ空リスト。
         /// 主画面のサマリー行（区切りは " / "）とカード画像のランク行（" ・ "）で共用する。
         /// 区切り文字だけが違うので、連結は呼び出し側で行う。
@@ -661,7 +673,7 @@ namespace AvatarOmamori.Editor
             // 「テクスチャの内訳を見たい」ユーザーが到達できなくなるため（W0 設計 §2.1）。
             // SDK 内部 API が解決できない環境では押しても空のウィンドウしか出せないので、
             // ボタンごと描かない（W0 設計 §5.2）。
-            if (_avatarRoot != null && SdkPerformanceReflection.IsAvailable)
+            if (ShouldShowBreakdownEntry(_avatarRoot, SdkPerformanceReflection.IsAvailable))
             {
                 if (GUILayout.Button("どのパーツが重いか見る"))
                 {
