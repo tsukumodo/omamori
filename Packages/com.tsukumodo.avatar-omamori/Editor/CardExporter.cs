@@ -59,6 +59,13 @@ namespace AvatarOmamori.Editor
             public string DateText;
             /// <summary>ツールバージョン（例: "0.7.0"）。空なら表記を省く。</summary>
             public string ToolVersion;
+            /// <summary>
+            /// パフォーマンスの総合ランク名（例: "PC Poor ・ Quest Very Poor"）。
+            /// 空なら行ごと省略する（「取得できませんでした」とも書かない・DEC-094 決定4）。
+            /// ランク名のみで数値は載せない（ポリゴン数＋テクスチャ量の組は市販アバターの指紋になるため）。
+            /// 文字列の組み立ては呼び出し側の責務（CardExporter を SDK に依存させない）。
+            /// </summary>
+            public string PerformanceRankText;
 
             /// <summary>エラー・警告・情報がすべて 0 件（＝全クリア）か。</summary>
             public bool IsAllClear => ErrorCount == 0 && WarningCount == 0 && InfoCount == 0;
@@ -131,6 +138,9 @@ namespace AvatarOmamori.Editor
             string mainMessage = data.IsAllClear ? "問題は見つかりませんでした" : "チェックが完了しました";
             string countsText = $"エラー {data.ErrorCount} ・ 警告 {data.WarningCount} ・ 情報 {data.InfoCount}";
             string fixText = $"自動修正 {data.FixCount}件";
+            // ランク行はラベル「重さ」つき。数値・色分け・警告記号は付けない（DEC-094 決定4 / DEC-055）
+            bool hasRank = !string.IsNullOrEmpty(data.PerformanceRankText);
+            string rankText = hasRank ? $"重さ　{data.PerformanceRankText}" : "";
             string dateText = data.DateText ?? "";
             string wordmarkText = string.IsNullOrEmpty(data.ToolVersion)
                 ? "つくも堂 TSUKUMODO"
@@ -140,6 +150,7 @@ namespace AvatarOmamori.Editor
             const int mainSize = 52;
             const int countsSize = 32;
             const int fixSize = 26;
+            const int rankSize = 26;
             const int footSize = 22;
 
             // 動的フォントのグリフを全テキスト×全サイズ分、描画前にまとめてベイクする
@@ -149,6 +160,7 @@ namespace AvatarOmamori.Editor
             RequestGlyphs(font, mainMessage, mainSize * scale, FontStyle.Bold);
             RequestGlyphs(font, countsText, countsSize * scale, FontStyle.Normal);
             RequestGlyphs(font, fixText, fixSize * scale, FontStyle.Normal);
+            if (hasRank) RequestGlyphs(font, rankText, rankSize * scale, FontStyle.Normal);
             RequestGlyphs(font, dateText, footSize * scale, FontStyle.Normal);
             RequestGlyphs(font, wordmarkText, footSize * scale, FontStyle.Bold);
 
@@ -179,6 +191,14 @@ namespace AvatarOmamori.Editor
             // 自動修正件数
             DrawTextGL(font, fixText, fixSize * scale, FontStyle.Normal, SubTextColor,
                 R(60, 388, 1080, 40, scale), TextAnchor.MiddleCenter);
+
+            // パフォーマンスの総合ランク（取得できたときだけ）。
+            // 自動修正件数 y=388 と下帯 y=552 の間の空きに1行だけ置く。
+            if (hasRank)
+            {
+                DrawTextGL(font, rankText, rankSize * scale, FontStyle.Normal, SubTextColor,
+                    R(60, 436, 1080, 40, scale), TextAnchor.MiddleCenter);
+            }
 
             // 下帯: 左に日付、右にワードマーク
             // ※ ワードマークは当面テキスト描画。PNG 素材が用意できたらこの2行を差し替える（T-4 の口）。

@@ -39,6 +39,13 @@ namespace AvatarOmamori.Editor
         /// <summary>常時表示する要因の件数。残りは「ほか N 件を見る」で展開する（DEC-070）。</summary>
         private const int VisibleFactorCount = 3;
 
+        /// <summary>
+        /// いま主画面が対象にしているアバタールート。
+        /// パフォーマンス内訳ウィンドウが「開いたときの対象と今の対象が違う」ことを検出するために読む。
+        /// 読み取り専用で、主画面から内訳ウィンドウへ状態を押し込む結合は作らない（v0.11.0 W0 設計 §2.4）。
+        /// </summary>
+        internal GameObject CurrentAvatarRoot => _avatarRoot;
+
         /// <summary>Severity アイコンの表示幅。内訳行では同じ幅を空けて本文の開始位置を揃える。</summary>
         private const float SeverityIconWidth = 20f;
 
@@ -254,6 +261,8 @@ namespace AvatarOmamori.Editor
                     FixCount = FixHistoryStore.Count,
                     DateText = DateTime.Now.ToString("yyyy-MM-dd"), // 年月日のみ（DEC-055 準拠）
                     ToolVersion = UsageStatsRecorder.GetSnapshot().ToolVersion,
+                    // ランク名のみ・数値なし（DEC-094 決定4）。null ならカード側が行ごと省略する
+                    PerformanceRankText = BuildCardPerformanceRankText(),
                 };
                 CardExporter.ExportPng(path, data);
                 EditorUtility.RevealInFinder(path);
@@ -586,12 +595,7 @@ namespace AvatarOmamori.Editor
         {
             if (_performanceReport == null || !_performanceReport.IsValid) return;
 
-            var parts = new List<string>();
-            if (_performanceReport.Pc != null && _performanceReport.Pc.IsValid)
-                parts.Add($"PC {_performanceReport.Pc.OverallRatingName}");
-            if (_performanceReport.Quest != null && _performanceReport.Quest.IsValid)
-                parts.Add($"Quest {_performanceReport.Quest.OverallRatingName}");
-
+            var parts = BuildPerformanceRankParts();
             if (parts.Count == 0) return;
 
             var isHeavy = (_performanceReport.Pc != null && _performanceReport.Pc.IsHeavy)
@@ -599,6 +603,35 @@ namespace AvatarOmamori.Editor
 
             EditorGUILayout.LabelField(
                 $"パフォーマンス: {string.Join(" / ", parts)}", GetPerformanceSummaryStyle(isHeavy));
+        }
+
+        /// <summary>
+        /// PC / Quest の総合ランク名を並べた要素を返す。表示できるものが無ければ空リスト。
+        /// 主画面のサマリー行（区切りは " / "）とカード画像のランク行（" ・ "）で共用する。
+        /// 区切り文字だけが違うので、連結は呼び出し側で行う。
+        /// </summary>
+        private List<string> BuildPerformanceRankParts()
+        {
+            var parts = new List<string>();
+            if (_performanceReport == null || !_performanceReport.IsValid) return parts;
+
+            if (_performanceReport.Pc != null && _performanceReport.Pc.IsValid)
+                parts.Add($"PC {_performanceReport.Pc.OverallRatingName}");
+            if (_performanceReport.Quest != null && _performanceReport.Quest.IsValid)
+                parts.Add($"Quest {_performanceReport.Quest.OverallRatingName}");
+
+            return parts;
+        }
+
+        /// <summary>
+        /// カード画像に載せるランク文字列（例: "PC Poor ・ Quest Very Poor"）。
+        /// ランクが1つも取れなければ null を返し、カード側で行ごと省略させる
+        /// （「取得できませんでした」とは書かない・DEC-094 決定4）。
+        /// </summary>
+        private string BuildCardPerformanceRankText()
+        {
+            var parts = BuildPerformanceRankParts();
+            return parts.Count == 0 ? null : string.Join(" ・ ", parts);
         }
 
         /// <summary>
@@ -621,6 +654,21 @@ namespace AvatarOmamori.Editor
 
             DrawPlatformBlock(PerformancePlatform.PC, _performanceReport.Pc);
             DrawPlatformBlock(PerformancePlatform.Quest, _performanceReport.Quest, _performanceReport.QuestIncompatibilities);
+
+            // パーツ別の内訳ウィンドウへの入口（v0.11.0・DEC-100）。
+            // 主画面に増やしてよいのはこのボタン1行だけ（DEC-097 の制約 C3）。要因行ごとには置かない
+            // ――要因行に付けると、ポリゴン／テクスチャがランク要因でないときにボタンが消え、
+            // 「テクスチャの内訳を見たい」ユーザーが到達できなくなるため（W0 設計 §2.1）。
+            // SDK 内部 API が解決できない環境では押しても空のウィンドウしか出せないので、
+            // ボタンごと描かない（W0 設計 §5.2）。
+            if (_avatarRoot != null && SdkPerformanceReflection.IsAvailable)
+            {
+                if (GUILayout.Button("どのパーツが重いか見る"))
+                {
+                    PerformanceBreakdownWindow.Open(_avatarRoot);
+                }
+                EditorGUILayout.Space(2);
+            }
 
             // 注記は折りたたみの中に隠さず常時表示する（DEC-070）
             EditorGUILayout.HelpBox(
