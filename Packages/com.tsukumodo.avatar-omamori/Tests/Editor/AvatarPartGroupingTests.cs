@@ -38,8 +38,6 @@ namespace AvatarOmamori.Tests.Editor
         {
             var clothes = AddChild(_root, "Clothes");
             _prefab.Added.Add(clothes);
-            _prefab.PrefabInstances.Add(clothes);
-            _prefab.PrefabRoots.Add(clothes);
             var jacket = AddRenderer(AddChild(clothes, "Jacket"));
             var shoes = AddRenderer(AddChild(clothes, "Shoes"));
 
@@ -57,8 +55,6 @@ namespace AvatarOmamori.Tests.Editor
             var head = AddChild(armature, "Head");
             var glasses = AddChild(head, "Glasses");
             _prefab.Added.Add(glasses);
-            _prefab.PrefabInstances.Add(glasses);
-            _prefab.PrefabRoots.Add(glasses);
             var lens = AddRenderer(AddChild(glasses, "Lens"));
 
             var groups = Build(lens);
@@ -68,10 +64,10 @@ namespace AvatarOmamori.Tests.Editor
         }
 
         [Test]
-        public void ルール2_後から足した空の入れ物はまとまりにせず中身を1件ずつ出す()
+        public void ルール2_後から足した空の入れ物は入れ物ごと1まとまりになる()
         {
             // Sakuhi の「アクセサリー」のように、空のオブジェクトに装飾品を入れているケース。
-            // 入れ物ごと1行にすると、どれを替えるかが判断できない
+            // 入れ物を見出しにして、中身はその中のパーツとして並べる（2026-09-15 の変更）
             var box = AddChild(_root, "アクセサリー");
             _prefab.Added.Add(box);
             var beret = AddRenderer(AddChild(box, "ベレー帽"));
@@ -79,9 +75,9 @@ namespace AvatarOmamori.Tests.Editor
 
             var groups = Build(beret, horn);
 
-            CollectionAssert.AreEquivalent(
-                new[] { "ベレー帽", "角" }, Names(groups));
-            Assert.IsFalse(Names(groups).Contains("アクセサリー"));
+            Assert.AreEqual(1, groups.Count);
+            Assert.AreEqual("アクセサリー", groups[0].Name);
+            Assert.AreEqual(2, groups[0].Renderers.Count);
         }
 
         [Test]
@@ -99,11 +95,9 @@ namespace AvatarOmamori.Tests.Editor
         [Test]
         public void ルール4_メッシュを1つも持たないまとまりは出さない()
         {
-            // GogoLoco・FaceEmo のようなギミック。プレハブだが Renderer を持たない
+            // GogoLoco・FaceEmo のようなギミック。Renderer を1つも持たない
             var gimmick = AddChild(_root, "GogoLoco");
             _prefab.Added.Add(gimmick);
-            _prefab.PrefabInstances.Add(gimmick);
-            _prefab.PrefabRoots.Add(gimmick);
             AddChild(gimmick, "Settings");
 
             var body = AddRenderer(AddChild(_root, "Body"));
@@ -122,8 +116,6 @@ namespace AvatarOmamori.Tests.Editor
             var hair = AddRenderer(AddChild(_root, "Hair"));
             var clothes = AddChild(_root, "Clothes");
             _prefab.Added.Add(clothes);
-            _prefab.PrefabInstances.Add(clothes);
-            _prefab.PrefabRoots.Add(clothes);
             var jacket = AddRenderer(AddChild(clothes, "Jacket"));
 
             var groups = Build(body, hair, jacket);
@@ -163,6 +155,23 @@ namespace AvatarOmamori.Tests.Editor
         }
 
         [Test]
+        public void 追加物の中に入れ子の追加物があっても一番外側だけを見る()
+        {
+            // IsAddedGameObjectOverride は一番外側にしか付かないが、
+            // 入れ子で足したものを別まとまりに割ってしまわないことを固定する
+            var clothes = AddChild(_root, "Clothes");
+            _prefab.Added.Add(clothes);
+            var inner = AddChild(clothes, "Inner");
+            _prefab.Added.Add(inner);
+            var jacket = AddRenderer(AddChild(inner, "Jacket"));
+
+            var groups = Build(jacket);
+
+            Assert.AreEqual(1, groups.Count);
+            Assert.AreEqual("Clothes", groups[0].Name);
+        }
+
+        [Test]
         public void Rendererが無ければ空になる()
         {
             Assert.IsEmpty(AvatarPartGrouping.Build(_root, new List<Renderer>(), _prefab));
@@ -198,7 +207,6 @@ namespace AvatarOmamori.Tests.Editor
         {
             public readonly HashSet<GameObject> PrefabInstances = new HashSet<GameObject>();
             public readonly HashSet<GameObject> Added = new HashSet<GameObject>();
-            public readonly HashSet<GameObject> PrefabRoots = new HashSet<GameObject>();
 
             public bool IsPrefabInstance(GameObject go)
             {
@@ -208,11 +216,6 @@ namespace AvatarOmamori.Tests.Editor
             public bool IsAddedObject(GameObject go)
             {
                 return go != null && Added.Contains(go);
-            }
-
-            public bool IsPrefabInstanceRoot(GameObject go)
-            {
-                return go != null && PrefabRoots.Contains(go);
             }
         }
     }

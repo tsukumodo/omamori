@@ -42,9 +42,6 @@ namespace AvatarOmamori.Editor.Performance
 
         /// <summary>プレハブに対して「後から足された」オブジェクトか。</summary>
         bool IsAddedObject(GameObject go);
-
-        /// <summary>自分自身がプレハブインスタンスの一番外側か。</summary>
-        bool IsPrefabInstanceRoot(GameObject go);
     }
 
     internal sealed class PrefabUtilityStructure : IPrefabStructure
@@ -60,11 +57,6 @@ namespace AvatarOmamori.Editor.Performance
         {
             return go != null && PrefabUtility.IsAddedGameObjectOverride(go);
         }
-
-        public bool IsPrefabInstanceRoot(GameObject go)
-        {
-            return go != null && PrefabUtility.GetNearestPrefabInstanceRoot(go) == go;
-        }
     }
 
     /// <summary>
@@ -76,13 +68,18 @@ namespace AvatarOmamori.Editor.Performance
     /// まとまりで見れば「他の服にしよう」に答えられる。
     /// </para>
     /// <para>
-    /// ルール（§11.3）:
+    /// ルール（§11.3・ルール2は 2026-09-15 に変更）:
     /// 1 後から足したプレハブの一番外側＝1まとまり（置き場所は問わない）
-    /// 2 後から足した空の入れ物（自分はメッシュを持たない非プレハブ）はまとまりにせず中に降りる
-    /// 3 後から足した非プレハブで自分がメッシュを持つものは1まとまり
+    /// 2 後から足した空の入れ物も、入れ物ごと1まとまりにする（中身はその中のパーツとして並べる）
+    /// 3 後から足した非プレハブでメッシュを持つものは1まとまり
     /// 4 メッシュを1つも持たないまとまりは出さない
     /// 5 それ以外は「アバター本体」
     /// 6 アバターが Unpack 済みのときは直下の子ごとにまとまりを作り「アバター本体」の見出しを出さない
+    /// </para>
+    /// <para>
+    /// ルール1〜3 は結果として「後から足した一番外側＝1まとまり」に集約される。
+    /// <c>IsAddedGameObjectOverride</c> は一番外側にしか付かないため、
+    /// 追加物を見つけたらその中には降りない。
     /// </para>
     /// </summary>
     internal static class AvatarPartGrouping
@@ -111,7 +108,7 @@ namespace AvatarOmamori.Editor.Performance
             }
             else
             {
-                CollectGroupRoots(avatarRoot.transform, insideAddedObject: false, prefab: prefab, into: groupRoots);
+                CollectGroupRoots(avatarRoot.transform, prefab, groupRoots);
             }
 
             var buckets = new Dictionary<GameObject, List<Renderer>>();
@@ -151,39 +148,16 @@ namespace AvatarOmamori.Editor.Performance
 
         /// <summary>
         /// まとまりの一番外側になる GameObject を集める。
-        /// <paramref name="insideAddedObject"/> は「後から足した入れ物の中を降りている最中」かどうか。
-        /// 入れ物の子は <c>IsAddedGameObjectOverride</c> が false になる（追加判定は一番外側にしか付かない）ため、
-        /// フラグで引き継ぐ必要がある。
+        /// 後から足したものを見つけたらそこで止め、中には降りない（ルール1〜3）。
+        /// 元からある枝は、骨の下などに追加物があるのでそのまま降りて探す。
         /// </summary>
-        private static void CollectGroupRoots(
-            Transform parent, bool insideAddedObject, IPrefabStructure prefab, List<GameObject> into)
+        private static void CollectGroupRoots(Transform parent, IPrefabStructure prefab, List<GameObject> into)
         {
             foreach (Transform child in parent)
             {
                 var go = child.gameObject;
-                var added = insideAddedObject || prefab.IsAddedObject(go);
-
-                if (!added)
-                {
-                    // 元からある枝。骨の下などに後から足したものがあるので、そのまま降りて探す
-                    CollectGroupRoots(child, insideAddedObject: false, prefab: prefab, into: into);
-                    continue;
-                }
-
-                if (prefab.IsPrefabInstanceRoot(go))
-                {
-                    into.Add(go); // ルール1
-                    continue;
-                }
-
-                if (go.GetComponent<Renderer>() != null)
-                {
-                    into.Add(go); // ルール3
-                    continue;
-                }
-
-                // ルール2: 空の入れ物。まとまりにせず中身を1件ずつ見る
-                CollectGroupRoots(child, insideAddedObject: true, prefab: prefab, into: into);
+                if (prefab.IsAddedObject(go)) into.Add(go);
+                else CollectGroupRoots(child, prefab, into);
             }
         }
 
