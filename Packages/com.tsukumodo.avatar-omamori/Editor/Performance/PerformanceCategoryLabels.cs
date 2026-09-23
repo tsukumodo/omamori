@@ -101,38 +101,56 @@ namespace AvatarOmamori.Editor.Performance
         /// ・<c>ParticleTrailsEnabled</c> / <c>ParticleCollisionEnabled</c> … bool のため同上
         /// ・<c>Overall</c> / <c>None</c> / <c>AvatarPerformanceCategoryCount</c> … 集計用・番兵
         /// </summary>
-        public static readonly IReadOnlyList<Entry> Entries = new List<Entry>
+        public static readonly IReadOnlyList<Entry> Entries = BuildEntries();
+
+        private static List<Entry> BuildEntries()
         {
-            new Entry(AvatarPerformanceCategory.PolyCount, "ポリゴン数", "polyCount", ValueFormat.Count, MeshDocUrl),
-            new Entry(AvatarPerformanceCategory.TextureMegabytes, "テクスチャ使用量", "textureMegabytes", ValueFormat.Megabytes, TextureDocUrl),
-            new Entry(AvatarPerformanceCategory.MaterialCount, "マテリアルスロット数", "materialCount", ValueFormat.Count, MaterialDocUrl),
-            new Entry(AvatarPerformanceCategory.SkinnedMeshCount, "スキンメッシュ数", "skinnedMeshCount", ValueFormat.Count, MeshDocUrl),
-            new Entry(AvatarPerformanceCategory.MeshCount, "メッシュ数", "meshCount", ValueFormat.Count, MeshDocUrl),
-            new Entry(AvatarPerformanceCategory.BoneCount, "ボーン数", "boneCount", ValueFormat.Count, BoneDocUrl),
-            new Entry(AvatarPerformanceCategory.AnimatorCount, "Animator 数", "animatorCount", ValueFormat.Count, PerformanceDocUrl),
-            new Entry(AvatarPerformanceCategory.PhysBoneComponentCount, "PhysBone の数", "physBone.componentCount", ValueFormat.Count, PhysBoneDocUrl),
-            new Entry(AvatarPerformanceCategory.PhysBoneTransformCount, "PhysBone が動かすボーン数", "physBone.transformCount", ValueFormat.Count, PhysBoneDocUrl),
-            new Entry(AvatarPerformanceCategory.PhysBoneColliderCount, "PhysBone コライダー数", "physBone.colliderCount", ValueFormat.Count, PhysBoneColliderDocUrl),
-            new Entry(AvatarPerformanceCategory.PhysBoneCollisionCheckCount, "PhysBone の衝突判定数", "physBone.collisionCheckCount", ValueFormat.Count, PhysBoneColliderDocUrl),
-            new Entry(AvatarPerformanceCategory.ContactCount, "Contact の数", "contactCount", ValueFormat.Count, ContactDocUrl),
-            // ⚠ ConstraintsCount / ConstraintDepth は VRChat Constraints（SDK 3.7.0）で追加された項目。
-            //    これより古い SDK では列挙値が存在せずパッケージ全体がコンパイルできないため、
-            //    package.json の vpmDependencies を >=3.7.0 未満に戻さないこと
-            new Entry(AvatarPerformanceCategory.ConstraintsCount, "Constraint の数", "constraintsCount", ValueFormat.Count, ConstraintDocUrl),
-            new Entry(AvatarPerformanceCategory.ConstraintDepth, "Constraint の深さ", "constraintDepth", ValueFormat.Count, ConstraintDocUrl),
-            new Entry(AvatarPerformanceCategory.ParticleSystemCount, "パーティクルシステム数", "particleSystemCount", ValueFormat.Count, ParticleDocUrl),
-            new Entry(AvatarPerformanceCategory.ParticleTotalCount, "パーティクル総数", "particleTotalCount", ValueFormat.Count, ParticleDocUrl),
-            new Entry(AvatarPerformanceCategory.ParticleMaxMeshPolyCount, "メッシュパーティクルのポリゴン数", "particleMaxMeshPolyCount", ValueFormat.Count, ParticleDocUrl),
-            new Entry(AvatarPerformanceCategory.TrailRendererCount, "Trail Renderer の数", "trailRendererCount", ValueFormat.Count, PerformanceDocUrl),
-            new Entry(AvatarPerformanceCategory.LineRendererCount, "Line Renderer の数", "lineRendererCount", ValueFormat.Count, PerformanceDocUrl),
-            new Entry(AvatarPerformanceCategory.LightCount, "ライトの数", "lightCount", ValueFormat.Count, LightDocUrl),
-            new Entry(AvatarPerformanceCategory.AudioSourceCount, "Audio Source の数", "audioSourceCount", ValueFormat.Count, PerformanceDocUrl),
-            new Entry(AvatarPerformanceCategory.ClothCount, "Cloth の数", "clothCount", ValueFormat.Count, ClothDocUrl),
-            new Entry(AvatarPerformanceCategory.ClothMaxVertices, "Cloth の頂点数", "clothMaxVertices", ValueFormat.Count, ClothDocUrl),
-            new Entry(AvatarPerformanceCategory.PhysicsColliderCount, "物理コライダー数", "physicsColliderCount", ValueFormat.Count, PerformanceDocUrl),
-            new Entry(AvatarPerformanceCategory.PhysicsRigidbodyCount, "Rigidbody の数", "physicsRigidbodyCount", ValueFormat.Count, PerformanceDocUrl),
-            new Entry(AvatarPerformanceCategory.RaycastCount, "Raycast の数", "raycastCount", ValueFormat.Count, PerformanceDocUrl),
-        };
+            var entries = new List<Entry>
+            {
+                new Entry(AvatarPerformanceCategory.PolyCount, "ポリゴン数", "polyCount", ValueFormat.Count, MeshDocUrl),
+                new Entry(AvatarPerformanceCategory.TextureMegabytes, "テクスチャ使用量", "textureMegabytes", ValueFormat.Megabytes, TextureDocUrl),
+                new Entry(AvatarPerformanceCategory.MaterialCount, "マテリアルスロット数", "materialCount", ValueFormat.Count, MaterialDocUrl),
+                new Entry(AvatarPerformanceCategory.SkinnedMeshCount, "スキンメッシュ数", "skinnedMeshCount", ValueFormat.Count, MeshDocUrl),
+                new Entry(AvatarPerformanceCategory.MeshCount, "メッシュ数", "meshCount", ValueFormat.Count, MeshDocUrl),
+                new Entry(AvatarPerformanceCategory.BoneCount, "ボーン数", "boneCount", ValueFormat.Count, BoneDocUrl),
+                new Entry(AvatarPerformanceCategory.AnimatorCount, "Animator 数", "animatorCount", ValueFormat.Count, PerformanceDocUrl),
+                new Entry(AvatarPerformanceCategory.PhysBoneComponentCount, "PhysBone の数", "physBone.componentCount", ValueFormat.Count, PhysBoneDocUrl),
+                new Entry(AvatarPerformanceCategory.PhysBoneTransformCount, "PhysBone が動かすボーン数", "physBone.transformCount", ValueFormat.Count, PhysBoneDocUrl),
+                new Entry(AvatarPerformanceCategory.PhysBoneColliderCount, "PhysBone コライダー数", "physBone.colliderCount", ValueFormat.Count, PhysBoneColliderDocUrl),
+                new Entry(AvatarPerformanceCategory.PhysBoneCollisionCheckCount, "PhysBone の衝突判定数", "physBone.collisionCheckCount", ValueFormat.Count, PhysBoneColliderDocUrl),
+                new Entry(AvatarPerformanceCategory.ContactCount, "Contact の数", "contactCount", ValueFormat.Count, ContactDocUrl),
+                // ⚠ ConstraintsCount / ConstraintDepth は VRChat Constraints（SDK 3.7.0）で追加された項目。
+                //    これより古い SDK では列挙値が存在せずパッケージ全体がコンパイルできないため、
+                //    package.json の vpmDependencies を >=3.7.0 未満に戻さないこと
+                new Entry(AvatarPerformanceCategory.ConstraintsCount, "Constraint の数", "constraintsCount", ValueFormat.Count, ConstraintDocUrl),
+                new Entry(AvatarPerformanceCategory.ConstraintDepth, "Constraint の深さ", "constraintDepth", ValueFormat.Count, ConstraintDocUrl),
+                new Entry(AvatarPerformanceCategory.ParticleSystemCount, "パーティクルシステム数", "particleSystemCount", ValueFormat.Count, ParticleDocUrl),
+                new Entry(AvatarPerformanceCategory.ParticleTotalCount, "パーティクル総数", "particleTotalCount", ValueFormat.Count, ParticleDocUrl),
+                new Entry(AvatarPerformanceCategory.ParticleMaxMeshPolyCount, "メッシュパーティクルのポリゴン数", "particleMaxMeshPolyCount", ValueFormat.Count, ParticleDocUrl),
+                new Entry(AvatarPerformanceCategory.TrailRendererCount, "Trail Renderer の数", "trailRendererCount", ValueFormat.Count, PerformanceDocUrl),
+                new Entry(AvatarPerformanceCategory.LineRendererCount, "Line Renderer の数", "lineRendererCount", ValueFormat.Count, PerformanceDocUrl),
+                new Entry(AvatarPerformanceCategory.LightCount, "ライトの数", "lightCount", ValueFormat.Count, LightDocUrl),
+                new Entry(AvatarPerformanceCategory.AudioSourceCount, "Audio Source の数", "audioSourceCount", ValueFormat.Count, PerformanceDocUrl),
+                new Entry(AvatarPerformanceCategory.ClothCount, "Cloth の数", "clothCount", ValueFormat.Count, ClothDocUrl),
+                new Entry(AvatarPerformanceCategory.ClothMaxVertices, "Cloth の頂点数", "clothMaxVertices", ValueFormat.Count, ClothDocUrl),
+                new Entry(AvatarPerformanceCategory.PhysicsColliderCount, "物理コライダー数", "physicsColliderCount", ValueFormat.Count, PerformanceDocUrl),
+                new Entry(AvatarPerformanceCategory.PhysicsRigidbodyCount, "Rigidbody の数", "physicsRigidbodyCount", ValueFormat.Count, PerformanceDocUrl),
+            };
+
+            // RaycastCount は SDK 3.10.2 以前の AvatarPerformanceCategory に存在しない。
+            // 直接参照すると古い SDK でコンパイルが通らず、利用者のアップロードまで止めてしまうため、
+            // 名前で引いて、その SDK に分類があるときだけ加える（2026-09-23 R-5 で SDK 3.10.2 にて検出）。
+            AddIfDefined(entries, "RaycastCount", "Raycast の数", "raycastCount", ValueFormat.Count, PerformanceDocUrl);
+            return entries;
+        }
+
+        private static void AddIfDefined(
+            List<Entry> entries, string categoryName, string label, string fieldPath, ValueFormat format, string documentUrl)
+        {
+            if (!Enum.IsDefined(typeof(AvatarPerformanceCategory), categoryName)) return;
+            var category = (AvatarPerformanceCategory)Enum.Parse(typeof(AvatarPerformanceCategory), categoryName);
+            entries.Add(new Entry(category, label, fieldPath, format, documentUrl));
+        }
 
         /// <summary>
         /// <paramref name="target"/>（AvatarPerformanceStats / AvatarPerformanceStatsLevel）から
