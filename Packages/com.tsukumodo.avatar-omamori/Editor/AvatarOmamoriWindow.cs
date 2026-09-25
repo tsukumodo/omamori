@@ -3,7 +3,9 @@ using System.Collections.Generic;
 using System.Linq;
 using AvatarOmamori.Editor.Performance;
 using UnityEditor;
+using UnityEditor.SceneManagement;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 namespace AvatarOmamori.Editor
 {
@@ -13,6 +15,9 @@ namespace AvatarOmamori.Editor
     /// </summary>
     public sealed class AvatarOmamoriWindow : EditorWindow
     {
+        // v0.11.0 から [SerializeField]。再生モード・再コンパイルをまたいで対象を保持する（R-4 / W0 設計 §11.4.2 の1）。
+        // Unity 再起動をまたぐ分は AvatarAutoSelector が EditorPrefs 側で別途覚える。
+        [SerializeField]
         private GameObject _avatarRoot;
         private List<CheckResult> _results;
         private List<CheckResult> _errors;
@@ -38,6 +43,13 @@ namespace AvatarOmamori.Editor
 
         /// <summary>常時表示する要因の件数。残りは「ほか N 件を見る」で展開する（DEC-070）。</summary>
         private const int VisibleFactorCount = 3;
+
+        /// <summary>
+        /// いま主画面が対象にしているアバタールート。
+        /// パフォーマンス内訳ウィンドウが「開いたときの対象と今の対象が違う」ことを検出するために読む。
+        /// 読み取り専用で、主画面から内訳ウィンドウへ状態を押し込む結合は作らない（v0.11.0 W0 設計 §2.4）。
+        /// </summary>
+        internal GameObject CurrentAvatarRoot => _avatarRoot;
 
         /// <summary>Severity アイコンの表示幅。内訳行では同じ幅を空けて本文の開始位置を揃える。</summary>
         private const float SeverityIconWidth = 20f;
@@ -65,6 +77,126 @@ namespace AvatarOmamori.Editor
         {
             GetWindow<AvatarOmamoriWindow>("アバター改変おまもり");
         }
+
+        // ───────────────────────────── 対象の自動セット（v0.11.0 R-4 / DEC-109 / W0 設計 §11.4） ─────────────────────────────
+
+        private void OnEnable()
+        {
+            EditorSceneManager.sceneOpened += OnSceneOpenedForAutoSelect;
+            EditorApplication.playModeStateChanged += OnPlayModeStateChangedForAutoSelect;
+
+            // ドメインリロード直後は Scene / Selection まわりの状態がまだ安定していないことがあるため、
+            // 1フレーム遅らせて安全なタイミングで試す（§11.4.2）。
+            EditorApplication.delayCall += HandleEnableAutoSelect;
+        }
+
+        private void OnDisable()
+        {
+            EditorSceneManager.sceneOpened -= OnSceneOpenedForAutoSelect;
+            EditorApplication.playModeStateChanged -= OnPlayModeStateChangedForAutoSelect;
+        }
+
+        /// <summary>
+        /// 再生モードから戻ったとき。シーンが読み直されて参照が切れていれば EditorPrefs から復元し、
+        /// 参照が残っていても再生中の結果は信用しないので、記録なしで測り直す。
+        /// </summary>
+        private void OnPlayModeStateChangedForAutoSelect(PlayModeStateChange change)
+        {
+            if (change != PlayModeStateChange.EnteredEditMode) return;
+            _results = null;
+            HandleEnableAutoSelect();
+        }
+
+        /// <summary>
+        /// OnEnable 専用の初期化。「まだ空なら自動選択」に加えて、ドメインリロードで
+        /// _avatarRoot（[SerializeField]）だけが復元され _results（非シリアライズ）が null に戻っている
+        /// ケースを拾い、自動復元扱い（記録なし）でチェックを走らせ直して結果表示を作り直す（§11.4.2 実装注記）。
+        /// </summary>
+        private void HandleEnableAutoSelect()
+        {
+            if (this == null) return; // delayCall が呼ばれる前にウィンドウが閉じられている場合がある
+
+            // 再生モード中は自動では何もしない。再生用に複製されたシーンを測ることになり、
+            // Gesture Manager で動かしている最中にチェックが割り込むため。戻ったとき（EnteredEditMode）に試す。
+            if (EditorApplication.isPlayingOrWillChangePlaymode) return;
+
+            if (_avatarRoot != null)
+            {
+                if (_results == null)
+                {
+                    RunChecks(recordUsage: false);
+                    Repaint();
+                }
+                return;
+            }
+
+            TryAutoSelectAvatarRoot();
+        }
+
+        private void OnFocus()
+        {
+            TryAutoSelectAvatarRoot();
+        }
+
+        /// <summary>
+        /// Unity の EditorWindow メッセージ（Hierarchy 選択が変わるたびに呼ばれる）。
+        /// 対象が入っているときは何もしない（選択への追従はしない・W0 設計 §11.4.3）。
+        /// </summary>
+        private void OnSelectionChange()
+        {
+            TryAutoSelectAvatarRoot();
+        }
+
+        private void OnSceneOpenedForAutoSelect(Scene scene, OpenSceneMode mode)
+        {
+            TryAutoSelectAvatarRoot();
+        }
+
+        /// <summary>
+        /// _avatarRoot が空のときだけ、対象を自動で入れる（§11.4.2 の2）。優先順位は
+        /// EditorPrefs 復元 → シーン内に Descriptor 持ちが1体だけ → Hierarchy 選択中オブジェクトが属するアバター。
+        /// どれにも当てはまらなければ何もしない（今と同じ空欄）。
+        /// 入れたときはチェックも走らせるが、利用統計には数えない（<see cref="AvatarAutoSelector.CheckTrigger.Auto"/>）。
+        /// </summary>
+        private void TryAutoSelectAvatarRoot()
+        {
+            if (_avatarRoot != null) return;
+            if (this == null) return;
+            if (EditorApplication.isPlayingOrWillChangePlaymode) return;
+            // 手で空にした直後は、次のフォーカスで勝手に埋め戻さない（空欄にした意思を尊重する）
+            if (_clearedByUser) return;
+
+            var scene = EditorSceneManager.GetActiveScene();
+
+            var picked = AvatarAutoSelector.TryRestoreLastAvatarRoot(scene);
+            if (picked == null)
+            {
+                picked = AvatarAutoSelector.PickOutermost(
+                    AvatarAutoSelector.FindSceneDescriptorOwners(scene), Selection.activeGameObject);
+            }
+            if (picked == null) return;
+
+            SetAvatarRootAndRunChecks(picked, AvatarAutoSelector.CheckTrigger.Auto);
+            Repaint();
+        }
+
+        /// <summary>
+        /// アバタールートを差し替え、EditorPrefs への保存（対象が決まるたびに更新・§11.4.2 の1）と
+        /// チェック実行までまとめて行う。ObjectField の手動変更と自動選択のどちらからも呼ぶ。
+        /// </summary>
+        /// <param name="persist">EditorPrefs に覚えるか。テストでは一時オブジェクトで利用者の記憶を上書きしないよう false にする。</param>
+        internal void SetAvatarRootAndRunChecks(GameObject newRoot, AvatarAutoSelector.CheckTrigger trigger, bool persist = true)
+        {
+            _avatarRoot = newRoot;
+            _clearedByUser = false;
+            if (persist) AvatarAutoSelector.SaveLastAvatarRoot(EditorSceneManager.GetActiveScene(), newRoot);
+            RunChecks(AvatarAutoSelector.ShouldRecordUsage(trigger));
+        }
+
+        // 利用者が ObjectField を手で空にしたか。立っている間は自動セットしない。
+        // ウィンドウを開き直す・再コンパイルで戻る（非シリアライズ）＝そこからは自動セットしてよい。
+        [NonSerialized]
+        private bool _clearedByUser;
 
         /// <summary>
         /// 現在のアバタールートに対してチェックを再実行し、UI を更新する。
@@ -128,16 +260,19 @@ namespace AvatarOmamori.Editor
                 "アバタールート", _avatarRoot, typeof(GameObject), true);
             if (newAvatarRoot != _avatarRoot)
             {
-                _avatarRoot = newAvatarRoot;
                 // アバターを指定した瞬間に自動チェックを走らせる。
                 // オンボーディング時のボタン押し忘れを防ぎ、ツールの価値をすぐに体験してもらうため。
-                if (_avatarRoot != null)
+                if (newAvatarRoot != null)
                 {
-                    RunChecks();
+                    // 手動指定も EditorPrefs 側の復元キーを更新する対象（対象が決まるたび・§11.4.2 の1）。
+                    // 手動指定は利用統計に数える（既定 recordUsage: true）。
+                    SetAvatarRootAndRunChecks(newAvatarRoot, AvatarAutoSelector.CheckTrigger.Manual);
                 }
                 else
                 {
                     // アバター参照がクリアされたら結果も消す（古い結果が残ると誤解の元）
+                    _avatarRoot = null;
+                    _clearedByUser = true;
                     _results = null;
                     _performanceReport = null;
                 }
@@ -254,6 +389,8 @@ namespace AvatarOmamori.Editor
                     FixCount = FixHistoryStore.Count,
                     DateText = DateTime.Now.ToString("yyyy-MM-dd"), // 年月日のみ（DEC-055 準拠）
                     ToolVersion = UsageStatsRecorder.GetSnapshot().ToolVersion,
+                    // ランク名のみ・数値なし（DEC-094 決定4）。null ならカード側が行ごと省略する
+                    PerformanceRankText = BuildCardPerformanceRankText(),
                 };
                 CardExporter.ExportPng(path, data);
                 EditorUtility.RevealInFinder(path);
@@ -295,13 +432,17 @@ namespace AvatarOmamori.Editor
         /// <summary>
         /// 全チェックとパフォーマンス計測を実行し、表示用の状態を作り直す。
         /// </summary>
-        private void RunChecks()
+        private void RunChecks(bool recordUsage = true)
         {
             _results = CheckRunner.RunAll(_avatarRoot, out var detections);
             CacheResultsByCategory();
 
             _performanceReport = PerformanceReportBuilder.Build(_avatarRoot);
             EnsureExpandedFactors().Clear(); // 再チェックのたびに「ほか N 件」は畳み直す
+
+            // 自動で入れたとき（recordUsage: false）は利用統計に数えない。数えると再コンパイル・
+            // 再生モード往復のたびに check_run_count と検出件数が増えてしまうため（v0.11.0・§11.4.2 決定4）。
+            if (!recordUsage) return;
 
             // チェック側とパフォーマンス側の検出をまとめ、ディスクへの書き込みを1回にする（Issue #35）。
             // 実行回数を増やすのはこの1箇所だけなので、check_run_count は二重計上されない。
@@ -586,12 +727,7 @@ namespace AvatarOmamori.Editor
         {
             if (_performanceReport == null || !_performanceReport.IsValid) return;
 
-            var parts = new List<string>();
-            if (_performanceReport.Pc != null && _performanceReport.Pc.IsValid)
-                parts.Add($"PC {_performanceReport.Pc.OverallRatingName}");
-            if (_performanceReport.Quest != null && _performanceReport.Quest.IsValid)
-                parts.Add($"Quest {_performanceReport.Quest.OverallRatingName}");
-
+            var parts = BuildPerformanceRankParts();
             if (parts.Count == 0) return;
 
             var isHeavy = (_performanceReport.Pc != null && _performanceReport.Pc.IsHeavy)
@@ -599,6 +735,47 @@ namespace AvatarOmamori.Editor
 
             EditorGUILayout.LabelField(
                 $"パフォーマンス: {string.Join(" / ", parts)}", GetPerformanceSummaryStyle(isHeavy));
+        }
+
+        /// <summary>
+        /// パーツ別内訳ウィンドウへの入口（ボタン）を描いてよいか。
+        /// SDK 内部 API が解決できない環境では、押しても空のウィンドウしか出せないためボタンごと描かない
+        /// （W0 設計 §5.2）。片方の API だけ取れた場合も <see cref="SdkPerformanceReflection.IsAvailable"/> 側で
+        /// 両方落ちる。IMGUI の分岐そのものはテストから叩けないので、条件だけ純粋関数に切り出してある
+        /// （ボタンが実際に1行だけで出ていることの確認は実機・T-8）。
+        /// </summary>
+        internal static bool ShouldShowBreakdownEntry(GameObject avatarRoot, bool sdkAvailable)
+        {
+            return avatarRoot != null && sdkAvailable;
+        }
+
+        /// <summary>
+        /// PC / Quest の総合ランク名を並べた要素を返す。表示できるものが無ければ空リスト。
+        /// 主画面のサマリー行（区切りは " / "）とカード画像のランク行（" ・ "）で共用する。
+        /// 区切り文字だけが違うので、連結は呼び出し側で行う。
+        /// </summary>
+        private List<string> BuildPerformanceRankParts()
+        {
+            var parts = new List<string>();
+            if (_performanceReport == null || !_performanceReport.IsValid) return parts;
+
+            if (_performanceReport.Pc != null && _performanceReport.Pc.IsValid)
+                parts.Add($"PC {_performanceReport.Pc.OverallRatingName}");
+            if (_performanceReport.Quest != null && _performanceReport.Quest.IsValid)
+                parts.Add($"Quest {_performanceReport.Quest.OverallRatingName}");
+
+            return parts;
+        }
+
+        /// <summary>
+        /// カード画像に載せるランク文字列（例: "PC Poor ・ Quest Very Poor"）。
+        /// ランクが1つも取れなければ null を返し、カード側で行ごと省略させる
+        /// （「取得できませんでした」とは書かない・DEC-094 決定4）。
+        /// </summary>
+        private string BuildCardPerformanceRankText()
+        {
+            var parts = BuildPerformanceRankParts();
+            return parts.Count == 0 ? null : string.Join(" ・ ", parts);
         }
 
         /// <summary>
@@ -621,6 +798,21 @@ namespace AvatarOmamori.Editor
 
             DrawPlatformBlock(PerformancePlatform.PC, _performanceReport.Pc);
             DrawPlatformBlock(PerformancePlatform.Quest, _performanceReport.Quest, _performanceReport.QuestIncompatibilities);
+
+            // パーツ別の内訳ウィンドウへの入口（v0.11.0・DEC-100）。
+            // 主画面に増やしてよいのはこのボタン1行だけ（DEC-097 の制約 C3）。要因行ごとには置かない
+            // ――要因行に付けると、ポリゴン／テクスチャがランク要因でないときにボタンが消え、
+            // 「テクスチャの内訳を見たい」ユーザーが到達できなくなるため（W0 設計 §2.1）。
+            // SDK 内部 API が解決できない環境では押しても空のウィンドウしか出せないので、
+            // ボタンごと描かない（W0 設計 §5.2）。
+            if (ShouldShowBreakdownEntry(_avatarRoot, SdkPerformanceReflection.IsAvailable))
+            {
+                if (GUILayout.Button("どの服・パーツが重いか見る"))
+                {
+                    PerformanceBreakdownWindow.Open(_avatarRoot);
+                }
+                EditorGUILayout.Space(2);
+            }
 
             // 注記は折りたたみの中に隠さず常時表示する（DEC-070）
             EditorGUILayout.HelpBox(
