@@ -69,7 +69,7 @@ namespace AvatarOmamori.Editor.Performance
         /// <summary>
         /// 計測前に必要な SDK 側の準備（T-1 実機検証で判明した必須手順）。
         /// </summary>
-        private static void PrepareSdk(GameObject avatarRoot)
+        internal static void PrepareSdk(GameObject avatarRoot)
         {
             // ランク閾値（LevelSet）の読み込み。通常は SDK の EnvConfig が InitializeOnLoad 経由で呼ぶが、
             // そのタイミングより前に計算すると CalculatePerformanceStats() が NullReferenceException になる。
@@ -121,7 +121,7 @@ namespace AvatarOmamori.Editor.Performance
             }
         }
 
-        private static Type FindType(string fullName)
+        internal static Type FindType(string fullName)
         {
             foreach (var assembly in AppDomain.CurrentDomain.GetAssemblies())
             {
@@ -130,6 +130,39 @@ namespace AvatarOmamori.Editor.Performance
             }
 
             return null;
+        }
+
+        /// <summary>
+        /// アバター配下の Renderer を、EditorOnly タグの祖先を除外して収集する。
+        /// SDK のパフォーマンス計測はこの条件で走査しているため、内訳（パーツ別の <c>PerformanceBreakdownBuilder</c>）と
+        /// 合わせないと合計が公式値とずれる（EditorOnly タグ付きオブジェクト配下は SDK の走査対象外）。
+        /// </summary>
+        internal static List<Renderer> CollectRenderers(GameObject avatarRoot)
+        {
+            var renderers = new List<Renderer>();
+            if (avatarRoot == null) return renderers;
+
+            foreach (var renderer in avatarRoot.GetComponentsInChildren<Renderer>(true))
+            {
+                if (IsUnderEditorOnly(renderer.transform)) continue;
+                renderers.Add(renderer);
+            }
+
+            return renderers;
+        }
+
+        /// <summary>
+        /// <paramref name="t"/> 自身または祖先のいずれかが EditorOnly タグを持つかどうか。
+        /// </summary>
+        private static bool IsUnderEditorOnly(Transform t)
+        {
+            while (t != null)
+            {
+                if (t.CompareTag("EditorOnly")) return true;
+                t = t.parent;
+            }
+
+            return false;
         }
 
         private static AvatarPerformanceStats Calculate(GameObject avatarRoot, bool isMobile)
